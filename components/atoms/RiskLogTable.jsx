@@ -46,6 +46,7 @@ const ACTION_META = {
     updated: {label: 'Redaktə edildi', fg: '#2B5E8C', bg: 'rgba(43,94,140,0.08)', ring: 'rgba(43,94,140,0.3)'},
     deleted: {label: 'Silindi', fg: '#A23B3B', bg: 'rgba(162,59,59,0.08)', ring: 'rgba(162,59,59,0.3)'},
     exported: {label: 'İxrac edildi', fg: '#6B4E8C', bg: 'rgba(107,78,140,0.08)', ring: 'rgba(107,78,140,0.3)'},
+    viewed: {label: 'Baxıldı', fg: '#8A7A2E', bg: 'rgba(138,122,46,0.08)', ring: 'rgba(138,122,46,0.3)'},
 };
 
 const ACTION_FILTERS = [
@@ -54,6 +55,7 @@ const ACTION_FILTERS = [
     {value: 'updated', label: 'Redaktə edildi'},
     {value: 'deleted', label: 'Silindi'},
     {value: 'exported', label: 'İxrac edildi'},
+    {value: 'viewed', label: 'Baxıldı'},
 ];
 
 const FIELD_LABELS = {
@@ -106,6 +108,7 @@ function initialsOf(name) {
 function summaryText(row) {
     if (row.action_type === 'created') return 'Yeni qeyd yaradıldı';
     if (row.action_type === 'deleted') return 'Qeyd silindi';
+    if (row.action_type === 'viewed') return row.risk_designation || 'Baxıldı';
     if (row.action_type === 'exported') {
         const n = row.changes?.row_count?.new ?? '—';
         return `Excel-ə ixrac edildi — ${n} sətir`;
@@ -186,7 +189,7 @@ function DetailDialog({row, onClose}) {
                 {row.action_type === 'exported' && (
                     <Typography sx={{fontSize: 13, color: C.inkMuted}}>
                         {row.changes?.row_count?.new ?? '—'} sətir Excel formatına ixrac edilib.
-                      
+
                     </Typography>
                 )}
 
@@ -350,7 +353,7 @@ export default function RiskLogsPage() {
     const {enqueueSnackbar} = useSnackbar();
 
     const permissions = useAppSelector((state) => state.user?.permissions) || [];
-    const canView = permissions.includes('risk.view_risk');
+    const canView = permissions.includes('risk.view_risklog');
 
     const [rows, setRows] = useState([]);
     const [count, setCount] = useState(0);

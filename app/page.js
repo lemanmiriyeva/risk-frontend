@@ -1,15 +1,46 @@
+"use client"
 import Link from "next/link";
-import { Grid, Typography, Box, Paper, Stack } from "@mui/material";
+import { Grid, Typography, Box, Paper, Stack, CircularProgress } from "@mui/material";
 import SecurityIcon from '@mui/icons-material/Security';
 import AssessmentIcon from '@mui/icons-material/Assessment';
 import AssignmentIcon from '@mui/icons-material/Assignment';
+import { useAppSelector } from "@/lib/hooks";
 
-const modules = [
-    { title: "Risk Reyestri Cədvəli", path: "/risk", icon: <SecurityIcon sx={{ fontSize: 40 }} />, color: "#e3f2fd", iconColor: "#1976d2" },
-    { title: "Risk Reyestri Loqları", path: "/risk/loqlar", icon: <AssignmentIcon sx={{ fontSize: 40 }} />, color: "#e8f5e9", iconColor: "#2e7d32" },
+const ALL_MODULES = [
+    { title: "Risk Reyestri Cədvəli", path: "/risk", icon: <SecurityIcon sx={{ fontSize: 40 }} />, color: "#e3f2fd", iconColor: "#1976d2", permission: "risk.view_risk" },
+    { title: "Risk Reyestri Loqları", path: "/risk/loqlar", icon: <AssignmentIcon sx={{ fontSize: 40 }} />, color: "#e8f5e9", iconColor: "#2e7d32", permission: "risk.view_risklog" },
 ];
 
 export default function Home() {
+    const userState = useAppSelector((state) => state.user);
+    const isLoaded = userState?.isLoaded;
+    const permissions = userState?.permissions || [];
+
+    const modules = ALL_MODULES.filter((m) => permissions.includes(m.permission));
+
+    if (!isLoaded) {
+        return (
+            <Box sx={{ minHeight: "60vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <CircularProgress size={22} />
+            </Box>
+        );
+    }
+
+    if (modules.length === 0) {
+        return (
+            <Box sx={{ minHeight: "60vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Box sx={{ textAlign: "center", maxWidth: 380 }}>
+                    <Typography variant="h5" sx={{ fontWeight: 700, mb: 1 }}>
+                        Giriş icazəniz yoxdur
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                        Hesabınıza heç bir modula giriş icazəsi verilməyib. Zəhmət olmasa sistem administratoru ilə əlaqə saxlayın.
+                    </Typography>
+                </Box>
+            </Box>
+        );
+    }
+
     return (
         <Box sx={{ p: { xs: 3, md: 6 }, maxWidth: 1200, mx: "auto", minHeight: "100vh" }}>
             <Typography variant="h3" sx={{ mb: 1, fontWeight: 800, letterSpacing: "-1px" }}>

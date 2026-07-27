@@ -12,22 +12,22 @@ import Dialog from '@mui/material/Dialog';
 import CircularProgress from '@mui/material/CircularProgress';
 import GlobalStyles from '@mui/material/GlobalStyles';
 import AddIcon from '@mui/icons-material/Add';
+import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import SearchIcon from '@mui/icons-material/Search';
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 import CloseIcon from '@mui/icons-material/Close';
-import FileDownloadIcon from '@mui/icons-material/FileDownload';
+import TableChartOutlinedIcon from '@mui/icons-material/TableChartOutlined';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
+import {useRouter} from 'next/navigation';
 import {useSnackbar} from "notistack";
 import {useAppSelector} from "@/lib/hooks";
-import {handleError} from "@/app/utils";
+import {handleError, logPageView} from "@/app/utils";
 import {NEXT_API_ENDPOINTS} from "@/app/urls";
 import {service_api} from "@/app/service";
 import RiskFormDialog, {TREATMENT_OPTIONS, RISK_LEVEL_META} from "./RiskFormDialog";
-import ExcelJS from 'exceljs';
-import {saveAs} from 'file-saver';
 
 
 const C = {
@@ -257,6 +257,7 @@ function RiskRow({row, treatmentLabel, canEdit, canDelete, onView, onEdit, onDel
 
 export default function RiskRegistryPage() {
     const {enqueueSnackbar} = useSnackbar();
+    const router = useRouter();
     const userState = useAppSelector((state) => state.user);
     const isLoaded = userState?.isLoaded;
     const permissions = userState?.permissions || [];
@@ -265,6 +266,9 @@ export default function RiskRegistryPage() {
     const canCreate = permissions.includes('risk.add_risk');
     const canEdit = permissions.includes('risk.change_risk');
     const canDelete = permissions.includes('risk.delete_risk');
+    // Yalnız "riskə baxış" icazəsi olan (redaktə/yaratma/silmə icazəsi olmayan)
+    // istifadəçi bu tam moduldan yalnız "Risk cədvəlinə baxış" moduluna keçid edə bilər.
+    const viewOnly = canView && !canCreate && !canEdit && !canDelete;
 
     const [rows, setRows] = useState([]);
     const [count, setCount] = useState(0);
@@ -304,64 +308,6 @@ export default function RiskRegistryPage() {
         return map;
     }, []);
 
-    const exportToExcel = async () => {
-        const levelMap = {critical: 'Kritik', high: 'Yüksək', medium: 'Orta', low: 'Aşağı'};
-
-        const workbook = new ExcelJS.Workbook();
-        const worksheet = workbook.addWorksheet('Risk Reyestri');
-
-        worksheet.columns = [
-            {header: 'Təyinat', key: 'designation', width: 30},
-            {header: 'Risk dərəcəsi', key: 'risk_degree', width: 15},
-            {header: 'Risk səviyyəsi', key: 'risk_level', width: 20},
-            {header: 'Emal variantı', key: 'treatment_option', width: 25},
-            {header: 'Yaradan', key: 'created_by', width: 20},
-            {header: 'Son dəyişiklik', key: 'updated_at', width: 20},
-        ];
-
-        worksheet.getRow(1).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: 'FF2C3E50'}};
-        worksheet.getRow(1).font = {color: {argb: 'FFFFFFFF'}, bold: true};
-        worksheet.getRow(1).alignment = {horizontal: 'center'};
-
-        rows.forEach((row) => {
-            const translatedLevel = levelMap[row.risk_level] || row.risk_level;
-            const item = worksheet.addRow({
-                designation: row.designation,
-                risk_degree: row.risk_degree,
-                risk_level: translatedLevel,
-                treatment_option: treatmentLabel[row.treatment_option] || row.treatment_option,
-                created_by: row.created_by?.name || row.created_by?.username,
-                updated_at: row.updated_at ? new Date(row.updated_at).toLocaleString('az-AZ') : '—'
-            });
-
-            const cell = item.getCell(3);
-            if (row.risk_level === 'critical') {
-                cell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: 'FFD32F2F'}};
-                cell.font = {color: {argb: 'FFFFFFFF'}};
-            } else if (row.risk_level === 'high') {
-                cell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: 'FFFFA000'}};
-                cell.font = {color: {argb: 'FF000000'}};
-            } else if (row.risk_level === 'low') {
-                cell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: 'FF388E3C'}};
-                cell.font = {color: {argb: 'FFFFFFFF'}};
-            }
-            item.alignment = {horizontal: 'center'};
-        });
-
-        const buffer = await workbook.xlsx.writeBuffer();
-        saveAs(new Blob([buffer]), 'Risk_Reyestri.xlsx');
-
-        try {
-            await service_api.post(NEXT_API_ENDPOINTS.RISK.EXPORT_LOG, {
-                export_type: 'risk_list',
-                row_count: rows.length,
-                filters: {search, risk_level: levelFilter, treatment_option: treatmentFilter, ordering},
-            });
-        } catch (e) {
-            console.error('Export logu göndərilmədi:', e);
-        }
-    };
-
     const fetchRisks = useCallback(async () => {
         setLoading(true);
         try {
@@ -381,9 +327,21 @@ export default function RiskRegistryPage() {
         }
     }, [buildQuery, enqueueSnackbar]);
 
+    // Yalnız "riskə baxış" icazəsi olan istifadəçini avtomatik "Risk cədvəlinə baxış"
+    // moduluna yönləndiririk - bu tam CRUD modulu ona görünməməlidir.
+    useEffect(() => {
+        if (isLoaded && viewOnly) {
+            router.replace('/risk/cedvel');
+        }
+    }, [isLoaded, viewOnly, router]);
+
     useEffect(() => {
         if (canView) fetchRisks();
     }, [canView, fetchRisks]);
+
+    useEffect(() => {
+        if (isLoaded && canView && !viewOnly) logPageView('risk_list');
+    }, [isLoaded, canView, viewOnly]);
 
     useEffect(() => {
         const t = setTimeout(() => setPage(0), 300);
@@ -485,32 +443,7 @@ export default function RiskRegistryPage() {
                                 {count} risk qeydi tapıldı
                             </Typography>
                         </Box>
-                        <Box sx={{display: 'flex', gap: 1}}>
-                            <Button
-                                startIcon={<FileDownloadIcon sx={{fontSize: 16}}/>}
-                                onClick={exportToExcel}
-                                sx={{
-                                    color: C.gold, border: `1px solid ${C.goldMuted}`, borderRadius: '4px',
-                                    px: 2, py: 0.75, fontSize: 13, textTransform: 'none',
-                                    '&:hover': {backgroundColor: C.goldWash, border: `1px solid ${C.gold}`},
-                                }}
-                            >
-                                Excel-ə ixrac
-                            </Button>
-                            {canCreate && (
-                                <Button
-                                    startIcon={<AddIcon sx={{fontSize: 17}}/>}
-                                    onClick={openCreate}
-                                    sx={{
-                                        backgroundColor: C.ink, color: C.surface, borderRadius: '4px',
-                                        px: 2.25, py: 0.75, fontSize: 13, textTransform: 'none',
-                                        '&:hover': {backgroundColor: '#33302A'},
-                                    }}
-                                >
-                                    Yeni risk yarat
-                                </Button>
-                            )}
-                        </Box>
+
                     </Box>
                 </Box>
 

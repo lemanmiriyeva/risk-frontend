@@ -8,11 +8,11 @@ import {LOGIN_SUCCESSFUL} from "@/components/constants";
 export async function POST(req) {
     // Perform sign-in logic here, and obtain the token
     // Obtain username and password from request body
-    const {username, password} = await req.json();
+    const {username, password, code} = await req.json();
     try {
 
         // request backend
-        const _res = await post_request(DJANGO_API_ENDPOINTS.AUTHENTICATION.TOKEN, {username, password})
+        const _res = await post_request(DJANGO_API_ENDPOINTS.AUTHENTICATION.TOKEN, {username, password, ...(code ? {code} : {})})
 
         if (_res.status === 200) {
             // get response cookies

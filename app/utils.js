@@ -1,6 +1,7 @@
 import dayjs from "dayjs";
 import {APP_ROUTES, DISPLAY_DATE_FORMAT} from "@/components/constants";
 import {service_api} from "@/app/service";
+import {NEXT_API_ENDPOINTS} from "@/app/urls";
 
 function isString(e) {
     return typeof e === 'string';
@@ -144,4 +145,14 @@ export function formatPrice(price) {
     return new Intl.NumberFormat("de-DE", { style: "currency", currency: "AZN", currencyDisplay: 'narrowSymbol' }).format(
         price,
     )
+}
+
+// Səhifə baxışlarını / modullar arası keçidləri backend loquna göndərir.
+// "page" - risk_list | risk_table | risk_logs | home | module_nav
+export async function logPageView(page, extra = {}) {
+    try {
+        await service_api.post(NEXT_API_ENDPOINTS.RISK.VIEW_LOG, {page, extra});
+    } catch (e) {
+        console.log('Baxış logu göndərilmədi:', e);
+    }
 }

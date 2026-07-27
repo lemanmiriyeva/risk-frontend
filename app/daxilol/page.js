@@ -112,10 +112,9 @@ export default function Page() {
             const user_res = await service_api.get(NEXT_API_ENDPOINTS.AUTHENTICATION.USER)
             const user = await user_res.data
             if (!isEmpty(user)) {
-                dispatch(setUser(user))
                 if (!user.two_fa_confirmed) {
                     router.push(APP_ROUTES.TWO_FA_SETUP)
-                } else if (!user.is_approved) {
+                } else if (!user.is_approved) {          // ⬅️ BURA
                     router.push(APP_ROUTES.PENDING_APPROVAL)
                 } else {
                     router.push(APP_ROUTES.HOME)

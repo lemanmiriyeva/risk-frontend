@@ -75,7 +75,13 @@ export default function Page() {
                 if (res.data?.qr_code) {
                     setQrCode(res.data.qr_code);
                 } else if (res.data?.detail) {
-                    router.push(APP_ROUTES.HOME);
+                    const { is_approved, permissions = [] } = res.data;
+                    const hasRiskAccess = permissions.some((p) => p.startsWith('risk.'));
+                    if (is_approved && hasRiskAccess) {
+                        router.push(APP_ROUTES.HOME);
+                    } else {
+                        router.push(APP_ROUTES.PENDING_APPROVAL);
+                    }
                 }
             } catch (e) {
                 setError(handleError(e));
@@ -92,7 +98,15 @@ export default function Page() {
         try {
             const res = await service_api.post(NEXT_API_ENDPOINTS.AUTHENTICATION.TWO_FA_VERIFY, {code});
             enqueueSnackbar('2FA uğurla təsdiqləndi.', {variant: 'success'});
-            router.push(APP_ROUTES.PENDING_APPROVAL);
+
+            const { is_approved, permissions = [] } = res.data;
+            const hasRiskAccess = permissions.some((p) => p.startsWith('risk.'));
+
+            if (is_approved && hasRiskAccess) {
+                router.push(APP_ROUTES.HOME);
+            } else {
+                router.push(APP_ROUTES.PENDING_APPROVAL);
+            }
         } catch (e) {
             const msg = e?.response?.data?.detail || handleError(e);
             setError(msg);

@@ -266,8 +266,7 @@ export default function RiskRegistryPage() {
     const canCreate = permissions.includes('risk.add_risk');
     const canEdit = permissions.includes('risk.change_risk');
     const canDelete = permissions.includes('risk.delete_risk');
-    // Yalnız "riskə baxış" icazəsi olan (redaktə/yaratma/silmə icazəsi olmayan)
-    // istifadəçi bu tam moduldan yalnız "Risk cədvəlinə baxış" moduluna keçid edə bilər.
+
     const viewOnly = canView && !canCreate && !canEdit && !canDelete;
 
     const [rows, setRows] = useState([]);
@@ -327,8 +326,6 @@ export default function RiskRegistryPage() {
         }
     }, [buildQuery, enqueueSnackbar]);
 
-    // Yalnız "riskə baxış" icazəsi olan istifadəçini avtomatik "Risk cədvəlinə baxış"
-    // moduluna yönləndiririk - bu tam CRUD modulu ona görünməməlidir.
     useEffect(() => {
         if (isLoaded && viewOnly) {
             router.replace('/risk/cedvel');
@@ -444,6 +441,31 @@ export default function RiskRegistryPage() {
                             </Typography>
                         </Box>
 
+                        {/* Risk yarat düyməsi (yalnız icazəsi olanlar üçün) */}
+                        {canCreate && (
+                            <Button
+                                variant="contained"
+                                startIcon={<AddIcon />}
+                                onClick={openCreate}
+                                sx={{
+                                    backgroundColor: C.ink,
+                                    color: C.bg,
+                                    textTransform: 'none',
+                                    fontSize: 13.5,
+                                    fontWeight: 500,
+                                    borderRadius: '4px',
+                                    boxShadow: 'none',
+                                    px: 2.5,
+                                    py: 1,
+                                    '&:hover': {
+                                        backgroundColor: C.gold,
+                                        boxShadow: 'none',
+                                    },
+                                }}
+                            >
+                                Risk yarat
+                            </Button>
+                        )}
                     </Box>
                 </Box>
 

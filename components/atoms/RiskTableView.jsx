@@ -6,12 +6,16 @@ import TablePagination from '@mui/material/TablePagination';
 import TextField from '@mui/material/TextField';
 import MenuItem from '@mui/material/MenuItem';
 import Button from '@mui/material/Button';
+import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
+import Dialog from '@mui/material/Dialog';
 import CircularProgress from '@mui/material/CircularProgress';
 import GlobalStyles from '@mui/material/GlobalStyles';
 import SearchIcon from '@mui/icons-material/Search';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
+import CloseIcon from '@mui/icons-material/Close';
 import Link from 'next/link';
 import {useSnackbar} from "notistack";
 import {useAppSelector} from "@/lib/hooks";
@@ -52,7 +56,6 @@ const RISK_LEVEL_FILTERS = [
     {value: 'low', label: 'Aşağı'},
 ];
 
-// Cədvəldə görünəcək BÜTÜN sahələr (Risk cədvəlinə baxış modulu bütün field-ləri göstərir)
 const COLUMNS = [
     {field: 'id', label: 'ID', width: 60},
     {field: 'designation', label: 'Təyinat', width: 220},
@@ -73,6 +76,7 @@ const COLUMNS = [
     {field: 'updated_by', label: 'Son dəyişikliyi edən', width: 160},
     {field: 'created_at', label: 'Yaradılma tarixi', width: 150},
     {field: 'updated_at', label: 'Son dəyişiklik tarixi', width: 150},
+    {field: 'actions', label: 'Əməliyyat', width: 90, fixed: true}, // Detal düyməsi üçün sütun
 ];
 
 function cellValue(row, field, treatmentLabel) {
@@ -95,11 +99,103 @@ function cellValue(row, field, treatmentLabel) {
     }
 }
 
-function RiskFullRow({row, treatmentLabel}) {
+function DetailField({label, value}) {
+    if (value === null || value === undefined || value === '') return null;
+    return (
+        <Box sx={{mb: 1.5}}>
+            <Typography sx={{fontSize: 12, letterSpacing: '0.04em', color: C.inkFaint, textTransform: 'uppercase', fontWeight: 700, mb: 0.25}}>
+                {label}
+            </Typography>
+            <Typography sx={{fontSize: 13.5, color: C.ink, whiteSpace: 'pre-wrap', wordBreak: 'break-word'}}>
+                {value}
+            </Typography>
+        </Box>
+    );
+}
+
+function RiskDetailDialog({row, onClose, treatmentLabel}) {
+    if (!row) return null;
+    const level = LEVEL_COLORS[row.risk_level] || LEVEL_COLORS.low;
+    const meta = RISK_LEVEL_META[row.risk_level] || RISK_LEVEL_META.low;
+
+    return (
+        <Dialog
+            open onClose={onClose} maxWidth="md" fullWidth
+            PaperProps={{sx: {backgroundColor: C.surface, backgroundImage: 'none', border: `1px solid ${C.line}`, borderRadius: '4px'}}}
+        >
+            <Box sx={{px: 3, pt: 3, pb: 2, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', borderBottom: `1px solid ${C.line}`}}>
+                <Box>
+                    <Typography sx={{fontFamily: 'var(--font-mono)', fontSize: 12, letterSpacing: '0.08em', color: C.gold, textTransform: 'uppercase', mb: 0.5}}>
+                        Reyestr № {row.id ?? '—'}
+                    </Typography>
+                    <Typography sx={{fontFamily: 'var(--font-serif)', fontSize: 20, color: C.ink, fontWeight: 700, lineHeight: 1.3}}>
+                        {row.designation}
+                    </Typography>
+                    <Box sx={{display: 'inline-flex', alignItems: 'center', gap: 0.75, mt: 1, px: 1, py: 0.4, borderRadius: '3px', backgroundColor: level.bg, border: `1px solid ${level.ring}`}}>
+                        <Box sx={{width: 6, height: 6, borderRadius: '50%', backgroundColor: level.fg}}/>
+                        <Typography sx={{fontSize: 12, color: level.fg, fontWeight: 500}}>{meta.label}</Typography>
+                    </Box>
+                </Box>
+                <IconButton size="small" onClick={onClose} sx={{color: C.inkMuted}}>
+                    <CloseIcon fontSize="small"/>
+                </IconButton>
+            </Box>
+
+            <Box sx={{px: 3, py: 2.5, maxHeight: '60vh', overflowY: 'auto'}}>
+                <Box sx={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2, mb: 2}}>
+                    <DetailField label="Risk dərəcəsi (P)" value={`${row.risk_degree} / 125`}/>
+                    <DetailField label="Emal variantı (Q)" value={treatmentLabel[row.treatment_option] || row.treatment_option}/>
+                </Box>
+                <Box sx={{borderTop: `1px solid ${C.line}`, pt: 2, mb: 2}}>
+                    <DetailField label="Hüquqi əsas" value={row.legal_basis}/>
+                    <DetailField label="Beynəlxalq çərçivələr / Çərçivə istinadı" value={row.international_framework}/>
+                    <DetailField label="Milli hüquqi istinad" value={row.national_legal_reference}/>
+                </Box>
+                <Box sx={{borderTop: `1px solid ${C.line}`, pt: 2, mb: 2, display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 2}}>
+                    <DetailField label="Aktivin dəyəri (H)" value={row.asset_value}/>
+                    <DetailField label="Ehtimal (M)" value={row.probability}/>
+                    <DetailField label="Təsir (N)" value={row.impact}/>
+                </Box>
+                <Box sx={{borderTop: `1px solid ${C.line}`, pt: 2, mb: 2}}>
+                    <DetailField label="Qalıq risk (T)" value={row.residual_risk}/>
+                    <DetailField label="Yenilənmə tarixi/tezliyi" value={row.update_frequency}/>
+                    <DetailField label="İnsident bildirişi qeydləri" value={row.incident_notification_notes}/>
+                    <DetailField label="Standartlara istinadlar" value={row.standard_references}/>
+                </Box>
+                <Box sx={{borderTop: `1px solid ${C.line}`, pt: 2, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2}}>
+                    <DetailField label="Yaradan" value={row.created_by?.name || row.created_by?.username}/>
+                    <DetailField label="Yaradılma tarixi" value={row.created_at ? new Date(row.created_at).toLocaleString('az-AZ') : null}/>
+                    <DetailField label="Son dəyişikliyi edən" value={row.updated_by?.name || row.updated_by?.username}/>
+                    <DetailField label="Son dəyişiklik tarixi" value={row.updated_at ? new Date(row.updated_at).toLocaleString('az-AZ') : null}/>
+                </Box>
+            </Box>
+
+            <Box sx={{px: 3, pb: 3, display: 'flex', justifyContent: 'flex-end', borderTop: `1px solid ${C.line}`, pt: 2}}>
+                <Button onClick={onClose} sx={{color: C.inkMuted, '&:hover': {backgroundColor: 'rgba(0,0,0,0.035)'}}}>
+                    Bağla
+                </Button>
+            </Box>
+        </Dialog>
+    );
+}
+
+function RiskFullRow({row, treatmentLabel, onView}) {
     const level = LEVEL_COLORS[row.risk_level] || LEVEL_COLORS.low;
     return (
         <Box sx={{display: 'flex', borderBottom: `1px solid ${C.line}`, '&:hover': {backgroundColor: 'rgba(0,0,0,0.015)'}}}>
             {COLUMNS.map((col) => {
+                if (col.field === 'actions') {
+                    return (
+                        <Box key={col.field} sx={{width: col.width, flexShrink: 0, px: 1.5, py: 1.2, display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+                            <Tooltip title="Ətraflı bax">
+                                <IconButton size="small" onClick={() => onView(row)} sx={{color: C.inkFaint}}>
+                                    <VisibilityOutlinedIcon sx={{fontSize: 17}}/>
+                                </IconButton>
+                            </Tooltip>
+                        </Box>
+                    );
+                }
+
                 const value = cellValue(row, col.field, treatmentLabel);
                 if (col.field === 'risk_level') {
                     return (
@@ -145,6 +241,7 @@ export default function RiskTableView() {
 
     const [page, setPage] = useState(0);
     const [pageSize, setPageSize] = useState(10);
+    const [detailRow, setDetailRow] = useState(null);
 
     const treatmentLabel = useMemo(() => {
         const map = {};
@@ -199,7 +296,9 @@ export default function RiskTableView() {
         const workbook = new ExcelJS.Workbook();
         const worksheet = workbook.addWorksheet('Risk Cədvəli');
 
-        worksheet.columns = COLUMNS.map((c) => ({header: c.label, key: c.field, width: Math.max(14, Math.round(c.width / 7))}));
+        // Excel ixracından actions sütununu xaric edirik
+        const exportColumns = COLUMNS.filter((c) => c.field !== 'actions');
+        worksheet.columns = exportColumns.map((c) => ({header: c.label, key: c.field, width: Math.max(14, Math.round(c.width / 7))}));
 
         worksheet.getRow(1).fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: 'FF2C3E50'}};
         worksheet.getRow(1).font = {color: {argb: 'FFFFFFFF'}, bold: true};
@@ -207,7 +306,7 @@ export default function RiskTableView() {
 
         rows.forEach((row) => {
             const record = {};
-            COLUMNS.forEach((c) => {
+            exportColumns.forEach((c) => {
                 record[c.field] = cellValue(row, c.field, treatmentLabel);
             });
             worksheet.addRow(record);
@@ -265,14 +364,7 @@ export default function RiskTableView() {
 
             <Box sx={{maxWidth: 1440, mx: 'auto'}}>
                 <Box sx={{mb: 4, pb: 3, borderBottom: `1px solid ${C.line}`}}>
-                    <Link href="/risk" style={{textDecoration: 'none'}}>
-                        <Typography sx={{
-                            display: 'inline-flex', alignItems: 'center', gap: 0.5, fontSize: 12.5,
-                            color: C.inkMuted, mb: 1.5, '&:hover': {color: C.gold},
-                        }}>
-                            <ArrowBackIcon sx={{fontSize: 14}}/> Risklərə baxış
-                        </Typography>
-                    </Link>
+
                     <Typography sx={{fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '0.12em', color: C.gold, textTransform: 'uppercase', mb: 1}}>
                         Reyestr — Salt oxuma
                     </Typography>
@@ -370,7 +462,7 @@ export default function RiskTableView() {
                         )}
 
                         {!loading && rows.map((row) => (
-                            <RiskFullRow key={row.id} row={row} treatmentLabel={treatmentLabel}/>
+                            <RiskFullRow key={row.id} row={row} treatmentLabel={treatmentLabel} onView={setDetailRow}/>
                         ))}
                     </Box>
                 </Box>
@@ -392,6 +484,8 @@ export default function RiskTableView() {
                     }}
                 />
             </Box>
+
+            <RiskDetailDialog row={detailRow} onClose={() => setDetailRow(null)} treatmentLabel={treatmentLabel}/>
         </Box>
     );
 }

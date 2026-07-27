@@ -20,7 +20,9 @@ export const DJANGO_API_ENDPOINTS = {
         LOGS:API_URL + "/api/risk/logs/",
         EXPORT_LOG: API_URL + "/api/risk/export-log/"
 
-    }
+    },
+
+    MODULES: API_URL + "/api/modules/",
 
 }
 
@@ -42,6 +44,7 @@ export const NEXT_API_ENDPOINTS = {
         LOGS:"risk/logs/",
         EXPORT_LOG: 'risk/export-log/',
 
-    }
+    },
+    MODULES: "/modules/",
 
 }

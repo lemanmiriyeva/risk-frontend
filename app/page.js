@@ -1,54 +1,49 @@
 "use client"
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Grid, Typography, Box, Paper, CircularProgress } from "@mui/material";
+import { Grid, Typography, Box, Paper, CircularProgress, Chip } from "@mui/material";
 import SecurityIcon from '@mui/icons-material/Security';
-import AssignmentIcon from '@mui/icons-material/Assignment';
+import DescriptionIcon from '@mui/icons-material/Description';
 import ViewModuleIcon from '@mui/icons-material/ViewModule';
-import { useAppSelector } from "@/lib/hooks";
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import { service_api } from "@/app/service";
 import { NEXT_API_ENDPOINTS } from "@/app/urls";
 
-// Permission-a görə ikon/rəng — yeni modul əlavə etdikcə bura yeni sətir əlavə edin
+// url_endpoint-ə görə ikon/rəng — yeni modul əlavə etdikcə bura yeni sətir əlavə edin
 const ICON_MAP = {
-    "risk.view_risk": { icon: <SecurityIcon sx={{ fontSize: 40 }} />, color: "#e3f2fd", iconColor: "#1976d2" },
-    "risk.view_risklog": { icon: <AssignmentIcon sx={{ fontSize: 40 }} />, color: "#e8f5e9", iconColor: "#2e7d32" },
+    "risk": { icon: <SecurityIcon sx={{ fontSize: 32 }} />, gradient: "linear-gradient(135deg, #1976d2 0%, #4dabf5 100%)" },
+    "risk-logs": { icon: <DescriptionIcon sx={{ fontSize: 32 }} />, gradient: "linear-gradient(135deg, #2e7d32 0%, #66bb6a 100%)" },
 };
-const DEFAULT_ICON = { icon: <ViewModuleIcon sx={{ fontSize: 40 }} />, color: "#f3f4f6", iconColor: "#374151" };
+const DEFAULT_ICON = { icon: <ViewModuleIcon sx={{ fontSize: 32 }} />, gradient: "linear-gradient(135deg, #374151 0%, #6b7280 100%)" };
+
+function getIconConf(urlEndpoint) {
+    return ICON_MAP[urlEndpoint] || DEFAULT_ICON;
+}
 
 export default function Home() {
-    const userState = useAppSelector((state) => state.user);
-    const isLoaded = userState?.isLoaded;
-    const permissions = userState?.permissions || [];
-
     const [modules, setModules] = useState([]);
-    const [modulesLoading, setModulesLoading] = useState(true);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         (async () => {
             try {
-                const res = await service_api.get(NEXT_API_ENDPOINTS.MODULES);
+                const res = await service_api.get(NEXT_API_ENDPOINTS.CORE.MODULES);
                 setModules(res.data || []);
             } catch (e) {
                 console.error(e);
             } finally {
-                setModulesLoading(false);
+                setLoading(false);
             }
         })();
     }, []);
 
-    const visibleModules = modules
-        .filter((m) => permissions.includes(m.permission))
-        .map((m) => {
-            const useElevated = m.elevated_permission && permissions.includes(m.elevated_permission) && m.elevated_path;
-            return {
-                ...m,
-                resolvedPath: useElevated ? m.elevated_path : m.path,
-            };
-        })
-        .filter((m) => !!m.resolvedPath);
+    // Backend icazəli modullar üçün url_endpoint (və sub_modules) qaytarır,
+    // icazəsiz olanlar üçün yalnız {id, title} — ona görə url_endpoint olanlar "açıq" moduldur.
+    const accessibleModules = modules.filter((m) => !!m.url_endpoint);
+    const lockedModules = modules.filter((m) => !m.url_endpoint);
 
-    if (!isLoaded || modulesLoading) {
+    if (loading) {
         return (
             <Box sx={{ minHeight: "60vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <CircularProgress size={22} />
@@ -56,10 +51,11 @@ export default function Home() {
         );
     }
 
-    if (visibleModules.length === 0) {
+    if (accessibleModules.length === 0) {
         return (
             <Box sx={{ minHeight: "60vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <Box sx={{ textAlign: "center", maxWidth: 380 }}>
+                    <LockOutlinedIcon sx={{ fontSize: 48, color: "text.disabled", mb: 2 }} />
                     <Typography variant="h5" sx={{ fontWeight: 700, mb: 1 }}>
                         Giriş icazəniz yoxdur
                     </Typography>
@@ -81,41 +77,117 @@ export default function Home() {
             </Typography>
 
             <Grid container spacing={4}>
-                {visibleModules.map((module) => {
-                    const iconConf = ICON_MAP[module.permission] || DEFAULT_ICON;
+                {accessibleModules.map((module) => {
+                    const iconConf = getIconConf(module.url_endpoint);
+                    const subModules = module.sub_modules || [];
+
                     return (
-                        <Grid item xs={12} sm={6} md={4} key={module.title}>
-                            <Link href={module.resolvedPath} style={{ textDecoration: 'none' }}>
-                                <Paper
-                                    elevation={0}
-                                    sx={{
-                                        p: 4, borderRadius: 4, border: "1px solid", borderColor: "divider",
-                                        height: "100%", transition: "all 0.3s ease", display: "flex",
-                                        flexDirection: "column", gap: 2,
-                                        "&:hover": { borderColor: "primary.main", boxShadow: "0 10px 30px rgba(0,0,0,0.08)", transform: "translateY(-8px)" }
-                                    }}
-                                >
-                                    <Box sx={{
-                                        width: 70, height: 70, borderRadius: 3,
-                                        backgroundColor: iconConf.color, color: iconConf.iconColor,
-                                        display: "flex", alignItems: "center", justifyContent: "center", mb: 1
-                                    }}>
-                                        {iconConf.icon}
+                        <Grid item xs={12} sm={6} md={4} key={module.id}>
+                            <Paper
+                                elevation={0}
+                                sx={{
+                                    position: "relative",
+                                    borderRadius: 4,
+                                    border: "1px solid",
+                                    borderColor: "divider",
+                                    height: "100%",
+                                    overflow: "hidden",
+                                    transition: "all 0.3s ease",
+                                    "&:hover": {
+                                        borderColor: "transparent",
+                                        boxShadow: "0 16px 40px rgba(0,0,0,0.1)",
+                                        transform: "translateY(-6px)",
+                                    },
+                                }}
+                            >
+                                <Link href={`/${module.url_endpoint}`} style={{ textDecoration: "none", color: "inherit" }}>
+                                    <Box
+                                        sx={{
+                                            height: 90,
+                                            background: iconConf.gradient,
+                                            display: "flex",
+                                            alignItems: "center",
+                                            px: 3,
+                                            position: "relative",
+                                        }}
+                                    >
+                                        <Box
+                                            sx={{
+                                                width: 56,
+                                                height: 56,
+                                                borderRadius: 2.5,
+                                                backgroundColor: "rgba(255,255,255,0.2)",
+                                                backdropFilter: "blur(4px)",
+                                                display: "flex",
+                                                alignItems: "center",
+                                                justifyContent: "center",
+                                                color: "#fff",
+                                            }}
+                                        >
+                                            {iconConf.icon}
+                                        </Box>
+                                        <ArrowForwardIcon
+                                            sx={{
+                                                position: "absolute",
+                                                right: 20,
+                                                top: "50%",
+                                                transform: "translateY(-50%)",
+                                                color: "rgba(255,255,255,0.7)",
+                                            }}
+                                        />
                                     </Box>
-                                    <Box>
-                                        <Typography variant="h5" sx={{ fontWeight: 700, mb: 1 }}>
+
+                                    <Box sx={{ p: 3 }}>
+                                        <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5, color: "text.primary" }}>
                                             {module.title}
                                         </Typography>
-                                        <Typography variant="body2" color="text.secondary">
-                                            {module.title} moduluna keçid etmək üçün bura klikləyin.
+                                        <Typography variant="body2" color="text.secondary" sx={{ mb: subModules.length ? 2 : 0 }}>
+                                            {module.description || `${module.title} moduluna keçid etmək üçün klikləyin.`}
                                         </Typography>
                                     </Box>
-                                </Paper>
-                            </Link>
+                                </Link>
+
+                                {subModules.length > 0 && (
+                                    <Box sx={{ px: 3, pb: 2.5, display: "flex", flexWrap: "wrap", gap: 1 }}>
+                                        {subModules.map((sub) => (
+                                            <Link key={sub.id} href={`/${module.url_endpoint}/${sub.url_endpoint}`} style={{ textDecoration: "none" }}>
+                                                <Chip
+                                                    label={sub.title}
+                                                    size="small"
+                                                    clickable
+                                                    sx={{
+                                                        fontWeight: 500,
+                                                        "&:hover": { backgroundColor: "action.selected" },
+                                                    }}
+                                                />
+                                            </Link>
+                                        ))}
+                                    </Box>
+                                )}
+                            </Paper>
                         </Grid>
                     );
                 })}
             </Grid>
+
+            {lockedModules.length > 0 && (
+                <Box sx={{ mt: 6, pt: 4, borderTop: "1px solid", borderColor: "divider" }}>
+                    <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 2, fontWeight: 600 }}>
+                        Giriş icazəniz olmayan modullar
+                    </Typography>
+                    <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1.5 }}>
+                        {lockedModules.map((module) => (
+                            <Chip
+                                key={module.id}
+                                icon={<LockOutlinedIcon sx={{ fontSize: 16 }} />}
+                                label={module.title}
+                                variant="outlined"
+                                sx={{ color: "text.disabled", borderColor: "divider" }}
+                            />
+                        ))}
+                    </Box>
+                </Box>
+            )}
         </Box>
     );
 }

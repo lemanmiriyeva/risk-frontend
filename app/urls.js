@@ -14,16 +14,19 @@ export const DJANGO_API_ENDPOINTS = {
         TWO_FA_SETUP: API_URL + "/api/authentication/2fa/setup/",
         TWO_FA_VERIFY: API_URL + "/api/authentication/2fa/verify/",
     },
-    RISK:{
-        LIST:API_URL + "/api/risk/",
-        DETAIL:API_URL + "/api/risk/",
-        LOGS:API_URL + "/api/risk/logs/",
+    RISK: {
+        LIST: API_URL + "/api/risk/",
+        DETAIL: API_URL + "/api/risk/",
+        LOGS: API_URL + "/api/risk/logs/",
         EXPORT_LOG: API_URL + "/api/risk/export-log/"
-
     },
 
-    MODULES: API_URL + "/api/modules/",
 
+    CORE:{
+    MODULES: API_URL + "/api/modules/",
+        STATUS: API_URL + "/api/status/",
+        CHECK_MODULE_ACCESS: API_URL + '/api/check-module-access/',
+    },
 }
 
 export const NEXT_API_ENDPOINTS = {
@@ -45,6 +48,11 @@ export const NEXT_API_ENDPOINTS = {
         EXPORT_LOG: 'risk/export-log/',
 
     },
-    MODULES: "/modules/",
+
+    CORE:{
+        MODULES: "modules/",
+        STATUS: "status/",
+        CHECK_MODULE_ACCESS: 'check-module-access/',
+    },
 
 }

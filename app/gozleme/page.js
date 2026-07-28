@@ -1,12 +1,20 @@
 "use client"
-import React from 'react';
+import React, {useEffect, useState, useCallback} from 'react';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
+import CircularProgress from '@mui/material/CircularProgress';
 import CssBaseline from "@mui/material/CssBaseline";
 import Image from "next/image";
+import {useRouter} from "next/navigation";
 
 import bina from "@/app/msn_bina.png"
 import logo from "@/app/logo.svg"
+import {service_api} from "@/app/service";
+import {NEXT_API_ENDPOINTS} from "@/app/urls";
+import {APP_ROUTES} from "@/components/constants";
+
+const CHECK_INTERVAL_MS = 10000; // hər 10 saniyədə bir yoxla
 
 function BrandMark() {
     return (
@@ -50,11 +58,39 @@ function BuildingBlueprint() {
 }
 
 export default function Page() {
+    const router = useRouter();
+    const [checking, setChecking] = useState(false);
+
+    const checkAccess = useCallback(async () => {
+        setChecking(true);
+        try {
+            const res = await service_api.get(NEXT_API_ENDPOINTS.AUTHENTICATION.USER);
+            const {is_approved, permissions = []} = res.data || {};
+            if (is_approved && Array.isArray(permissions) && permissions.length > 0) {
+                router.push(APP_ROUTES.HOME);
+            }
+        } catch (e) {
+            // sükutla keç, növbəti interval-da yenidən cəhd olunacaq
+        } finally {
+            setChecking(false);
+        }
+    }, [router]);
+
+    useEffect(() => {
+        checkAccess();
+        const interval = setInterval(checkAccess, CHECK_INTERVAL_MS);
+        return () => clearInterval(interval);
+    }, [checkAccess]);
+
+    const handleBackToSignIn = () => {
+        router.push(APP_ROUTES.SIGNIN);
+    };
+
     return (
         <Box sx={{
-            display: 'flex', 
-            height: '100vh', 
-            width: '100vw', 
+            display: 'flex',
+            height: '100vh',
+            width: '100vw',
             overflow: 'hidden',
             backgroundColor: '#FFFFFF',
             position: 'fixed',
@@ -128,21 +164,45 @@ export default function Page() {
                 px: 3,
             }}>
                 <Box sx={{
-                    width: '100%', 
-                    maxWidth: 420, 
-                    backgroundColor: '#FFFFFF', 
+                    width: '100%',
+                    maxWidth: 420,
+                    backgroundColor: '#FFFFFF',
                     borderRadius: 3,
-                    boxShadow: '0 20px 45px rgba(15, 23, 55, 0.08)', 
-                    px: {xs: 3, sm: 5}, 
-                    py: 5, 
+                    boxShadow: '0 20px 45px rgba(15, 23, 55, 0.08)',
+                    px: {xs: 3, sm: 5},
+                    py: 5,
                     textAlign: 'center'
                 }}>
                     <Typography sx={{fontSize: 22, fontWeight: 700, color: '#111827', mb: 1.5}}>
                         Giriş icazəsi gözlənilir
                     </Typography>
-                    <Typography sx={{fontSize: 14, color: '#6B7280'}}>
+                    <Typography sx={{fontSize: 14, color: '#6B7280', mb: 3}}>
                         İki addımlı təsdiqləmə uğurla tamamlandı. Sistemə tam giriş üçün admininizlə əlaqə saxlayın.
                     </Typography>
+
+                    <Box sx={{display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, mb: 3}}>
+                        {checking && <CircularProgress size={14}/>}
+                        <Typography sx={{fontSize: 12, color: '#9CA3AF'}}>
+                            İcazə statusu avtomatik yoxlanılır…
+                        </Typography>
+                    </Box>
+
+                    <Button
+                        onClick={handleBackToSignIn}
+                        fullWidth
+                        variant="outlined"
+                        sx={{
+                            textTransform: 'none',
+                            fontWeight: 600,
+                            py: 1.1,
+                            borderRadius: 1.5,
+                            borderColor: '#141B33',
+                            color: '#141B33',
+                            '&:hover': {borderColor: '#0B1024', backgroundColor: 'rgba(20,27,51,0.04)'},
+                        }}
+                    >
+                        Giriş səhifəsinə qayıt
+                    </Button>
                 </Box>
             </Box>
         </Box>

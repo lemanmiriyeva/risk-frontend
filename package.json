@@ -41,7 +41,6 @@
     "@tiptap/react": "^2.11.5",
     "@tiptap/starter-kit": "^2.11.5",
     "axios": "^1.7.7",
-    "canvas": "^2.11.2",
     "chart.js": "^4.4.7",
     "chartjs-plugin-datalabels": "^2.2.0",
     "cookies-next": "^4.3.0",

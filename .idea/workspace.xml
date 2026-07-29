@@ -5,7 +5,33 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="82004209-f401-44a9-ba85-a455e4c04d94" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/app/risk/list/page.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/2fa-qurulmasi/page.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/2fa-qurulmasi/page.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/StoreProvider.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/StoreProvider.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/UserFetcher.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/UserFetcher.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/api/auth/signin/route.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/api/auth/signin/route.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/api/auth/users/route.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/api/auth/users/route.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/api/utils.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/api/utils.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/chixish/page.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/chixish/page.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/daxilol/ResetPassword.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/daxilol/ResetPassword.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/daxilol/page.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/daxilol/page.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/globals.css" beforeDir="false" afterPath="$PROJECT_DIR$/app/globals.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/gozleme/page.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/gozleme/page.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/layout.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/layout.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/page.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/page.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/risk/cedvel/page.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/risk/table/page.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/risk/loqlar/page.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/risk/logs/page.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/risk/page.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/risk/page.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/service.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/service.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/urls.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/urls.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/utils.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/utils.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/BaseHeader.js" beforeDir="false" afterPath="$PROJECT_DIR$/components/BaseHeader.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/atoms/RiskLogTable.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/atoms/RiskLogTable.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/atoms/RiskPage.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/atoms/RiskPage.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/atoms/RiskTableView.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/atoms/RiskTableView.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/constants.js" beforeDir="false" afterPath="$PROJECT_DIR$/components/constants.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -16,10 +42,10 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "customColor": "",
-  "associatedIndex": 3
-}]]></component>
+  <component name="ProjectColorInfo">{
+  &quot;customColor&quot;: &quot;&quot;,
+  &quot;associatedIndex&quot;: 3
+}</component>
   <component name="ProjectId" id="3H4e3BjIQUlabLCpjsE6uY9abt9" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
@@ -39,6 +65,7 @@
     "js.debugger.nextJs.config.created.server": "true",
     "nodejs_package_manager_path": "npm",
     "settings.editor.selected.configurable": "Runtime.Targets.Configurable",
+    "ts.external.directory.path": "C:\\Users\\laman.bashirova\\Documents\\RiskRegisterSystem\\risk-frontend\\node_modules\\typescript\\lib",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
@@ -72,6 +99,7 @@
       <option name="presentableId" value="Default" />
       <updated>1785131567732</updated>
       <workItem from="1785131570158" duration="13234000" />
+      <workItem from="1785301585137" duration="7730000" />
     </task>
     <servers />
   </component>

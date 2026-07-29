@@ -1,7 +1,5 @@
 /*-- CONSTANTS --*/
 
-/*LocalStorage Key*/
-export const INVOICE_LOCAL = "INVOICE_ID"
 /* Cookie */
 export const ACCESS_TOKEN_COOKIE = "access"
 export const REFRESH_TOKEN_COOKIE = "refresh"
@@ -39,6 +37,7 @@ export const APP_ROUTES = {
     PASSWORD_RESET: "/shifre-teyini",
     TWO_FA_SETUP: "/2fa-qurulmasi",
     PENDING_APPROVAL: "/gozleme",
+    ORG_ADMIN: "/qurum-idaresi",
 }
 
 export const DISPLAY_DATE_FORMAT = 'DD MMM YYYY'

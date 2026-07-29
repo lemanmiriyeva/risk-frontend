@@ -6,7 +6,6 @@ import '@fontsource/roboto/700.css';
 import './globals.css'
 import Container from "@mui/material/Container";
 import UserFetcher from "./UserFetcher";
-// import BackToDashButton from "@/components/atoms/mis/BackToDashButton";
 import SnackProvider from "./SnackbarProvider";
 import BaseHeader from "../components/BaseHeader";
 import Theme from '../components/main/Theme'
@@ -20,7 +19,7 @@ export default function RootLayout({ children, params }) {
     return (
         <html lang="en">
         <body>
-        <StoreProvider> {/* İndi <html> və <body> daxilindədir */}
+        <StoreProvider>
             <Theme mode={'light'}>
                     <Suspense fallback={<h1>Loading</h1>}>
                         <SnackProvider>

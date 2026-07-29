@@ -13,7 +13,6 @@ const METHODS = {
 }
 
 const __refresh = async (headers, refresh_token) => {
-    // refresh token
     console.log('refresh called ')
     const refresh_res = await post_request(DJANGO_API_ENDPOINTS.AUTHENTICATION.REFRESH,
         {'refresh': refresh_token}, null, refresh_token, headers)
@@ -23,8 +22,7 @@ const __refresh = async (headers, refresh_token) => {
         const access_payload = await parseJwt(access)
         const refresh_payload = await parseJwt(refresh)
 
-        // Calculate maxAge (in seconds)
-        const currentTimestamp = Math.floor(Date.now() / 1000); // Current time in seconds
+        const currentTimestamp = Math.floor(Date.now() / 1000);
         const access_max_age = access_payload.exp - currentTimestamp;
         const refresh_max_age = refresh_payload.exp - currentTimestamp;
 
@@ -51,7 +49,6 @@ async function __base_request(url, method, data = {}, access_token, refresh_toke
     if (access_token?.value) {
         _headers.set('Authorization', 'Bearer ' + access_token.value)
     }
-    // there is access token
     const config = {
         headers: _headers,
         method,

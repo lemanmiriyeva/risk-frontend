@@ -111,8 +111,8 @@ export function getPageAndFilterData(url = '', page, limit, query) {
                 }
             }
         }
-        // console.log('url: ', url)
-        // console.log('queryString: ', queryString)
+
+        
         try {
             const res = await service_api.get(_url + queryString)
             if (res.status === 200) {
@@ -151,7 +151,7 @@ export function formatPrice(price) {
 // "page" - risk_list | risk_table | risk_logs | home | module_nav
 export async function logPageView(page, extra = {}) {
     try {
-        await service_api.post(NEXT_API_ENDPOINTS.RISK.VIEW_LOG, {page, extra});
+        await service_api.post(NEXT_API_ENDPOINTS.RISK.LOGS, {page, extra});
     } catch (e) {
         console.log('Baxış logu göndərilmədi:', e);
     }

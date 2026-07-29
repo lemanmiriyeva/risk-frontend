@@ -59,7 +59,6 @@ function BuildingBlueprint() {
     );
 }
 
-// Backend artıq permission string yox, modul siyahısı qaytarır: [{id, title, url_endpoint, sub_modules}]
 function hasAnyModuleAccess(permissions = []) {
     return Array.isArray(permissions) && permissions.length > 0;
 }
@@ -144,7 +143,6 @@ export default function Page() {
                     overflow: 'hidden',
                     px: {md: 6, lg: 8},
                     py: 5,
-                    height: '100%',
                 }}
             >
                 <BrandMark/>
@@ -159,28 +157,28 @@ export default function Page() {
                             mb: 1,
                         }}
                     >
-                        REYESTR PLATFORMASI
+                        MİS PLATFORMASI
                     </Typography>
                     <Typography
                         sx={{
                             fontSize: {md: 48, lg: 64},
                             fontWeight: 800,
                             lineHeight: 1,
+                            textTransform: 'uppercase',
                             letterSpacing: 1,
                             mb: 2,
                         }}
                     >
-                        RİSK REYESTR SİSTEMİ
+                        Mərkəzləşdirilmiş İnformasiya Sistemi
                     </Typography>
                     <Typography sx={{color: '#9AA5C7', maxWidth: 440, fontSize: 15, lineHeight: 1.7}}>
-                        İstehsal, təchizat və sənəd dövriyyəsi proseslərinin vahid idarəetmə mühiti.
-                        Giriş yalnız sistem administratoru tərəfindən yaradılmış hesablar üçün mümkündür.
+                        Məlumatların vahid platformada təhlükəsiz və səmərəli idarə olunmasını təmin edən informasiya sistemi.
                     </Typography>
                 </Box>
 
                 <BuildingBlueprint/>
-                <Box sx={{zIndex: 10, fontSize: 13, color: '#9AA5C7'}}>
-                    CopyRight
+                <Box sx={{zIndex:10}}>
+
                 </Box>
             </Box>
 

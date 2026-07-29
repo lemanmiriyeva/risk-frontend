@@ -12,8 +12,6 @@ export const service_api = axios.create({
 });
 
 service_api.interceptors.request.use(function (config) {
-    // Do something before request is sent
-    // console.log("INTERCEPTORS - config: ", config)
     return config;
 }, function (error) {
     return Promise.reject(error);

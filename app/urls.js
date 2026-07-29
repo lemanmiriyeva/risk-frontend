@@ -1,4 +1,3 @@
-
 export const API_URL =process.env.NEXT_PUBLIC_API_URL
 
 export const DJANGO_API_ENDPOINTS = {
@@ -23,9 +22,14 @@ export const DJANGO_API_ENDPOINTS = {
 
 
     CORE:{
-    MODULES: API_URL + "/api/modules/",
+        MODULES: API_URL + "/api/modules/",
         STATUS: API_URL + "/api/status/",
         CHECK_MODULE_ACCESS: API_URL + '/api/check-module-access/',
+        ORG_MODULE_ACCESS: API_URL + "/api/organization/module-access/",
+    },
+
+    ORGANIZATION: {
+        USERS: API_URL + "/api/authentication/organization/users/",
     },
 }
 
@@ -53,6 +57,11 @@ export const NEXT_API_ENDPOINTS = {
         MODULES: "modules/",
         STATUS: "status/",
         CHECK_MODULE_ACCESS: 'check-module-access/',
+        ORG_MODULE_ACCESS: "organization/module-access/",
+    },
+
+    ORGANIZATION: {
+        USERS: "organization/users/",
     },
 
 }

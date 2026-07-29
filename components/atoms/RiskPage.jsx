@@ -2,7 +2,6 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
-import TablePagination from '@mui/material/TablePagination';
 import TextField from '@mui/material/TextField';
 import MenuItem from '@mui/material/MenuItem';
 import Button from '@mui/material/Button';
@@ -12,19 +11,15 @@ import Dialog from '@mui/material/Dialog';
 import CircularProgress from '@mui/material/CircularProgress';
 import GlobalStyles from '@mui/material/GlobalStyles';
 import AddIcon from '@mui/icons-material/Add';
-import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import SearchIcon from '@mui/icons-material/Search';
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 import CloseIcon from '@mui/icons-material/Close';
-import TableChartOutlinedIcon from '@mui/icons-material/TableChartOutlined';
-import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
-import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
-import {useRouter} from 'next/navigation';
+import {DataGrid} from '@mui/x-data-grid';
 import {useSnackbar} from "notistack";
 import {useAppSelector} from "@/lib/hooks";
-import {handleError, logPageView} from "@/app/utils";
+import {handleError} from "@/app/utils";
 import {NEXT_API_ENDPOINTS} from "@/app/urls";
 import {service_api} from "@/app/service";
 import RiskFormDialog, {TREATMENT_OPTIONS, RISK_LEVEL_META} from "./RiskFormDialog";
@@ -59,17 +54,13 @@ const RISK_LEVEL_FILTERS = [
     {value: 'low', label: 'Aşağı'},
 ];
 
-const COLUMNS = [
-    {field: 'designation', label: 'Təyinat', width: '2.2fr', sortable: true},
-    {field: 'risk_degree', label: 'Dərəcə', width: '90px', sortable: true, center: true},
-    {field: 'risk_level', label: 'Səviyyə', width: '120px', sortable: false, center: true},
-    {field: 'treatment_option', label: 'Emal variantı', width: '1.3fr', sortable: false},
-    {field: 'created_by', label: 'Yaradan', width: '1.1fr', sortable: false},
-    {field: 'updated_at', label: 'Son dəyişiklik', width: '150px', sortable: true},
-    {field: '', label: '', width: '110px', sortable: false},
-];
-
-const GRID_COLS = COLUMNS.map((c) => c.width).join(' ');
+// DataGrid sort field -> DRF ordering field (eyni adlıdırsa map lazım deyil)
+const SORT_FIELD_MAP = {
+    designation: 'designation',
+    risk_degree: 'risk_degree',
+    updated_at: 'updated_at',
+    created_at: 'created_at',
+};
 
 function initialsOf(name) {
     if (!name) return '?';
@@ -81,7 +72,7 @@ function DetailField({label, value}) {
     if (value === null || value === undefined || value === '') return null;
     return (
         <Box sx={{mb: 1.5}}>
-            <Typography sx={{fontSize: 11, letterSpacing: '0.04em', color: C.inkFaint, textTransform: 'uppercase', fontWeight: 500, mb: 0.25}}>
+            <Typography sx={{fontSize: 12, letterSpacing: '0.04em', color: C.inkFaint, textTransform: 'uppercase', fontWeight: 700, mb: 0.25}}>
                 {label}
             </Typography>
             <Typography sx={{fontSize: 13.5, color: C.ink, whiteSpace: 'pre-wrap', wordBreak: 'break-word'}}>
@@ -106,7 +97,7 @@ function RiskDetailDialog({row, onClose, treatmentLabel}) {
                     <Typography sx={{fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '0.08em', color: C.gold, textTransform: 'uppercase', mb: 0.5}}>
                         Reyestr № {row.id ?? '—'}
                     </Typography>
-                    <Typography sx={{fontFamily: 'var(--font-serif)', fontSize: 20, color: C.ink, fontWeight: 500, lineHeight: 1.3}}>
+                    <Typography sx={{fontSize: 20, color: C.ink, fontWeight: 500, lineHeight: 1.3}}>
                         {row.designation}
                     </Typography>
                     <Box sx={{display: 'inline-flex', alignItems: 'center', gap: 0.75, mt: 1, px: 1, py: 0.4, borderRadius: '3px', backgroundColor: level.bg, border: `1px solid ${level.ring}`}}>
@@ -157,117 +148,54 @@ function RiskDetailDialog({row, onClose, treatmentLabel}) {
     );
 }
 
-function SortableHeader({col, ordering, onSort}) {
-    const active = ordering.replace('-', '') === col.field;
-    const desc = ordering === `-${col.field}`;
-    return (
-        <Box
-            onClick={col.sortable ? () => onSort(col.field) : undefined}
-            sx={{
-                display: 'flex', alignItems: 'center', gap: 0.5,
-                justifyContent: col.center ? 'center' : 'flex-start',
-                cursor: col.sortable ? 'pointer' : 'default',
-                userSelect: 'none',
-            }}
-        >
-            <Typography sx={{fontSize: 11, letterSpacing: '0.05em', color: active ? C.ink : C.inkFaint, textTransform: 'uppercase', fontWeight: 500}}>
-                {col.label}
-            </Typography>
-            {col.sortable && active && (
-                desc ? <ArrowDownwardIcon sx={{fontSize: 13, color: C.gold}}/> : <ArrowUpwardIcon sx={{fontSize: 13, color: C.gold}}/>
-            )}
-        </Box>
-    );
-}
-
-function RiskRow({row, treatmentLabel, canEdit, canDelete, onView, onEdit, onDelete}) {
-    const level = LEVEL_COLORS[row.risk_level] || LEVEL_COLORS.low;
-    const meta = RISK_LEVEL_META[row.risk_level] || RISK_LEVEL_META.low;
-    const creatorName = row.created_by?.name || row.created_by?.username || '—';
-
-    return (
-        <Box sx={{
-            display: 'grid', gridTemplateColumns: GRID_COLS, gap: 1.5, alignItems: 'center',
-            px: 2, py: 1.4, borderBottom: `1px solid ${C.line}`,
-            '&:hover': {backgroundColor: 'rgba(0,0,0,0.015)'},
-        }}>
-            <Tooltip title={row.designation?.length > 44 ? row.designation : ''}>
-                <Typography sx={{fontSize: 13.5, color: C.ink, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>
-                    {row.designation}
-                </Typography>
-            </Tooltip>
-
-            <Typography sx={{fontFamily: 'var(--font-mono)', fontSize: 13, color: C.inkMuted, textAlign: 'center'}}>
-                {row.risk_degree}
-            </Typography>
-
-            <Box sx={{display: 'flex', justifyContent: 'center'}}>
-                <Box sx={{display: 'inline-flex', alignItems: 'center', gap: 0.6, px: 1, py: 0.3, borderRadius: '3px', backgroundColor: level.bg, border: `1px solid ${level.ring}`}}>
-                    <Box sx={{width: 6, height: 6, borderRadius: '50%', backgroundColor: level.fg, flexShrink: 0}}/>
-                    <Typography sx={{fontSize: 11, color: level.fg, fontWeight: 500, whiteSpace: 'nowrap'}}>{meta.label}</Typography>
-                </Box>
-            </Box>
-
-            <Typography sx={{fontSize: 13, color: C.inkMuted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>
-                {treatmentLabel[row.treatment_option] || row.treatment_option}
-            </Typography>
-
-            <Box sx={{display: 'flex', alignItems: 'center', gap: 0.75, overflow: 'hidden'}}>
-                <Box sx={{
-                    width: 18, height: 18, borderRadius: '50%', backgroundColor: C.goldWash,
-                    border: `1px solid ${C.goldMuted}`, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 9, color: C.gold, fontWeight: 600, flexShrink: 0,
-                }}>
-                    {initialsOf(creatorName)}
-                </Box>
-                <Typography sx={{fontSize: 12.5, color: C.inkMuted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>
-                    {creatorName}
-                </Typography>
-            </Box>
-
-            <Typography sx={{fontFamily: 'var(--font-mono)', fontSize: 12, color: C.inkFaint, whiteSpace: 'nowrap'}}>
-                {row.updated_at ? new Date(row.updated_at).toLocaleString('az-AZ') : '—'}
-            </Typography>
-
-            <Box sx={{display: 'flex', justifyContent: 'flex-end', gap: 0.25}}>
-                <Tooltip title="Ətraflı bax">
-                    <IconButton size="small" onClick={() => onView(row)} sx={{color: C.inkFaint}}>
-                        <VisibilityOutlinedIcon sx={{fontSize: 17}}/>
-                    </IconButton>
-                </Tooltip>
-                {canEdit && (
-                    <Tooltip title="Redaktə et">
-                        <IconButton size="small" onClick={() => onEdit(row)} sx={{color: C.inkFaint}}>
-                            <EditOutlinedIcon sx={{fontSize: 17}}/>
-                        </IconButton>
-                    </Tooltip>
-                )}
-                {canDelete && (
-                    <Tooltip title="Sil">
-                        <IconButton size="small" onClick={() => onDelete(row)} sx={{color: '#A23B3B'}}>
-                            <DeleteOutlineIcon sx={{fontSize: 17}}/>
-                        </IconButton>
-                    </Tooltip>
-                )}
-            </Box>
-        </Box>
-    );
-}
+const gridSx = {
+    border: `1px solid ${C.line}`,
+    borderRadius: '4px',
+    backgroundColor: C.surface,
+    '& .MuiDataGrid-columnHeaders': {
+        backgroundColor: C.surface,
+        borderBottom: `1px solid ${C.lineStrong}`,
+    },
+    '& .MuiDataGrid-columnHeaderTitle': {
+        fontSize: 11,
+        letterSpacing: '0.05em',
+        color: C.inkFaint,
+        textTransform: 'uppercase',
+        fontWeight: 500,
+    },
+    '& .MuiDataGrid-cell': {
+        borderBottom: `1px solid ${C.line}`,
+        fontSize: 13.5,
+        color: C.ink,
+        display: 'flex',
+        alignItems: 'center',
+    },
+    '& .MuiDataGrid-cellContent': {
+        display: 'flex',
+        alignItems: 'center',
+    },
+    '& .MuiDataGrid-row:hover': {
+        backgroundColor: 'rgba(0,0,0,0.015)',
+    },
+    '& .MuiDataGrid-cell:focus, & .MuiDataGrid-cell:focus-within': {
+        outline: 'none',
+    },
+    '& .MuiDataGrid-columnHeader:focus, & .MuiDataGrid-columnHeader:focus-within': {
+        outline: 'none',
+    },
+    '& .MuiDataGrid-footerContainer': {
+        borderTop: `1px solid ${C.line}`,
+    },
+    '& .MuiTablePagination-root': {
+        color: C.inkMuted,
+    },
+};
 
 
 export default function RiskRegistryPage() {
     const {enqueueSnackbar} = useSnackbar();
-    const router = useRouter();
     const userState = useAppSelector((state) => state.user);
     const isLoaded = userState?.isLoaded;
-    const permissions = userState?.permissions || [];
-
-    const canView = permissions.includes('risk.view_risk');
-    const canCreate = permissions.includes('risk.add_risk');
-    const canEdit = permissions.includes('risk.change_risk');
-    const canDelete = permissions.includes('risk.delete_risk');
-
-    const viewOnly = canView && !canCreate && !canEdit && !canDelete;
 
     const [rows, setRows] = useState([]);
     const [count, setCount] = useState(0);
@@ -278,8 +206,7 @@ export default function RiskRegistryPage() {
     const [treatmentFilter, setTreatmentFilter] = useState('');
     const [ordering, setOrdering] = useState('-created_at');
 
-    const [page, setPage] = useState(0);
-    const [pageSize, setPageSize] = useState(10);
+    const [paginationModel, setPaginationModel] = useState({page: 0, pageSize: 10});
 
     const [formOpen, setFormOpen] = useState(false);
     const [editingRow, setEditingRow] = useState(null);
@@ -296,10 +223,10 @@ export default function RiskRegistryPage() {
         if (levelFilter) params.set('risk_level', levelFilter);
         if (treatmentFilter) params.set('treatment_option', treatmentFilter);
         if (ordering) params.set('ordering', ordering);
-        params.set('page', String(page + 1));
-        params.set('page_size', String(pageSize));
+        params.set('page', String(paginationModel.page + 1));
+        params.set('page_size', String(paginationModel.pageSize));
         return params.toString();
-    }, [search, levelFilter, treatmentFilter, ordering, page, pageSize]);
+    }, [search, levelFilter, treatmentFilter, ordering, paginationModel]);
 
     const treatmentLabel = useMemo(() => {
         const map = {};
@@ -327,26 +254,22 @@ export default function RiskRegistryPage() {
     }, [buildQuery, enqueueSnackbar]);
 
     useEffect(() => {
-        if (isLoaded && viewOnly) {
-            router.replace('/risk/cedvel');
-        }
-    }, [isLoaded, viewOnly, router]);
+        fetchRisks();
+    }, [fetchRisks]);
 
     useEffect(() => {
-        if (canView) fetchRisks();
-    }, [canView, fetchRisks]);
-
-    useEffect(() => {
-        if (isLoaded && canView && !viewOnly) logPageView('risk_list');
-    }, [isLoaded, canView, viewOnly]);
-
-    useEffect(() => {
-        const t = setTimeout(() => setPage(0), 300);
+        const t = setTimeout(() => setPaginationModel((p) => ({...p, page: 0})), 300);
         return () => clearTimeout(t);
     }, [search]);
 
-    function handleSort(field) {
-        setOrdering((cur) => (cur === field ? `-${field}` : field));
+    function handleSortModelChange(model) {
+        if (!model || model.length === 0) {
+            setOrdering('-created_at');
+            return;
+        }
+        const {field, sort} = model[0];
+        const drfField = SORT_FIELD_MAP[field] || field;
+        setOrdering(sort === 'desc' ? `-${drfField}` : drfField);
     }
 
     function openCreate() {
@@ -393,23 +316,125 @@ export default function RiskRegistryPage() {
         }
     }
 
+    const columns = useMemo(() => [
+        {
+            field: 'designation',
+            headerName: 'Təyinat',
+            flex: 2.2,
+            minWidth: 220,
+            sortable: true,
+        },
+        {
+            field: 'risk_degree',
+            headerName: 'Dərəcə',
+            width: 90,
+            sortable: true,
+            align: 'center',
+            headerAlign: 'center',
+            renderCell: (params) => (
+                <Typography sx={{fontFamily: 'var(--font-mono)', fontSize: 13, color: C.inkMuted}}>
+                    {params.value}
+                </Typography>
+            ),
+        },
+        {
+            field: 'risk_level',
+            headerName: 'Səviyyə',
+            width: 130,
+            sortable: false,
+            align: 'center',
+            headerAlign: 'center',
+            renderCell: (params) => {
+                const level = LEVEL_COLORS[params.value] || LEVEL_COLORS.low;
+                const meta = RISK_LEVEL_META[params.value] || RISK_LEVEL_META.low;
+                return (
+                    <Box sx={{display: 'inline-flex', alignItems: 'center', gap: 0.6, px: 1, py: 0.3, borderRadius: '3px', backgroundColor: level.bg, border: `1px solid ${level.ring}`}}>
+                        <Box sx={{width: 6, height: 6, borderRadius: '50%', backgroundColor: level.fg, flexShrink: 0}}/>
+                        <Typography sx={{fontSize: 11, color: level.fg, fontWeight: 500, whiteSpace: 'nowrap'}}>{meta.label}</Typography>
+                    </Box>
+                );
+            },
+        },
+        {
+            field: 'treatment_option',
+            headerName: 'Emal variantı',
+            flex: 1.3,
+            minWidth: 150,
+            sortable: false,
+            renderCell: (params) => (
+                <Typography sx={{fontSize: 13, color: C.inkMuted}}>
+                    {treatmentLabel[params.value] || params.value}
+                </Typography>
+            ),
+        },
+        {
+            field: 'created_by',
+            headerName: 'Yaradan',
+            flex: 1.1,
+            minWidth: 140,
+            sortable: false,
+            renderCell: (params) => {
+                const creatorName = params.value?.name || params.value?.username || '—';
+                return (
+                    <Box sx={{display: 'flex', alignItems: 'center', gap: 0.75, overflow: 'hidden'}}>
+                        <Box sx={{
+                            width: 18, height: 18, borderRadius: '50%', backgroundColor: C.goldWash,
+                            border: `1px solid ${C.goldMuted}`, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontSize: 9, color: C.gold, fontWeight: 600, flexShrink: 0,
+                        }}>
+                            {initialsOf(creatorName)}
+                        </Box>
+                        <Typography sx={{fontSize: 12.5, color: C.inkMuted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>
+                            {creatorName}
+                        </Typography>
+                    </Box>
+                );
+            },
+        },
+        {
+            field: 'updated_at',
+            headerName: 'Son dəyişiklik',
+            width: 160,
+            sortable: true,
+            renderCell: (params) => (
+                <Typography sx={{fontFamily: 'var(--font-mono)', fontSize: 12, color: C.inkFaint}}>
+                    {params.value ? new Date(params.value).toLocaleString('az-AZ') : '—'}
+                </Typography>
+            ),
+        },
+        {
+            field: 'actions',
+            headerName: '',
+            width: 120,
+            sortable: false,
+            filterable: false,
+            disableColumnMenu: true,
+            renderCell: (params) => (
+                <Box sx={{display: 'flex', justifyContent: 'flex-end', gap: 0.25}}>
+                    <Tooltip title="Ətraflı bax">
+                        <IconButton size="small" onClick={() => setDetailRow(params.row)} sx={{color: C.inkFaint}}>
+                            <VisibilityOutlinedIcon sx={{fontSize: 17}}/>
+                        </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Redaktə et">
+                        <IconButton size="small" onClick={() => openEdit(params.row)} sx={{color: C.inkFaint}}>
+                            <EditOutlinedIcon sx={{fontSize: 17}}/>
+                        </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Sil">
+                        <IconButton size="small" onClick={() => setDeleteTarget(params.row)} sx={{color: '#A23B3B'}}>
+                            <DeleteOutlineIcon sx={{fontSize: 17}}/>
+                        </IconButton>
+                    </Tooltip>
+                </Box>
+            ),
+        },
+    ], [treatmentLabel]);
+
     if (!isLoaded) {
         return (
             <Box sx={{minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: C.bg}}>
                 <CircularProgress size={22} sx={{color: C.gold}}/>
-            </Box>
-        );
-    }
-
-    if (!canView) {
-        return (
-            <Box sx={{minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: C.bg}}>
-                <Box sx={{textAlign: 'center', maxWidth: 360}}>
-                    <Typography sx={{fontFamily: 'var(--font-serif)', fontSize: 20, color: C.ink, mb: 1}}>Giriş icazəniz yoxdur</Typography>
-                    <Typography sx={{fontSize: 14, color: C.inkMuted}}>
-                        Risk Reyestrinə baxmaq üçün sistem administratoru ilə əlaqə saxlayın.
-                    </Typography>
-                </Box>
             </Box>
         );
     }
@@ -433,7 +458,7 @@ export default function RiskRegistryPage() {
                     </Typography>
                     <Box sx={{display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2}}>
                         <Box>
-                            <Typography sx={{fontFamily: 'var(--font-serif)', fontSize: 28, fontWeight: 500, color: C.ink, lineHeight: 1.2}}>
+                            <Typography sx={{fontSize: 28, fontWeight: 500, color: C.ink, lineHeight: 1.2}}>
                                 Risk Reyestri
                             </Typography>
                             <Typography sx={{fontSize: 13, color: C.inkMuted, mt: 0.5}}>
@@ -441,31 +466,28 @@ export default function RiskRegistryPage() {
                             </Typography>
                         </Box>
 
-                        {/* Risk yarat düyməsi (yalnız icazəsi olanlar üçün) */}
-                        {canCreate && (
-                            <Button
-                                variant="contained"
-                                startIcon={<AddIcon />}
-                                onClick={openCreate}
-                                sx={{
-                                    backgroundColor: C.ink,
-                                    color: C.bg,
-                                    textTransform: 'none',
-                                    fontSize: 13.5,
-                                    fontWeight: 500,
-                                    borderRadius: '4px',
+                        <Button
+                            variant="contained"
+                            startIcon={<AddIcon/>}
+                            onClick={openCreate}
+                            sx={{
+                                backgroundColor: C.ink,
+                                color: C.bg,
+                                textTransform: 'none',
+                                fontSize: 13.5,
+                                fontWeight: 500,
+                                borderRadius: '4px',
+                                boxShadow: 'none',
+                                px: 2.5,
+                                py: 1,
+                                '&:hover': {
+                                    backgroundColor: C.gold,
                                     boxShadow: 'none',
-                                    px: 2.5,
-                                    py: 1,
-                                    '&:hover': {
-                                        backgroundColor: C.gold,
-                                        boxShadow: 'none',
-                                    },
-                                }}
-                            >
-                                Risk yarat
-                            </Button>
-                        )}
+                                },
+                            }}
+                        >
+                            Risk yarat
+                        </Button>
                     </Box>
                 </Box>
 
@@ -489,7 +511,7 @@ export default function RiskRegistryPage() {
                     />
                     <TextField
                         select size="small" value={levelFilter}
-                        onChange={(e) => {setLevelFilter(e.target.value); setPage(0);}}
+                        onChange={(e) => {setLevelFilter(e.target.value); setPaginationModel((p) => ({...p, page: 0}));}}
                         SelectProps={{
                             displayEmpty: true,
                             renderValue: (v) => RISK_LEVEL_FILTERS.find((o) => o.value === v)?.label || 'Risk səviyyəsi',
@@ -507,7 +529,7 @@ export default function RiskRegistryPage() {
                     </TextField>
                     <TextField
                         select size="small" value={treatmentFilter}
-                        onChange={(e) => {setTreatmentFilter(e.target.value); setPage(0);}}
+                        onChange={(e) => {setTreatmentFilter(e.target.value); setPaginationModel((p) => ({...p, page: 0}));}}
                         SelectProps={{
                             displayEmpty: true,
                             renderValue: (v) => (v ? treatmentLabel[v] : 'Emal variantı'),
@@ -526,57 +548,25 @@ export default function RiskRegistryPage() {
                     </TextField>
                 </Box>
 
-                {/* Cədvəl */}
-                <Box sx={{border: `1px solid ${C.line}`, borderRadius: '4px', overflow: 'hidden', backgroundColor: C.surface}}>
-                    <Box sx={{
-                        display: 'grid', gridTemplateColumns: GRID_COLS, gap: 1.5,
-                        px: 2, py: 1.25, borderBottom: `1px solid ${C.lineStrong}`,
-                    }}>
-                        {COLUMNS.map((col) => (
-                            <SortableHeader key={col.field || col.label} col={col} ordering={ordering} onSort={handleSort}/>
-                        ))}
-                    </Box>
-
-                    {loading && (
-                        <Box sx={{display: 'flex', justifyContent: 'center', py: 6}}>
-                            <CircularProgress size={20} sx={{color: C.gold}}/>
-                        </Box>
-                    )}
-
-                    {!loading && rows.length === 0 && (
-                        <Box sx={{textAlign: 'center', py: 6}}>
-                            <Typography sx={{fontSize: 14, color: C.inkMuted}}>Heç bir qeyd tapılmadı</Typography>
-                        </Box>
-                    )}
-
-                    {!loading && rows.map((row) => (
-                        <RiskRow
-                            key={row.id}
-                            row={row}
-                            treatmentLabel={treatmentLabel}
-                            canEdit={canEdit}
-                            canDelete={canDelete}
-                            onView={setDetailRow}
-                            onEdit={openEdit}
-                            onDelete={setDeleteTarget}
-                        />
-                    ))}
-
-                    <TablePagination
-                        component="div"
-                        count={count}
-                        page={page}
-                        onPageChange={(_, p) => setPage(p)}
-                        rowsPerPage={pageSize}
-                        onRowsPerPageChange={(e) => {setPageSize(parseInt(e.target.value, 10)); setPage(0);}}
-                        rowsPerPageOptions={[10, 20, 50]}
-                        labelRowsPerPage="Sətir sayı:"
-                        sx={{
-                            color: C.inkMuted, fontSize: 13, borderTop: `1px solid ${C.line}`,
-                            '& .MuiTablePagination-selectIcon': {color: C.inkMuted},
-                            '& .MuiIconButton-root.Mui-disabled': {color: C.inkFaint},
-                            '& .MuiIconButton-root': {color: C.inkMuted},
-                        }}
+                {/* DataGrid */}
+                <Box sx={{height: 640, width: '100%'}}>
+                    <DataGrid
+                        rows={rows}
+                        columns={columns}
+                        getRowId={(row) => row.id}
+                        loading={loading}
+                        rowCount={count}
+                        paginationMode="server"
+                        sortingMode="server"
+                        paginationModel={paginationModel}
+                        onPaginationModelChange={setPaginationModel}
+                        onSortModelChange={handleSortModelChange}
+                        pageSizeOptions={[10, 20, 50]}
+                        disableRowSelectionOnClick
+                        disableColumnFilter
+                        density="comfortable"
+                        localeText={{noRowsLabel: 'Heç bir qeyd tapılmadı'}}
+                        sx={gridSx}
                     />
                 </Box>
             </Box>
@@ -596,7 +586,7 @@ export default function RiskRegistryPage() {
                 PaperProps={{sx: {backgroundColor: C.surface, backgroundImage: 'none', border: `1px solid ${C.line}`, borderRadius: '4px', maxWidth: 420}}}
             >
                 <Box sx={{px: 3, pt: 3, pb: 2}}>
-                    <Typography sx={{fontFamily: 'var(--font-serif)', fontSize: 18, color: C.ink, fontWeight: 500, mb: 1}}>
+                    <Typography sx={{fontSize: 18, color: C.ink, fontWeight: 500, mb: 1}}>
                         Əminsiniz?
                     </Typography>
                     <Typography sx={{fontSize: 13.5, color: C.inkMuted}}>

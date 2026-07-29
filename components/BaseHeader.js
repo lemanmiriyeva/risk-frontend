@@ -18,6 +18,7 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import WarehouseIcon from '@mui/icons-material/Warehouse';
 import AssignmentIndIcon from '@mui/icons-material/AssignmentInd';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
+import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import Alert from "@mui/material/Alert";
 import Image from "next/image";
 import logo from '../app/logo.svg'
@@ -41,14 +42,25 @@ export default function BaseHeader({env}) {
     if (!pathname.includes(APP_ROUTES.SIGNIN) && !pathname.includes(APP_ROUTES.PASSWORD_RESET) && !pathname.includes(APP_ROUTES.TWO_FA_VERIFY) && !pathname.includes(APP_ROUTES.TWO_FA_SETUP)) return (<>
 
         <AppBar position="static" sx={{
-          p: '10px 25px',background:"#020624"
+            p: '10px 25px',background:"#020624"
         }}>
             <Theme mode={'dark'}>
                 <Toolbar style={{display: "flex", justifyContent: "space-between",alignItems:"center"}}>
                     <Image onClick={() => router.push(APP_ROUTES.HOME)} src={logo} width={"300"} height={"60"}
-                                     alt={"logo"} style={{cursor: 'pointer'}} priority/>
+                           alt={"logo"} style={{cursor: 'pointer'}} priority/>
 
-                    <Box sx={{flexGrow: 0}}>
+                    <Box sx={{flexGrow: 0, display: 'flex', alignItems: 'center'}}>
+                        {(user?.is_org_admin || user?.is_superuser) && (
+                            <Link href={APP_ROUTES.ORG_ADMIN} style={{textDecoration: 'none'}}>
+                                <Button
+                                    startIcon={<AdminPanelSettingsIcon/>}
+                                    variant={"text"}
+                                    sx={{color: '#fff', mr: 1}}
+                                >
+                                    Qurum idarəetməsi
+                                </Button>
+                            </Link>
+                        )}
                         <Tooltip title={displayUser(user)}>
                             <Box sx={{
                                 display: 'flex', alignItems: 'center'

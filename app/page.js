@@ -10,7 +10,6 @@ import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import { service_api } from "@/app/service";
 import { NEXT_API_ENDPOINTS } from "@/app/urls";
 
-// url_endpoint-ə görə ikon/rəng — yeni modul əlavə etdikcə bura yeni sətir əlavə edin
 const ICON_MAP = {
     "risk": { icon: <SecurityIcon sx={{ fontSize: 32 }} />, gradient: "linear-gradient(135deg, #1976d2 0%, #4dabf5 100%)" },
     "risk-logs": { icon: <DescriptionIcon sx={{ fontSize: 32 }} />, gradient: "linear-gradient(135deg, #2e7d32 0%, #66bb6a 100%)" },
@@ -38,8 +37,6 @@ export default function Home() {
         })();
     }, []);
 
-    // Backend icazəli modullar üçün url_endpoint (və sub_modules) qaytarır,
-    // icazəsiz olanlar üçün yalnız {id, title} — ona görə url_endpoint olanlar "açıq" moduldur.
     const accessibleModules = modules.filter((m) => !!m.url_endpoint);
     const lockedModules = modules.filter((m) => !m.url_endpoint);
 
@@ -68,9 +65,9 @@ export default function Home() {
     }
 
     return (
-        <Box sx={{ p: { xs: 3, md: 6 }, maxWidth: 1200, mx: "auto", minHeight: "100vh" }}>
+        <Box sx={{ p: { xs: 3, md: 6 }, maxWidth: '90%', mx: "auto", minHeight: "100vh" }}>
             <Typography variant="h3" sx={{ mb: 1, fontWeight: 800, letterSpacing: "-1px" }}>
-                Risk Reyestri Sistemi
+               Mərkəzləşdirilmiş İnformasiya Sistemi
             </Typography>
             <Typography variant="subtitle1" color="text.secondary" sx={{ mb: 6 }}>
                 Sistemi idarə etmək üçün aşağıdakı modullardan birini seçin.
@@ -170,24 +167,7 @@ export default function Home() {
                 })}
             </Grid>
 
-            {lockedModules.length > 0 && (
-                <Box sx={{ mt: 6, pt: 4, borderTop: "1px solid", borderColor: "divider" }}>
-                    <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 2, fontWeight: 600 }}>
-                        Giriş icazəniz olmayan modullar
-                    </Typography>
-                    <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1.5 }}>
-                        {lockedModules.map((module) => (
-                            <Chip
-                                key={module.id}
-                                icon={<LockOutlinedIcon sx={{ fontSize: 16 }} />}
-                                label={module.title}
-                                variant="outlined"
-                                sx={{ color: "text.disabled", borderColor: "divider" }}
-                            />
-                        ))}
-                    </Box>
-                </Box>
-            )}
+
         </Box>
     );
 }

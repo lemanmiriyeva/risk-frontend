@@ -13,7 +13,6 @@ import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import {useRouter, useSearchParams} from "next/navigation";
 import {handleError, isEmpty} from "@/app/utils";
 import {useAppDispatch} from "@/lib/hooks";
-import {setUser} from "@/lib/features/user/userSlice";
 import {NEXT_API_ENDPOINTS} from "@/app/urls";
 import {APP_ROUTES} from "@/components/constants";
 import PasswordReset from "@/app/daxilol/ResetPassword";
@@ -238,28 +237,28 @@ export default function Page() {
                             mb: 1,
                         }}
                     >
-                        REYESTR PLATFORMASI
+                        MİS PLATFORMASI
                     </Typography>
                     <Typography
                         sx={{
                             fontSize: {md: 48, lg: 64},
                             fontWeight: 800,
                             lineHeight: 1,
+                            textTransform: 'uppercase',
                             letterSpacing: 1,
                             mb: 2,
                         }}
                     >
-                        RİSK REYESTR SİSTEMİ
+                        Mərkəzləşdİrİlmİş İnformasİya Sİstemİ
                     </Typography>
                     <Typography sx={{color: '#9AA5C7', maxWidth: 440, fontSize: 15, lineHeight: 1.7}}>
-                        İstehsal, təchizat və sənəd dövriyyəsi proseslərinin vahid idarəetmə mühiti.
-                        Giriş yalnız sistem administratoru tərəfindən yaradılmış hesablar üçün mümkündür.
+                        Məlumatların vahid platformada təhlükəsiz və səmərəli idarə olunmasını təmin edən informasiya sistemi.
                     </Typography>
                 </Box>
 
                 <BuildingBlueprint/>
                 <Box sx={{zIndex:10}}>
-                    CopyRight
+
                 </Box>
             </Box>
 

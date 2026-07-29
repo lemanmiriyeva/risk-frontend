@@ -28,7 +28,7 @@ function PasswordReset({ open, handleClose, handleSubmit, loading}) {
                 sx: { backgroundImage: 'none' },
             }}
         >
-            <DialogTitle>ŞIFRƏMI UNUTMUŞAM</DialogTitle>
+            <DialogTitle>ŞİFRƏMİ UNUTMUŞAM</DialogTitle>
             <DialogContent
                 sx={{ display: 'flex', flexDirection: 'column', gap: 2, width: '100%' }}
             >
@@ -49,7 +49,7 @@ function PasswordReset({ open, handleClose, handleSubmit, loading}) {
                     />
                 </Box>
             </DialogContent>
-            <DialogActions sx={{ pb: 3, px: 3 }}>
+            <DialogActions sx={{ pb: 3, px: 3,display:'flex', justifyContent: 'end', alignItems: 'center',gap:'10px' }}>
                 <Button onClick={handleClose} disabled={loading}>Ləğv et</Button>
                 <Button
                     disabled={loading}
@@ -58,10 +58,7 @@ function PasswordReset({ open, handleClose, handleSubmit, loading}) {
                         handleSubmit(username)
                     }}
                     variant="contained"
-                    sx={{
-                        mt: 3,
-                        mb: 2
-                    }}
+
                 >
                     Göndər
                 </Button>

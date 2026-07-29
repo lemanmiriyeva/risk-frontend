@@ -12,7 +12,6 @@ export default function Page() {
     const router = useRouter()
 
     useEffect(() => {
-        // TODO logout logic
         (async () => {
             try {
                 await service_api.get(NEXT_API_ENDPOINTS.AUTHENTICATION.SIGNOUT)

@@ -19,7 +19,6 @@ export default function UserFetcher() {
 
     useEffect(() => {
         const fetchUserData = async () => {
-            // Artıq yüklənibsə (uğurlu və ya uğursuz), təkrar sorğu göndərmə
             if (user?.isLoaded) return;
 
             try {

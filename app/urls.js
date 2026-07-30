@@ -6,9 +6,9 @@ export const DJANGO_API_ENDPOINTS = {
         USER_LIST: API_URL + "/api/authentication/user/list/",
         TOKEN: API_URL + "/api/authentication/token/",
         REFRESH: API_URL + "/api/authentication/token/refresh/",
-        LOGOUT: API_URL + "/api/authentication/user/logout/ ",
-        REQUEST_RESET: API_URL + "/api/authentication/user/request-password-reset/ ",
-        RESET: API_URL + "/api/authentication/user/password-reset/ ",
+        LOGOUT: API_URL + "/api/authentication/user/logout/",
+        REQUEST_RESET: API_URL + "/api/authentication/user/request-password-reset/",
+        RESET: API_URL + "/api/authentication/user/password-reset/",
         DEPARTMENTS: API_URL + "/api/authentication/departments/",
         TWO_FA_SETUP: API_URL + "/api/authentication/2fa/setup/",
         TWO_FA_VERIFY: API_URL + "/api/authentication/2fa/verify/",
@@ -29,6 +29,7 @@ export const DJANGO_API_ENDPOINTS = {
     },
 
     ORGANIZATION: {
+        LIST: API_URL + "/api/authentication/organizations/",
         USERS: API_URL + "/api/authentication/organization/users/",
     },
 }
@@ -61,6 +62,7 @@ export const NEXT_API_ENDPOINTS = {
     },
 
     ORGANIZATION: {
+        LIST: "organization/list/",
         USERS: "organization/users/",
     },
 

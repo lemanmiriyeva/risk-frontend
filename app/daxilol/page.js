@@ -178,11 +178,13 @@ export default function Page() {
         setLoading(true)
         try {
             const res = await service_api.post(NEXT_API_ENDPOINTS.AUTHENTICATION.REQUEST_RESET, {username})
-            enqueueSnackbar('Elektron poçt ünvanınızı yoxlayın.', {variant: 'success'})
+            enqueueSnackbar('E-poçt ünvanınıza bir dəfəlik kod göndərildi.', {variant: 'success'})
+            setShowPasswordReset(false)
+            router.push(`${APP_ROUTES.PASSWORD_RESET}?username=${encodeURIComponent(username)}`)
         } catch (e) {
             enqueueSnackbar(handleError(e), {variant: 'error'})
-        } finally {
             setShowPasswordReset(false)
+        } finally {
             setLoading(false)
         }
     }

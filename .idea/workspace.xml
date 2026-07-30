@@ -5,34 +5,16 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="82004209-f401-44a9-ba85-a455e4c04d94" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/app/risk/list/page.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/admin/layout.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/admin/page.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/api/organization/list/route.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/api/organization/users/[id]/reset-password/route.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/api/organization/users/[id]/route.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/api/organization/users/route.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/components/atoms/OrgAdminUsersPage.jsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/2fa-qurulmasi/page.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/2fa-qurulmasi/page.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/StoreProvider.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/StoreProvider.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/UserFetcher.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/UserFetcher.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/api/auth/signin/route.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/api/auth/signin/route.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/api/auth/users/route.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/api/auth/users/route.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/api/utils.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/api/utils.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/chixish/page.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/chixish/page.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/daxilol/ResetPassword.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/daxilol/ResetPassword.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/daxilol/page.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/daxilol/page.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/globals.css" beforeDir="false" afterPath="$PROJECT_DIR$/app/globals.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/gozleme/page.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/gozleme/page.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/layout.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/layout.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/page.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/page.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/risk/cedvel/page.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/risk/table/page.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/risk/loqlar/page.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/risk/logs/page.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/risk/page.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/risk/page.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/service.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/service.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/urls.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/urls.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/utils.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/utils.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/BaseHeader.js" beforeDir="false" afterPath="$PROJECT_DIR$/components/BaseHeader.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/atoms/RiskLogTable.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/atoms/RiskLogTable.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/atoms/RiskPage.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/atoms/RiskPage.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/atoms/RiskTableView.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/atoms/RiskTableView.jsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/constants.js" beforeDir="false" afterPath="$PROJECT_DIR$/components/constants.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -51,24 +33,32 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
-    "codeWithMe.voiceChat.enabledByDefault": "false",
-    "git-widget-placeholder": "master",
-    "javascript.preferred.runtime.type.id": "node",
-    "js.debugger.nextJs.config.created.client": "true",
-    "js.debugger.nextJs.config.created.server": "true",
-    "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "Runtime.Targets.Configurable",
-    "ts.external.directory.path": "C:\\Users\\laman.bashirova\\Documents\\RiskRegisterSystem\\risk-frontend\\node_modules\\typescript\\lib",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
+    &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;javascript.preferred.runtime.type.id&quot;: &quot;node&quot;,
+    &quot;js.debugger.nextJs.config.created.client&quot;: &quot;true&quot;,
+    &quot;js.debugger.nextJs.config.created.server&quot;: &quot;true&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;Runtime.Targets.Configurable&quot;,
+    &quot;ts.external.directory.path&quot;: &quot;C:\\Users\\laman.bashirova\\Documents\\RiskRegisterSystem\\risk-frontend\\node_modules\\typescript\\lib&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\laman.bashirova\Documents\RiskRegisterSystem\risk-frontend\app\api\organization" />
+      <recent name="C:\Users\laman.bashirova\Documents\RiskRegisterSystem\risk-frontend\app\api" />
+      <recent name="C:\Users\laman.bashirova\Documents\RiskRegisterSystem\risk-frontend\app\api\auth" />
+      <recent name="C:\Users\laman.bashirova\Documents\RiskRegisterSystem\risk-frontend\app\api\organization\users\[id" />
+    </key>
+  </component>
   <component name="RunManager" selected="npm.Next.js: server-side">
     <configuration name="Next.js: debug client-side" type="JavascriptDebugType" uri="http://localhost:3000/">
       <method v="2" />
@@ -99,7 +89,8 @@
       <option name="presentableId" value="Default" />
       <updated>1785131567732</updated>
       <workItem from="1785131570158" duration="13234000" />
-      <workItem from="1785301585137" duration="7730000" />
+      <workItem from="1785301585137" duration="11761000" />
+      <workItem from="1785388210626" duration="4892000" />
     </task>
     <servers />
   </component>

@@ -13,6 +13,7 @@ import Skeleton from "@mui/material/Skeleton";
 import Link from 'next/link'
 import {usePathname, useRouter} from 'next/navigation';
 import IconButton from "@mui/material/IconButton";
+import useMediaQuery from '@mui/material/useMediaQuery';
 // Icons
 import LogoutIcon from '@mui/icons-material/Logout';
 import WarehouseIcon from '@mui/icons-material/Warehouse';
@@ -36,36 +37,51 @@ export default function BaseHeader({env}) {
 
     const pathname = usePathname();
     const router = useRouter();
+    const isCompact = useMediaQuery('(max-width:600px)');
 
 
 
     if (!pathname.includes(APP_ROUTES.SIGNIN) && !pathname.includes(APP_ROUTES.PASSWORD_RESET) && !pathname.includes(APP_ROUTES.TWO_FA_VERIFY) && !pathname.includes(APP_ROUTES.TWO_FA_SETUP)) return (<>
 
         <AppBar position="static" sx={{
-            p: '10px 25px',background:"#020624"
+            p: {xs: '8px 12px', sm: '10px 25px'}, background: "#020624"
         }}>
             <Theme mode={'dark'}>
-                <Toolbar style={{display: "flex", justifyContent: "space-between",alignItems:"center"}}>
-                    <Image onClick={() => router.push(APP_ROUTES.HOME)} src={logo} width={"300"} height={"60"}
-                           alt={"logo"} style={{cursor: 'pointer'}} priority/>
+                <Toolbar disableGutters style={{display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", rowGap: 8, minHeight: "auto"}}>
+                    <Box
+                        onClick={() => router.push(APP_ROUTES.HOME)}
+                        sx={{position: 'relative', width: {xs: 130, sm: 180, md: 220}, height: {xs: 26, sm: 36, md: 44}, cursor: 'pointer', flexShrink: 0}}
+                    >
+                        <Image src={logo} alt={"logo"} fill style={{objectFit: 'contain', objectPosition: 'left center'}} priority/>
+                    </Box>
 
-                    <Box sx={{flexGrow: 0, display: 'flex', alignItems: 'center'}}>
-                        {(user?.is_org_admin || user?.is_superuser) && (
-                            <Link href={APP_ROUTES.ORG_ADMIN} style={{textDecoration: 'none'}}>
-                                <Button
-                                    startIcon={<AdminPanelSettingsIcon/>}
-                                    variant={"text"}
-                                    sx={{color: '#fff', mr: 1}}
-                                >
-                                    Qurum idarəetməsi
-                                </Button>
-                            </Link>
-                        )}
+                    <Box sx={{flexGrow: 0, display: 'flex', alignItems: 'center', gap: {xs: 0.5, sm: 1}}}>
+                        {/*{(user?.is_org_admin || user?.is_superuser) && (*/}
+                        {/*    isCompact ? (*/}
+                        {/*        <Tooltip title="Qurum idarəetməsi">*/}
+                        {/*            <Link href={APP_ROUTES.ORG_ADMIN}>*/}
+                        {/*                <IconButton size="small" sx={{color: '#fff'}}>*/}
+                        {/*                    <AdminPanelSettingsIcon fontSize="small"/>*/}
+                        {/*                </IconButton>*/}
+                        {/*            </Link>*/}
+                        {/*        </Tooltip>*/}
+                        {/*    ) : (*/}
+                        {/*        <Link href={APP_ROUTES.ORG_ADMIN} style={{textDecoration: 'none'}}>*/}
+                        {/*            <Button*/}
+                        {/*                startIcon={<AdminPanelSettingsIcon/>}*/}
+                        {/*                variant={"text"}*/}
+                        {/*                sx={{color: '#fff', mr: 1, whiteSpace: 'nowrap'}}*/}
+                        {/*            >*/}
+                        {/*                Qurum idarəetməsi*/}
+                        {/*            </Button>*/}
+                        {/*        </Link>*/}
+                        {/*    )*/}
+                        {/*)}*/}
                         <Tooltip title={displayUser(user)}>
                             <Box sx={{
                                 display: 'flex', alignItems: 'center'
                             }}>
-                                <AssignmentIndIcon sx={{marginRight: 1}} color={'text.primary'}/>
+                                <AssignmentIndIcon sx={{marginRight: 1, display: {xs: 'none', sm: 'inline-flex'}}} color={'text.primary'}/>
                                 <Typography
                                     variant="caption"
                                     noWrap
@@ -84,11 +100,21 @@ export default function BaseHeader({env}) {
                                     {displayUser(user) || <Skeleton variant="text" width={150} color={'#fff'}
                                                                     sx={{fontSize: '1rem'}}/>}
                                 </Typography>
-                                <Link href={APP_ROUTES.SIGNOUT}>
-                                    <Button startIcon={<LogoutIcon/>} variant={"text"} sx={{
-                                        color: '#fff'
-                                    }}>Çıxış</Button>
-                                </Link>
+                                {isCompact ? (
+                                    <Tooltip title="Çıxış">
+                                        <Link href={APP_ROUTES.SIGNOUT}>
+                                            <IconButton size="small" sx={{color: '#fff'}}>
+                                                <LogoutIcon fontSize="small"/>
+                                            </IconButton>
+                                        </Link>
+                                    </Tooltip>
+                                ) : (
+                                    <Link href={APP_ROUTES.SIGNOUT}>
+                                        <Button startIcon={<LogoutIcon/>} variant={"text"} sx={{
+                                            color: '#fff', whiteSpace: 'nowrap'
+                                        }}>Çıxış</Button>
+                                    </Link>
+                                )}
                             </Box>
                         </Tooltip>
                     </Box>

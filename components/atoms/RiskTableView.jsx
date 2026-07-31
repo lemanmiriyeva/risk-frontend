@@ -97,7 +97,7 @@ function RiskDetailDialog({row, onClose, treatmentLabel}) {
             </Box>
 
             <Box sx={{px: 3, py: 2.5, maxHeight: '60vh', overflowY: 'auto'}}>
-                <Box sx={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2, mb: 2}}>
+                <Box sx={{display: 'grid', gridTemplateColumns: {xs: '1fr', sm: '1fr 1fr'}, gap: 2, mb: 2}}>
                     <DetailField label="Risk dərəcəsi (P)" value={`${row.risk_degree} / 125`}/>
                     <DetailField label="Emal variantı (Q)" value={treatmentLabel[row.treatment_option] || row.treatment_option}/>
                 </Box>
@@ -106,7 +106,7 @@ function RiskDetailDialog({row, onClose, treatmentLabel}) {
                     <DetailField label="Beynəlxalq çərçivələr / Çərçivə istinadı" value={row.international_framework}/>
                     <DetailField label="Milli hüquqi istinad" value={row.national_legal_reference}/>
                 </Box>
-                <Box sx={{borderTop: `1px solid ${C.line}`, pt: 2, mb: 2, display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 2}}>
+                <Box sx={{borderTop: `1px solid ${C.line}`, pt: 2, mb: 2, display: 'grid', gridTemplateColumns: {xs: '1fr', sm: '1fr 1fr 1fr'}, gap: 2}}>
                     <DetailField label="Aktivin dəyəri (H)" value={row.asset_value}/>
                     <DetailField label="Ehtimal (M)" value={row.probability}/>
                     <DetailField label="Təsir (N)" value={row.impact}/>
@@ -117,7 +117,7 @@ function RiskDetailDialog({row, onClose, treatmentLabel}) {
                     <DetailField label="İnsident bildirişi qeydləri" value={row.incident_notification_notes}/>
                     <DetailField label="Standartlara istinadlar" value={row.standard_references}/>
                 </Box>
-                <Box sx={{borderTop: `1px solid ${C.line}`, pt: 2, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2}}>
+                <Box sx={{borderTop: `1px solid ${C.line}`, pt: 2, display: 'grid', gridTemplateColumns: {xs: '1fr', sm: '1fr 1fr'}, gap: 2}}>
                     <DetailField label="Yaradan" value={row.created_by?.name || row.created_by?.username}/>
                     <DetailField label="Yaradılma tarixi" value={row.created_at ? new Date(row.created_at).toLocaleString('az-AZ') : null}/>
                     <DetailField label="Son dəyişikliyi edən" value={row.updated_by?.name || row.updated_by?.username}/>
@@ -182,6 +182,7 @@ export default function RiskTableView() {
     const {enqueueSnackbar} = useSnackbar();
     const userState = useAppSelector((state) => state.user);
     const isLoaded = userState?.isLoaded;
+    const isRoot = !!userState?.is_superuser;
 
     const [rows, setRows] = useState([]);
     const [count, setCount] = useState(0);
@@ -190,6 +191,8 @@ export default function RiskTableView() {
     const [search, setSearch] = useState('');
     const [levelFilter, setLevelFilter] = useState('');
     const [treatmentFilter, setTreatmentFilter] = useState('');
+    const [orgFilter, setOrgFilter] = useState('');
+    const [organizations, setOrganizations] = useState([]);
 
     const [paginationModel, setPaginationModel] = useState({page: 0, pageSize: 10});
     const [detailRow, setDetailRow] = useState(null);
@@ -200,16 +203,29 @@ export default function RiskTableView() {
         return map;
     }, []);
 
+    useEffect(() => {
+        if (!isRoot) return;
+        (async () => {
+            try {
+                const res = await service_api.get(NEXT_API_ENDPOINTS.ORGANIZATION.LIST);
+                setOrganizations(res.data || []);
+            } catch (e) {
+                enqueueSnackbar(handleError(e), {variant: 'error'});
+            }
+        })();
+    }, [isRoot, enqueueSnackbar]);
+
     const buildQuery = useCallback(() => {
         const params = new URLSearchParams();
         if (search) params.set('search', search);
         if (levelFilter) params.set('risk_level', levelFilter);
         if (treatmentFilter) params.set('treatment_option', treatmentFilter);
+        if (isRoot && orgFilter) params.set('organization', orgFilter);
         params.set('ordering', '-created_at');
         params.set('page', String(paginationModel.page + 1));
         params.set('page_size', String(paginationModel.pageSize));
         return params.toString();
-    }, [search, levelFilter, treatmentFilter, paginationModel]);
+    }, [search, levelFilter, treatmentFilter, isRoot, orgFilter, paginationModel]);
 
     const fetchRisks = useCallback(async () => {
         setLoading(true);
@@ -243,74 +259,85 @@ export default function RiskTableView() {
         return () => clearTimeout(t);
     }, [search]);
 
-    const columns = useMemo(() => [
-        {field: 'id', headerName: 'ID', width: 70, renderCell: (p) => (
-                <Typography sx={{fontFamily: 'var(--font-mono)', fontSize: 12}}>{p.value}</Typography>
-            )},
-        {field: 'designation', headerName: 'Təyinat', width: 220},
-        {field: 'legal_basis', headerName: 'Hüquqi əsas', width: 220},
-        {field: 'international_framework', headerName: 'Beynəlxalq çərçivə / istinad', width: 220},
-        {field: 'national_legal_reference', headerName: 'Milli hüquqi istinad', width: 220},
-        {field: 'asset_value', headerName: 'Aktivin dəyəri (H)', width: 110, renderCell: (p) => (
-                <Typography sx={{fontFamily: 'var(--font-mono)', fontSize: 12.5}}>{p.value ?? '—'}</Typography>
-            )},
-        {field: 'probability', headerName: 'Ehtimal (M)', width: 110, renderCell: (p) => (
-                <Typography sx={{fontFamily: 'var(--font-mono)', fontSize: 12.5}}>{p.value ?? '—'}</Typography>
-            )},
-        {field: 'impact', headerName: 'Təsir (N)', width: 100, renderCell: (p) => (
-                <Typography sx={{fontFamily: 'var(--font-mono)', fontSize: 12.5}}>{p.value ?? '—'}</Typography>
-            )},
-        {field: 'risk_degree', headerName: 'Risk dərəcəsi (P)', width: 130, renderCell: (p) => (
-                <Typography sx={{fontFamily: 'var(--font-mono)', fontSize: 12.5}}>{p.value ?? '—'}</Typography>
-            )},
-        {
-            field: 'risk_level', headerName: 'Risk səviyyəsi', width: 140,
-            renderCell: (p) => {
-                const level = LEVEL_COLORS[p.value] || LEVEL_COLORS.low;
-                const meta = RISK_LEVEL_META[p.value] || RISK_LEVEL_META.low;
-                return (
-                    <Box sx={{display: 'inline-flex', alignItems: 'center', gap: 0.6, px: 1, py: 0.3, borderRadius: '3px', backgroundColor: level.bg, border: `1px solid ${level.ring}`}}>
-                        <Box sx={{width: 6, height: 6, borderRadius: '50%', backgroundColor: level.fg, flexShrink: 0}}/>
-                        <Typography sx={{fontSize: 11, color: level.fg, fontWeight: 500, whiteSpace: 'nowrap'}}>{meta.label}</Typography>
-                    </Box>
-                );
+    const columns = useMemo(() => {
+        const cols = [
+            {field: 'id', headerName: 'ID', width: 70, renderCell: (p) => (
+                    <Typography sx={{fontFamily: 'var(--font-mono)', fontSize: 12}}>{p.value}</Typography>
+                )},
+            {field: 'designation', headerName: 'Təyinat', width: 220},
+        ];
+        if (isRoot) {
+            cols.push({
+                field: 'organization', headerName: 'Qurum', width: 160,
+                renderCell: (p) => <Typography sx={{fontSize: 12.5}}>{p.value?.title || '—'}</Typography>,
+            });
+        }
+        cols.push(
+            {field: 'legal_basis', headerName: 'Hüquqi əsas', width: 220},
+            {field: 'international_framework', headerName: 'Beynəlxalq çərçivə / istinad', width: 220},
+            {field: 'national_legal_reference', headerName: 'Milli hüquqi istinad', width: 220},
+            {field: 'asset_value', headerName: 'Aktivin dəyəri (H)', width: 110, renderCell: (p) => (
+                    <Typography sx={{fontFamily: 'var(--font-mono)', fontSize: 12.5}}>{p.value ?? '—'}</Typography>
+                )},
+            {field: 'probability', headerName: 'Ehtimal (M)', width: 110, renderCell: (p) => (
+                    <Typography sx={{fontFamily: 'var(--font-mono)', fontSize: 12.5}}>{p.value ?? '—'}</Typography>
+                )},
+            {field: 'impact', headerName: 'Təsir (N)', width: 100, renderCell: (p) => (
+                    <Typography sx={{fontFamily: 'var(--font-mono)', fontSize: 12.5}}>{p.value ?? '—'}</Typography>
+                )},
+            {field: 'risk_degree', headerName: 'Risk dərəcəsi (P)', width: 130, renderCell: (p) => (
+                    <Typography sx={{fontFamily: 'var(--font-mono)', fontSize: 12.5}}>{p.value ?? '—'}</Typography>
+                )},
+            {
+                field: 'risk_level', headerName: 'Risk səviyyəsi', width: 140,
+                renderCell: (p) => {
+                    const level = LEVEL_COLORS[p.value] || LEVEL_COLORS.low;
+                    const meta = RISK_LEVEL_META[p.value] || RISK_LEVEL_META.low;
+                    return (
+                        <Box sx={{display: 'inline-flex', alignItems: 'center', gap: 0.6, px: 1, py: 0.3, borderRadius: '3px', backgroundColor: level.bg, border: `1px solid ${level.ring}`}}>
+                            <Box sx={{width: 6, height: 6, borderRadius: '50%', backgroundColor: level.fg, flexShrink: 0}}/>
+                            <Typography sx={{fontSize: 11, color: level.fg, fontWeight: 500, whiteSpace: 'nowrap'}}>{meta.label}</Typography>
+                        </Box>
+                    );
+                },
             },
-        },
-        {
-            field: 'treatment_option', headerName: 'Emal variantı (Q)', width: 190,
-            renderCell: (p) => <Typography sx={{fontSize: 12.5}}>{treatmentLabel[p.value] || p.value}</Typography>,
-        },
-        {field: 'residual_risk', headerName: 'Qalıq risk (T)', width: 200},
-        {field: 'update_frequency', headerName: 'Yenilənmə tarixi/tezliyi', width: 180},
-        {field: 'incident_notification_notes', headerName: 'İnsident bildirişi qeydləri', width: 200},
-        {field: 'standard_references', headerName: 'Standartlara istinadlar', width: 200},
-        {
-            field: 'created_by', headerName: 'Yaradan', width: 160,
-            renderCell: (p) => <Typography sx={{fontSize: 12.5}}>{p.value?.name || p.value?.username || '—'}</Typography>,
-        },
-        {
-            field: 'updated_by', headerName: 'Son dəyişikliyi edən', width: 160,
-            renderCell: (p) => <Typography sx={{fontSize: 12.5}}>{p.value?.name || p.value?.username || '—'}</Typography>,
-        },
-        {
-            field: 'created_at', headerName: 'Yaradılma tarixi', width: 160,
-            renderCell: (p) => <Typography sx={{fontFamily: 'var(--font-mono)', fontSize: 12}}>{p.value ? new Date(p.value).toLocaleString('az-AZ') : '—'}</Typography>,
-        },
-        {
-            field: 'updated_at', headerName: 'Son dəyişiklik tarixi', width: 160,
-            renderCell: (p) => <Typography sx={{fontFamily: 'var(--font-mono)', fontSize: 12}}>{p.value ? new Date(p.value).toLocaleString('az-AZ') : '—'}</Typography>,
-        },
-        {
-            field: 'actions', headerName: 'Əməliyyat', width: 90, sortable: false, filterable: false, disableColumnMenu: true,
-            renderCell: (p) => (
-                <Tooltip title="Ətraflı bax">
-                    <IconButton size="small" onClick={() => setDetailRow(p.row)} sx={{color: C.inkFaint}}>
-                        <VisibilityOutlinedIcon sx={{fontSize: 17}}/>
-                    </IconButton>
-                </Tooltip>
-            ),
-        },
-    ], [treatmentLabel]);
+            {
+                field: 'treatment_option', headerName: 'Emal variantı (Q)', width: 190,
+                renderCell: (p) => <Typography sx={{fontSize: 12.5}}>{treatmentLabel[p.value] || p.value}</Typography>,
+            },
+            {field: 'residual_risk', headerName: 'Qalıq risk (T)', width: 200},
+            {field: 'update_frequency', headerName: 'Yenilənmə tarixi/tezliyi', width: 180},
+            {field: 'incident_notification_notes', headerName: 'İnsident bildirişi qeydləri', width: 200},
+            {field: 'standard_references', headerName: 'Standartlara istinadlar', width: 200},
+            {
+                field: 'created_by', headerName: 'Yaradan', width: 160,
+                renderCell: (p) => <Typography sx={{fontSize: 12.5}}>{p.value?.name || p.value?.username || '—'}</Typography>,
+            },
+            {
+                field: 'updated_by', headerName: 'Son dəyişikliyi edən', width: 160,
+                renderCell: (p) => <Typography sx={{fontSize: 12.5}}>{p.value?.name || p.value?.username || '—'}</Typography>,
+            },
+            {
+                field: 'created_at', headerName: 'Yaradılma tarixi', width: 160,
+                renderCell: (p) => <Typography sx={{fontFamily: 'var(--font-mono)', fontSize: 12}}>{p.value ? new Date(p.value).toLocaleString('az-AZ') : '—'}</Typography>,
+            },
+            {
+                field: 'updated_at', headerName: 'Son dəyişiklik tarixi', width: 160,
+                renderCell: (p) => <Typography sx={{fontFamily: 'var(--font-mono)', fontSize: 12}}>{p.value ? new Date(p.value).toLocaleString('az-AZ') : '—'}</Typography>,
+            },
+            {
+                field: 'actions', headerName: 'Əməliyyat', width: 90, sortable: false, filterable: false, disableColumnMenu: true,
+                renderCell: (p) => (
+                    <Tooltip title="Ətraflı bax">
+                        <IconButton size="small" onClick={() => setDetailRow(p.row)} sx={{color: C.inkFaint}}>
+                            <VisibilityOutlinedIcon sx={{fontSize: 17}}/>
+                        </IconButton>
+                    </Tooltip>
+                ),
+            },
+        );
+        return cols;
+    }, [treatmentLabel, isRoot]);
 
     const exportToExcel = async () => {
         const workbook = new ExcelJS.Workbook();
@@ -328,6 +355,8 @@ export default function RiskTableView() {
             exportCols.forEach((c) => {
                 if (c.field === 'created_by' || c.field === 'updated_by') {
                     record[c.field] = row[c.field]?.name || row[c.field]?.username || '—';
+                } else if (c.field === 'organization') {
+                    record[c.field] = row[c.field]?.title || '—';
                 } else if (c.field === 'created_at' || c.field === 'updated_at') {
                     record[c.field] = row[c.field] ? new Date(row[c.field]).toLocaleString('az-AZ') : '—';
                 } else if (c.field === 'treatment_option') {
@@ -448,9 +477,26 @@ export default function RiskTableView() {
                             <MenuItem key={o.value} value={o.value} sx={{color: C.ink, fontSize: 13}}>{o.label}</MenuItem>
                         ))}
                     </TextField>
+                    {isRoot && (
+                        <TextField
+                            select size="small" value={orgFilter}
+                            onChange={(e) => {setOrgFilter(e.target.value); setPaginationModel((p) => ({...p, page: 0}));}}
+                            SelectProps={{
+                                displayEmpty: true,
+                                renderValue: (v) => organizations.find((o) => o.id === v)?.title || 'Bütün qurumlar',
+                                sx: {color: C.ink, fontSize: 13, backgroundColor: C.surface, borderRadius: '4px'},
+                            }}
+                            sx={{minWidth: 200}}
+                        >
+                            <MenuItem value="" sx={{color: C.ink, fontSize: 13}}>Bütün qurumlar</MenuItem>
+                            {organizations.map((o) => (
+                                <MenuItem key={o.id} value={o.id} sx={{color: C.ink, fontSize: 13}}>{o.title}</MenuItem>
+                            ))}
+                        </TextField>
+                    )}
                 </Box>
 
-                <Box sx={{height: 640, width: '100%'}}>
+                <Box sx={{height: {xs: 480, sm: 560, md: 640}, width: '100%'}}>
                     <DataGrid
                         rows={rows}
                         columns={columns}

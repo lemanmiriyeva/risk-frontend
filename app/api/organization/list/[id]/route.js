@@ -1,15 +1,15 @@
 'use server'
 
-import {get_request, post_request} from "@/app/api/utils";
+import {get_request, patch_request} from "@/app/api/utils";
 import {DJANGO_API_ENDPOINTS} from "@/app/urls";
 import {handleError} from "@/app/utils";
 
-export async function GET(request) {
+export async function GET(request, {params: {id}}) {
     const access = request.cookies.get('access')
     const refresh = request.cookies.get('refresh')
 
     try {
-        return await get_request(DJANGO_API_ENDPOINTS.ORGANIZATION.LIST, access, refresh)
+        return await get_request(DJANGO_API_ENDPOINTS.ORGANIZATION.LIST + id + '/', access, refresh)
     } catch (error) {
         console.log('exc is -> ', error)
         console.log('beautiful error', handleError(error))
@@ -17,13 +17,13 @@ export async function GET(request) {
     }
 }
 
-export async function POST(request) {
+export async function PATCH(request, {params: {id}}) {
     const access = request.cookies.get('access')
     const refresh = request.cookies.get('refresh')
     const data = await request.json()
 
     try {
-        return await post_request(DJANGO_API_ENDPOINTS.ORGANIZATION.LIST, data, access, refresh)
+        return await patch_request(DJANGO_API_ENDPOINTS.ORGANIZATION.LIST + id + '/', data, access, refresh)
     } catch (error) {
         console.log('exc is -> ', error)
         console.log('beautiful error', handleError(error))

@@ -12,6 +12,7 @@ export const DJANGO_API_ENDPOINTS = {
         DEPARTMENTS: API_URL + "/api/authentication/departments/",
         TWO_FA_SETUP: API_URL + "/api/authentication/2fa/setup/",
         TWO_FA_VERIFY: API_URL + "/api/authentication/2fa/verify/",
+        ROLES: API_URL + "/api/authentication/roles/",
     },
     RISK: {
         LIST: API_URL + "/api/risk/",
@@ -45,6 +46,7 @@ export const NEXT_API_ENDPOINTS = {
         DEPARTMENTS: 'auth/departments/',
         TWO_FA_SETUP: "auth/2fa-setup/",
         TWO_FA_VERIFY: "auth/2fa-verify/",
+        ROLES: 'auth/roles/',
     },
     RISK:{
         LIST:"risk/",

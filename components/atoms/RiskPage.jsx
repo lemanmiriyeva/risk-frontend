@@ -111,7 +111,7 @@ function RiskDetailDialog({row, onClose, treatmentLabel}) {
             </Box>
 
             <Box sx={{px: 3, py: 2.5, maxHeight: '60vh', overflowY: 'auto'}}>
-                <Box sx={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2, mb: 2}}>
+                <Box sx={{display: 'grid', gridTemplateColumns: {xs: '1fr', sm: '1fr 1fr'}, gap: 2, mb: 2}}>
                     <DetailField label="Risk dərəcəsi (P)" value={`${row.risk_degree} / 125`}/>
                     <DetailField label="Emal variantı (Q)" value={treatmentLabel[row.treatment_option] || row.treatment_option}/>
                 </Box>
@@ -120,7 +120,7 @@ function RiskDetailDialog({row, onClose, treatmentLabel}) {
                     <DetailField label="Beynəlxalq çərçivələr / Çərçivə istinadı" value={row.international_framework}/>
                     <DetailField label="Milli hüquqi istinad" value={row.national_legal_reference}/>
                 </Box>
-                <Box sx={{borderTop: `1px solid ${C.line}`, pt: 2, mb: 2, display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 2}}>
+                <Box sx={{borderTop: `1px solid ${C.line}`, pt: 2, mb: 2, display: 'grid', gridTemplateColumns: {xs: '1fr', sm: '1fr 1fr 1fr'}, gap: 2}}>
                     <DetailField label="Aktivin dəyəri (H)" value={row.asset_value}/>
                     <DetailField label="Ehtimal (M)" value={row.probability}/>
                     <DetailField label="Təsir (N)" value={row.impact}/>
@@ -131,7 +131,7 @@ function RiskDetailDialog({row, onClose, treatmentLabel}) {
                     <DetailField label="İnsident bildirişi qeydləri" value={row.incident_notification_notes}/>
                     <DetailField label="Standartlara istinadlar" value={row.standard_references}/>
                 </Box>
-                <Box sx={{borderTop: `1px solid ${C.line}`, pt: 2, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2}}>
+                <Box sx={{borderTop: `1px solid ${C.line}`, pt: 2, display: 'grid', gridTemplateColumns: {xs: '1fr', sm: '1fr 1fr'}, gap: 2}}>
                     <DetailField label="Yaradan" value={row.created_by?.name || row.created_by?.username}/>
                     <DetailField label="Yaradılma tarixi" value={row.created_at ? new Date(row.created_at).toLocaleString('az-AZ') : null}/>
                     <DetailField label="Son dəyişikliyi edən" value={row.updated_by?.name || row.updated_by?.username}/>
@@ -196,6 +196,7 @@ export default function RiskRegistryPage() {
     const {enqueueSnackbar} = useSnackbar();
     const userState = useAppSelector((state) => state.user);
     const isLoaded = userState?.isLoaded;
+    const isRoot = !!userState?.is_superuser;
 
     const [rows, setRows] = useState([]);
     const [count, setCount] = useState(0);
@@ -204,6 +205,8 @@ export default function RiskRegistryPage() {
     const [search, setSearch] = useState('');
     const [levelFilter, setLevelFilter] = useState('');
     const [treatmentFilter, setTreatmentFilter] = useState('');
+    const [orgFilter, setOrgFilter] = useState('');
+    const [organizations, setOrganizations] = useState([]);
     const [ordering, setOrdering] = useState('-created_at');
 
     const [paginationModel, setPaginationModel] = useState({page: 0, pageSize: 10});
@@ -217,16 +220,29 @@ export default function RiskRegistryPage() {
 
     const [detailRow, setDetailRow] = useState(null);
 
+    useEffect(() => {
+        if (!isRoot) return;
+        (async () => {
+            try {
+                const res = await service_api.get(NEXT_API_ENDPOINTS.ORGANIZATION.LIST);
+                setOrganizations(res.data || []);
+            } catch (e) {
+                enqueueSnackbar(handleError(e), {variant: 'error'});
+            }
+        })();
+    }, [isRoot, enqueueSnackbar]);
+
     const buildQuery = useCallback(() => {
         const params = new URLSearchParams();
         if (search) params.set('search', search);
         if (levelFilter) params.set('risk_level', levelFilter);
         if (treatmentFilter) params.set('treatment_option', treatmentFilter);
+        if (isRoot && orgFilter) params.set('organization', orgFilter);
         if (ordering) params.set('ordering', ordering);
         params.set('page', String(paginationModel.page + 1));
         params.set('page_size', String(paginationModel.pageSize));
         return params.toString();
-    }, [search, levelFilter, treatmentFilter, ordering, paginationModel]);
+    }, [search, levelFilter, treatmentFilter, isRoot, orgFilter, ordering, paginationModel]);
 
     const treatmentLabel = useMemo(() => {
         const map = {};
@@ -316,120 +332,131 @@ export default function RiskRegistryPage() {
         }
     }
 
-    const columns = useMemo(() => [
-        {
-            field: 'designation',
-            headerName: 'Təyinat',
-            flex: 2.2,
-            minWidth: 220,
-            sortable: true,
-        },
-        {
-            field: 'risk_degree',
-            headerName: 'Dərəcə',
-            width: 90,
-            sortable: true,
-            align: 'center',
-            headerAlign: 'center',
-            renderCell: (params) => (
-                <Typography sx={{fontFamily: 'var(--font-mono)', fontSize: 13, color: C.inkMuted}}>
-                    {params.value}
-                </Typography>
-            ),
-        },
-        {
-            field: 'risk_level',
-            headerName: 'Səviyyə',
-            width: 130,
-            sortable: false,
-            align: 'center',
-            headerAlign: 'center',
-            renderCell: (params) => {
-                const level = LEVEL_COLORS[params.value] || LEVEL_COLORS.low;
-                const meta = RISK_LEVEL_META[params.value] || RISK_LEVEL_META.low;
-                return (
-                    <Box sx={{display: 'inline-flex', alignItems: 'center', gap: 0.6, px: 1, py: 0.3, borderRadius: '3px', backgroundColor: level.bg, border: `1px solid ${level.ring}`}}>
-                        <Box sx={{width: 6, height: 6, borderRadius: '50%', backgroundColor: level.fg, flexShrink: 0}}/>
-                        <Typography sx={{fontSize: 11, color: level.fg, fontWeight: 500, whiteSpace: 'nowrap'}}>{meta.label}</Typography>
-                    </Box>
-                );
+    const columns = useMemo(() => {
+        const cols = [
+            {
+                field: 'designation',
+                headerName: 'Təyinat',
+                flex: 2.2,
+                minWidth: 220,
+                sortable: true,
             },
-        },
-        {
-            field: 'treatment_option',
-            headerName: 'Emal variantı',
-            flex: 1.3,
-            minWidth: 150,
-            sortable: false,
-            renderCell: (params) => (
-                <Typography sx={{fontSize: 13, color: C.inkMuted}}>
-                    {treatmentLabel[params.value] || params.value}
-                </Typography>
-            ),
-        },
-        {
-            field: 'created_by',
-            headerName: 'Yaradan',
-            flex: 1.1,
-            minWidth: 140,
-            sortable: false,
-            renderCell: (params) => {
-                const creatorName = params.value?.name || params.value?.username || '—';
-                return (
-                    <Box sx={{display: 'flex', alignItems: 'center', gap: 0.75, overflow: 'hidden'}}>
-                        <Box sx={{
-                            width: 18, height: 18, borderRadius: '50%', backgroundColor: C.goldWash,
-                            border: `1px solid ${C.goldMuted}`, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            fontSize: 9, color: C.gold, fontWeight: 600, flexShrink: 0,
-                        }}>
-                            {initialsOf(creatorName)}
+        ];
+        if (isRoot) {
+            cols.push({
+                field: 'organization', headerName: 'Qurum', flex: 1, minWidth: 160,
+                valueGetter: (value, row) => row?.organization?.title || '—',
+            });
+        }
+        cols.push(
+            {
+                field: 'risk_degree',
+                headerName: 'Dərəcə',
+                width: 90,
+                sortable: true,
+                align: 'center',
+                headerAlign: 'center',
+                renderCell: (params) => (
+                    <Typography sx={{fontFamily: 'var(--font-mono)', fontSize: 13, color: C.inkMuted}}>
+                        {params.value}
+                    </Typography>
+                ),
+            },
+            {
+                field: 'risk_level',
+                headerName: 'Səviyyə',
+                width: 130,
+                sortable: false,
+                align: 'center',
+                headerAlign: 'center',
+                renderCell: (params) => {
+                    const level = LEVEL_COLORS[params.value] || LEVEL_COLORS.low;
+                    const meta = RISK_LEVEL_META[params.value] || RISK_LEVEL_META.low;
+                    return (
+                        <Box sx={{display: 'inline-flex', alignItems: 'center', gap: 0.6, px: 1, py: 0.3, borderRadius: '3px', backgroundColor: level.bg, border: `1px solid ${level.ring}`}}>
+                            <Box sx={{width: 6, height: 6, borderRadius: '50%', backgroundColor: level.fg, flexShrink: 0}}/>
+                            <Typography sx={{fontSize: 11, color: level.fg, fontWeight: 500, whiteSpace: 'nowrap'}}>{meta.label}</Typography>
                         </Box>
-                        <Typography sx={{fontSize: 12.5, color: C.inkMuted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>
-                            {creatorName}
-                        </Typography>
-                    </Box>
-                );
+                    );
+                },
             },
-        },
-        {
-            field: 'updated_at',
-            headerName: 'Son dəyişiklik',
-            width: 160,
-            sortable: true,
-            renderCell: (params) => (
-                <Typography sx={{fontFamily: 'var(--font-mono)', fontSize: 12, color: C.inkFaint}}>
-                    {params.value ? new Date(params.value).toLocaleString('az-AZ') : '—'}
-                </Typography>
-            ),
-        },
-        {
-            field: 'actions',
-            headerName: '',
-            width: 120,
-            sortable: false,
-            filterable: false,
-            disableColumnMenu: true,
-            renderCell: (params) => (
-                <Box sx={{display: 'flex', justifyContent: 'flex-end', gap: 0.25}}>
-                    <Tooltip title="Ətraflı bax">
-                        <IconButton size="small" onClick={() => setDetailRow(params.row)} sx={{color: C.inkFaint}}>
-                            <VisibilityOutlinedIcon sx={{fontSize: 17}}/>
-                        </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Redaktə et">
-                        <IconButton size="small" onClick={() => openEdit(params.row)} sx={{color: C.inkFaint}}>
-                            <EditOutlinedIcon sx={{fontSize: 17}}/>
-                        </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Sil">
-                        <IconButton size="small" onClick={() => setDeleteTarget(params.row)} sx={{color: '#A23B3B'}}>
-                            <DeleteOutlineIcon sx={{fontSize: 17}}/>
-                        </IconButton>
-                    </Tooltip>
-                </Box>
-            ),
-        },
-    ], [treatmentLabel]);
+            {
+                field: 'treatment_option',
+                headerName: 'Emal variantı',
+                flex: 1.3,
+                minWidth: 150,
+                sortable: false,
+                renderCell: (params) => (
+                    <Typography sx={{fontSize: 13, color: C.inkMuted}}>
+                        {treatmentLabel[params.value] || params.value}
+                    </Typography>
+                ),
+            },
+            {
+                field: 'created_by',
+                headerName: 'Yaradan',
+                flex: 1.1,
+                minWidth: 140,
+                sortable: false,
+                renderCell: (params) => {
+                    const creatorName = params.value?.name || params.value?.username || '—';
+                    return (
+                        <Box sx={{display: 'flex', alignItems: 'center', gap: 0.75, overflow: 'hidden'}}>
+                            <Box sx={{
+                                width: 18, height: 18, borderRadius: '50%', backgroundColor: C.goldWash,
+                                border: `1px solid ${C.goldMuted}`, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                fontSize: 9, color: C.gold, fontWeight: 600, flexShrink: 0,
+                            }}>
+                                {initialsOf(creatorName)}
+                            </Box>
+                            <Typography sx={{fontSize: 12.5, color: C.inkMuted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>
+                                {creatorName}
+                            </Typography>
+                        </Box>
+                    );
+                },
+            },
+            {
+                field: 'updated_at',
+                headerName: 'Son dəyişiklik',
+                width: 160,
+                sortable: true,
+                renderCell: (params) => (
+                    <Typography sx={{fontFamily: 'var(--font-mono)', fontSize: 12, color: C.inkFaint}}>
+                        {params.value ? new Date(params.value).toLocaleString('az-AZ') : '—'}
+                    </Typography>
+                ),
+            },
+            {
+                field: 'actions',
+                headerName: '',
+                width: 120,
+                sortable: false,
+                filterable: false,
+                disableColumnMenu: true,
+                renderCell: (params) => (
+                    <Box sx={{display: 'flex', justifyContent: 'flex-end', gap: 0.25}}>
+                        <Tooltip title="Ətraflı bax">
+                            <IconButton size="small" onClick={() => setDetailRow(params.row)} sx={{color: C.inkFaint}}>
+                                <VisibilityOutlinedIcon sx={{fontSize: 17}}/>
+                            </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Redaktə et">
+                            <IconButton size="small" onClick={() => openEdit(params.row)} sx={{color: C.inkFaint}}>
+                                <EditOutlinedIcon sx={{fontSize: 17}}/>
+                            </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Sil">
+                            <IconButton size="small" onClick={() => setDeleteTarget(params.row)} sx={{color: '#A23B3B'}}>
+                                <DeleteOutlineIcon sx={{fontSize: 17}}/>
+                            </IconButton>
+                        </Tooltip>
+                    </Box>
+                ),
+            },
+        );
+        return cols;
+    }, [treatmentLabel, isRoot]);
 
     if (!isLoaded) {
         return (
@@ -546,10 +573,31 @@ export default function RiskRegistryPage() {
                             <MenuItem key={o.value} value={o.value} sx={{color: C.ink, fontSize: 13}}>{o.label}</MenuItem>
                         ))}
                     </TextField>
+                    {isRoot && (
+                        <TextField
+                            select size="small" value={orgFilter}
+                            onChange={(e) => {setOrgFilter(e.target.value); setPaginationModel((p) => ({...p, page: 0}));}}
+                            SelectProps={{
+                                displayEmpty: true,
+                                renderValue: (v) => organizations.find((o) => o.id === v)?.title || 'Bütün qurumlar',
+                                sx: {
+                                    color: C.ink, fontSize: 13, backgroundColor: C.surface, borderRadius: '4px',
+                                    '& .MuiOutlinedInput-notchedOutline': {borderColor: C.line},
+                                },
+                                MenuProps: {PaperProps: {sx: {backgroundColor: C.surfaceRaised, border: `1px solid ${C.line}`}}},
+                            }}
+                            sx={{minWidth: 200, '&:hover .MuiOutlinedInput-notchedOutline': {borderColor: C.lineStrong}}}
+                        >
+                            <MenuItem value="" sx={{color: C.ink, fontSize: 13}}>Bütün qurumlar</MenuItem>
+                            {organizations.map((o) => (
+                                <MenuItem key={o.id} value={o.id} sx={{color: C.ink, fontSize: 13}}>{o.title}</MenuItem>
+                            ))}
+                        </TextField>
+                    )}
                 </Box>
 
                 {/* DataGrid */}
-                <Box sx={{height: 640, width: '100%'}}>
+                <Box sx={{height: {xs: 480, sm: 560, md: 640}, width: '100%'}}>
                     <DataGrid
                         rows={rows}
                         columns={columns}

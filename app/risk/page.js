@@ -63,15 +63,15 @@ export default function Page() {
     }
 
     return (
-        <Box sx={{ p: { xs: 3, md: 6 }, maxWidth: '90%', mx: "auto", minHeight: "100vh" }}>
-            <Typography variant="h4" sx={{ mb: 1, fontWeight: 800 }}>
+        <Box sx={{ p: { xs: 2.5, sm: 4, md: 6 }, maxWidth: {xs: '100%', sm: '92%', lg: 1400}, mx: "auto", minHeight: "100vh" }}>
+            <Typography variant="h4" sx={{ mb: 1, fontWeight: 800, fontSize: {xs: 24, sm: 28, md: 34} }}>
                 {riskModule.title}
             </Typography>
-            <Typography variant="subtitle1" color="text.secondary" sx={{ mb: 5 }}>
+            <Typography variant="subtitle1" color="text.secondary" sx={{ mb: {xs: 3, md: 5} }}>
                 Davam etmək üçün aşağıdakı bölmələrdən birini seçin.
             </Typography>
 
-            <Grid container spacing={3}>
+            <Grid container spacing={{xs: 2, sm: 2.5, md: 3}}>
                 {subModules.map((sub) => (
                     <Grid item xs={12} sm={6} md={4} key={sub.id}>
                         <Link

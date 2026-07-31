@@ -160,7 +160,7 @@ function DetailDialog({row, onClose}) {
                             <Box
                                 key={c.key}
                                 sx={{
-                                    display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2,
+                                    display: 'grid', gridTemplateColumns: {xs: '1fr', sm: '1fr 1fr'}, gap: 2,
                                     px: 2, py: 1.25,
                                     borderTop: i === 0 ? 'none' : `1px solid ${C.line}`,
                                     backgroundColor: i % 2 === 0 ? 'transparent' : 'rgba(0,0,0,0.015)',
@@ -195,8 +195,8 @@ function DetailDialog({row, onClose}) {
                         {Object.entries(row.risk_snapshot)
                             .filter(([k]) => !['id', 'created_by', 'updated_by', 'created_at', 'updated_at'].includes(k))
                             .map(([k, v], i) => (
-                                <Box key={k} sx={{display: 'flex', gap: 2, px: 2, py: 1, borderTop: i === 0 ? 'none' : `1px solid ${C.line}`}}>
-                                    <Typography sx={{fontSize: 12, color: C.inkFaint, minWidth: 160, fontWeight: 500}}>{FIELD_LABELS[k] || k}</Typography>
+                                <Box key={k} sx={{display: 'flex', flexDirection: {xs: 'column', sm: 'row'}, gap: {xs: 0.25, sm: 2}, px: 2, py: 1, borderTop: i === 0 ? 'none' : `1px solid ${C.line}`}}>
+                                    <Typography sx={{fontSize: 12, color: C.inkFaint, minWidth: {xs: 'auto', sm: 160}, fontWeight: 500}}>{FIELD_LABELS[k] || k}</Typography>
                                     <Typography sx={{fontSize: 13, color: C.ink, wordBreak: 'break-word'}}>{formatValue(v)}</Typography>
                                 </Box>
                             ))}
@@ -314,6 +314,8 @@ const gridSx = {
 
 export default function RiskLogsPage() {
     const {enqueueSnackbar} = useSnackbar();
+    const userState = useAppSelector((state) => state.user);
+    const isRoot = !!userState?.is_superuser;
 
     const [rows, setRows] = useState([]);
     const [count, setCount] = useState(0);
@@ -321,6 +323,8 @@ export default function RiskLogsPage() {
 
     const [search, setSearch] = useState('');
     const [actionFilter, setActionFilter] = useState('');
+    const [orgFilter, setOrgFilter] = useState('');
+    const [organizations, setOrganizations] = useState([]);
     const [ordering, setOrdering] = useState('-timestamp');
 
     const [paginationModel, setPaginationModel] = useState({page: 0, pageSize: 20});
@@ -328,15 +332,28 @@ export default function RiskLogsPage() {
     const [detailRow, setDetailRow] = useState(null);
     const [viewMode, setViewMode] = useState('timeline'); // 'timeline' | 'table'
 
+    useEffect(() => {
+        if (!isRoot) return;
+        (async () => {
+            try {
+                const res = await service_api.get(NEXT_API_ENDPOINTS.ORGANIZATION.LIST);
+                setOrganizations(res.data || []);
+            } catch (e) {
+                enqueueSnackbar(handleError(e), {variant: 'error'});
+            }
+        })();
+    }, [isRoot, enqueueSnackbar]);
+
     const buildQuery = useCallback(() => {
         const params = new URLSearchParams();
         if (search) params.set('search', search);
         if (actionFilter) params.set('action_type', actionFilter);
+        if (isRoot && orgFilter) params.set('organization', orgFilter);
         if (ordering) params.set('ordering', ordering);
         params.set('page', String(paginationModel.page + 1));
         params.set('page_size', String(paginationModel.pageSize));
         return params.toString();
-    }, [search, actionFilter, ordering, paginationModel]);
+    }, [search, actionFilter, isRoot, orgFilter, ordering, paginationModel]);
 
     const fetchLogs = useCallback(async () => {
         setLoading(true);
@@ -358,7 +375,7 @@ export default function RiskLogsPage() {
     }, [buildQuery, enqueueSnackbar]);
 
     useEffect(() => {
-         fetchLogs();
+        fetchLogs();
     }, [fetchLogs]);
 
     useEffect(() => {
@@ -386,66 +403,77 @@ export default function RiskLogsPage() {
         return Array.from(map.entries());
     }, [rows]);
 
-    const columns = useMemo(() => [
-        {field: 'id', headerName: 'ID', width: 80, renderCell: (p) => (
-                <Typography sx={{fontSize: 12, color: C.inkFaint}}>{p.value ?? '—'}</Typography>
-            )},
-        {field: 'risk_designation', headerName: 'Təyinat', flex: 1.4, minWidth: 180, renderCell: (p) => (
-                <Typography sx={{fontSize: 13, color: C.ink, fontWeight: 500}}>{p.value || '—'}</Typography>
-            )},
-        {
-            field: 'action_type', headerName: 'Əməliyyat', width: 150,
-            renderCell: (p) => {
-                const meta = ACTION_META[p.value] || {label: p.value, fg: C.inkMuted, bg: C.surfaceRaised, ring: C.line};
-                return (
-                    <Box sx={{display: 'inline-flex', alignItems: 'center', gap: 0.6, px: 1, py: 0.3, borderRadius: '3px', backgroundColor: meta.bg, border: `1px solid ${meta.ring}`}}>
-                        <Box sx={{width: 6, height: 6, borderRadius: '50%', backgroundColor: meta.fg, flexShrink: 0}}/>
-                        <Typography sx={{fontSize: 11, color: meta.fg, fontWeight: 500, whiteSpace: 'nowrap'}}>{meta.label}</Typography>
-                    </Box>
-                );
-            },
-        },
-        {
-            field: 'changes', headerName: 'Dəyişikliklər', flex: 1.8, minWidth: 220, sortable: false,
-            renderCell: (p) => <Typography sx={{fontSize: 13, color: C.inkMuted}}>{summaryText(p.row)}</Typography>,
-        },
-        {
-            field: 'user', headerName: 'İstifadəçi', width: 180, sortable: false,
-            renderCell: (p) => {
-                const userName = p.row.user?.name || p.row.user?.username || p.row.user_username_snapshot || '—';
-                return (
-                    <Box sx={{display: 'flex', alignItems: 'center', gap: 0.75, overflow: 'hidden'}}>
-                        <Box sx={{
-                            width: 18, height: 18, borderRadius: '50%', backgroundColor: C.goldWash,
-                            border: `1px solid ${C.goldMuted}`, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            fontSize: 9, color: C.gold, fontWeight: 600, flexShrink: 0,
-                        }}>
-                            {initialsOf(userName)}
+    const columns = useMemo(() => {
+        const cols = [
+            {field: 'id', headerName: 'ID', width: 80, renderCell: (p) => (
+                    <Typography sx={{fontSize: 12, color: C.inkFaint}}>{p.value ?? '—'}</Typography>
+                )},
+            {field: 'risk_designation', headerName: 'Təyinat', flex: 1.4, minWidth: 180, renderCell: (p) => (
+                    <Typography sx={{fontSize: 13, color: C.ink, fontWeight: 500}}>{p.value || '—'}</Typography>
+                )},
+        ];
+        if (isRoot) {
+            cols.push({
+                field: 'organization', headerName: 'Qurum', width: 150, sortable: false,
+                renderCell: (p) => <Typography sx={{fontSize: 12.5, color: C.inkMuted}}>{p.value?.title || '—'}</Typography>,
+            });
+        }
+        cols.push(
+            {
+                field: 'action_type', headerName: 'Əməliyyat', width: 150,
+                renderCell: (p) => {
+                    const meta = ACTION_META[p.value] || {label: p.value, fg: C.inkMuted, bg: C.surfaceRaised, ring: C.line};
+                    return (
+                        <Box sx={{display: 'inline-flex', alignItems: 'center', gap: 0.6, px: 1, py: 0.3, borderRadius: '3px', backgroundColor: meta.bg, border: `1px solid ${meta.ring}`}}>
+                            <Box sx={{width: 6, height: 6, borderRadius: '50%', backgroundColor: meta.fg, flexShrink: 0}}/>
+                            <Typography sx={{fontSize: 11, color: meta.fg, fontWeight: 500, whiteSpace: 'nowrap'}}>{meta.label}</Typography>
                         </Box>
-                        <Typography sx={{fontSize: 12.5, color: C.inkFaint, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>
-                            {userName}
-                        </Typography>
-                    </Box>
-                );
+                    );
+                },
             },
-        },
-        {
-            field: 'timestamp', headerName: 'Tarix/Vaxt', width: 170,
-            renderCell: (p) => (
-                <Typography sx={{fontSize: 12, color: C.inkFaint}}>
-                    {p.value ? new Date(p.value).toLocaleString('az-AZ') : '—'}
-                </Typography>
-            ),
-        },
-        {
-            field: 'actions', headerName: '', width: 60, sortable: false, filterable: false, disableColumnMenu: true,
-            renderCell: (p) => (
-                <IconButton size="small" onClick={() => setDetailRow(p.row)} sx={{color: C.inkFaint}}>
-                    <VisibilityOutlinedIcon sx={{fontSize: 17}}/>
-                </IconButton>
-            ),
-        },
-    ], []);
+            {
+                field: 'changes', headerName: 'Dəyişikliklər', flex: 1.8, minWidth: 220, sortable: false,
+                renderCell: (p) => <Typography sx={{fontSize: 13, color: C.inkMuted}}>{summaryText(p.row)}</Typography>,
+            },
+            {
+                field: 'user', headerName: 'İstifadəçi', width: 180, sortable: false,
+                renderCell: (p) => {
+                    const userName = p.row.user?.name || p.row.user?.username || p.row.user_username_snapshot || '—';
+                    return (
+                        <Box sx={{display: 'flex', alignItems: 'center', gap: 0.75, overflow: 'hidden'}}>
+                            <Box sx={{
+                                width: 18, height: 18, borderRadius: '50%', backgroundColor: C.goldWash,
+                                border: `1px solid ${C.goldMuted}`, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                fontSize: 9, color: C.gold, fontWeight: 600, flexShrink: 0,
+                            }}>
+                                {initialsOf(userName)}
+                            </Box>
+                            <Typography sx={{fontSize: 12.5, color: C.inkFaint, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>
+                                {userName}
+                            </Typography>
+                        </Box>
+                    );
+                },
+            },
+            {
+                field: 'timestamp', headerName: 'Tarix/Vaxt', width: 170,
+                renderCell: (p) => (
+                    <Typography sx={{fontSize: 12, color: C.inkFaint}}>
+                        {p.value ? new Date(p.value).toLocaleString('az-AZ') : '—'}
+                    </Typography>
+                ),
+            },
+            {
+                field: 'actions', headerName: '', width: 60, sortable: false, filterable: false, disableColumnMenu: true,
+                renderCell: (p) => (
+                    <IconButton size="small" onClick={() => setDetailRow(p.row)} sx={{color: C.inkFaint}}>
+                        <VisibilityOutlinedIcon sx={{fontSize: 17}}/>
+                    </IconButton>
+                ),
+            },
+        );
+        return cols;
+    }, [isRoot]);
 
     function handleSortModelChange(model) {
         if (!model || model.length === 0) {
@@ -465,6 +493,7 @@ export default function RiskLogsPage() {
         worksheet.columns = [
             {header: 'ID', key: 'risk_id', width: 15},
             {header: 'Təyinat', key: 'designation', width: 30},
+            ...(isRoot ? [{header: 'Qurum', key: 'organization', width: 20}] : []),
             {header: 'Əməliyyat', key: 'action', width: 20},
             {header: 'Dəyişikliklər', key: 'changes', width: 40},
             {header: 'İstifadəçi', key: 'user', width: 20},
@@ -485,13 +514,14 @@ export default function RiskLogsPage() {
             const item = worksheet.addRow({
                 risk_id: `#${row.id}`,
                 designation: row.risk_designation || '—',
+                ...(isRoot ? {organization: row.organization?.title || '—'} : {}),
                 action: ACTION_META[row.action_type]?.label || row.action_type,
                 changes: changeText,
                 user: row.user?.name || row.user?.username || row.user_username_snapshot || '—',
                 timestamp: row.timestamp ? new Date(row.timestamp).toLocaleString('az-AZ') : '—'
             });
 
-            const actionCell = item.getCell(3);
+            const actionCell = item.getCell(isRoot ? 4 : 3);
             const colorMap = {created: '388E3C', updated: '0288D1', deleted: 'D32F2F', exported: '7B1FA2'};
             const color = colorMap[row.action_type] || '616161';
             actionCell.fill = {type: 'pattern', pattern: 'solid', fgColor: {argb: 'FF' + color}};
@@ -515,7 +545,7 @@ export default function RiskLogsPage() {
 
     return (
         <Box sx={{minHeight: '100vh', backgroundColor: C.bg, px: {xs: 2, md: 5}, py: 5}}>
-           
+
 
             <Box sx={{maxWidth: 1440, mx: 'auto'}}>
                 {/* Başlıq */}
@@ -569,6 +599,23 @@ export default function RiskLogsPage() {
                             <MenuItem key={o.value} value={o.value} sx={{color: C.ink, fontSize: 13}}>{o.label}</MenuItem>
                         ))}
                     </TextField>
+                    {isRoot && (
+                        <TextField
+                            select size="small" value={orgFilter}
+                            onChange={(e) => {setOrgFilter(e.target.value); setPaginationModel((p) => ({...p, page: 0}));}}
+                            SelectProps={{
+                                displayEmpty: true,
+                                renderValue: (v) => organizations.find((o) => o.id === v)?.title || 'Bütün qurumlar',
+                                sx: {color: C.ink, fontSize: 13, backgroundColor: C.surface, borderRadius: '4px'},
+                            }}
+                            sx={{minWidth: 200}}
+                        >
+                            <MenuItem value="" sx={{color: C.ink, fontSize: 13}}>Bütün qurumlar</MenuItem>
+                            {organizations.map((o) => (
+                                <MenuItem key={o.id} value={o.id} sx={{color: C.ink, fontSize: 13}}>{o.title}</MenuItem>
+                            ))}
+                        </TextField>
+                    )}
                     <Button
                         size="small"
                         startIcon={<SwapVertIcon sx={{fontSize: 16}}/>}
@@ -666,7 +713,7 @@ export default function RiskLogsPage() {
 
                 {/* DataGrid (cədvəl) rejimi */}
                 {viewMode === 'table' && (
-                    <Box sx={{height: 640, width: '100%'}}>
+                    <Box sx={{height: {xs: 480, sm: 560, md: 640}, width: '100%'}}>
                         <DataGrid
                             rows={rows}
                             columns={columns}

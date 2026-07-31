@@ -65,15 +65,15 @@ export default function Home() {
     }
 
     return (
-        <Box sx={{ p: { xs: 3, md: 6 }, maxWidth: '90%', mx: "auto", minHeight: "100vh" }}>
-            <Typography variant="h3" sx={{ mb: 1, fontWeight: 800, letterSpacing: "-1px" }}>
-               Mərkəzləşdirilmiş İnformasiya Sistemi
+        <Box sx={{ p: { xs: 2.5, sm: 4, md: 6 }, maxWidth: {xs: '100%', sm: '92%', lg: 1400}, mx: "auto", minHeight: "100vh" }}>
+            <Typography variant="h3" sx={{ mb: 1, fontWeight: 800, letterSpacing: "-1px", fontSize: {xs: 26, sm: 36, md: 48} }}>
+                Mərkəzləşdirilmiş İnformasiya Sistemi
             </Typography>
-            <Typography variant="subtitle1" color="text.secondary" sx={{ mb: 6 }}>
+            <Typography variant="subtitle1" color="text.secondary" sx={{ mb: {xs: 4, md: 6} }}>
                 Sistemi idarə etmək üçün aşağıdakı modullardan birini seçin.
             </Typography>
 
-            <Grid container spacing={4}>
+            <Grid container spacing={{xs: 2.5, sm: 3, md: 4}}>
                 {accessibleModules.map((module) => {
                     const iconConf = getIconConf(module.url_endpoint);
                     const subModules = module.sub_modules || [];

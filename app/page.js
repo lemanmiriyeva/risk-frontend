@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Grid, Typography, Box, Paper, CircularProgress, Chip } from "@mui/material";
 import SecurityIcon from '@mui/icons-material/Security';
 import DescriptionIcon from '@mui/icons-material/Description';
+import HistoryIcon from '@mui/icons-material/History';
 import ViewModuleIcon from '@mui/icons-material/ViewModule';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
@@ -13,6 +14,7 @@ import { NEXT_API_ENDPOINTS } from "@/app/urls";
 const ICON_MAP = {
     "risk": { icon: <SecurityIcon sx={{ fontSize: 32 }} />, gradient: "linear-gradient(135deg, #1976d2 0%, #4dabf5 100%)" },
     "risk-logs": { icon: <DescriptionIcon sx={{ fontSize: 32 }} />, gradient: "linear-gradient(135deg, #2e7d32 0%, #66bb6a 100%)" },
+    "logs": { icon: <HistoryIcon sx={{ fontSize: 32 }} />, gradient: "linear-gradient(135deg, #6a1b9a 0%, #ab47bc 100%)" },
 };
 const DEFAULT_ICON = { icon: <ViewModuleIcon sx={{ fontSize: 32 }} />, gradient: "linear-gradient(135deg, #374151 0%, #6b7280 100%)" };
 

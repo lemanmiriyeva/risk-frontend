@@ -5,25 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="82004209-f401-44a9-ba85-a455e4c04d94" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/app/api/auth/roles/route.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/api/organization/list/[id]/route.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/components/atoms/OrganizationDetailsPage.jsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/components/atoms/OrganizationsListPage.jsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/2fa-qurulmasi/page.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/2fa-qurulmasi/page.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/admin/page.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/admin/page.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/api/organization/list/route.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/api/organization/list/route.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/daxilol/page.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/daxilol/page.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/gozleme/page.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/gozleme/page.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/page.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/page.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/risk/page.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/risk/page.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/shifre-teyini/page.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/shifre-teyini/page.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/urls.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/urls.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/BaseHeader.js" beforeDir="false" afterPath="$PROJECT_DIR$/components/BaseHeader.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/atoms/OrgAdminUsersPage.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/atoms/OrgAdminUsersPage.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/atoms/RiskLogTable.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/atoms/RiskLogTable.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/atoms/RiskPage.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/atoms/RiskPage.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/atoms/RiskTableView.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/atoms/RiskTableView.jsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -100,7 +82,8 @@
       <workItem from="1785131570158" duration="13234000" />
       <workItem from="1785301585137" duration="11761000" />
       <workItem from="1785388210626" duration="11383000" />
-      <workItem from="1785475329307" duration="6582000" />
+      <workItem from="1785475329307" duration="7861000" />
+      <workItem from="1785492561772" duration="771000" />
     </task>
     <servers />
   </component>

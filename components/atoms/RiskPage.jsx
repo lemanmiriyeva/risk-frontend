@@ -111,6 +111,12 @@ function RiskDetailDialog({row, onClose, treatmentLabel}) {
             </Box>
 
             <Box sx={{px: 3, py: 2.5, maxHeight: '60vh', overflowY: 'auto'}}>
+                <Box sx={{mb: 2}}>
+                    <DetailField
+                        label="Əlaqəli inventar"
+                        value={row.inventory ? `${row.inventory.inventory_number} — ${row.inventory.product_name} (${row.inventory.owner_display})` : null}
+                    />
+                </Box>
                 <Box sx={{display: 'grid', gridTemplateColumns: {xs: '1fr', sm: '1fr 1fr'}, gap: 2, mb: 2}}>
                     <DetailField label="Risk dərəcəsi (P)" value={`${row.risk_degree} / 125`}/>
                     <DetailField label="Emal variantı (Q)" value={treatmentLabel[row.treatment_option] || row.treatment_option}/>
@@ -342,6 +348,14 @@ export default function RiskRegistryPage() {
                 sortable: true,
             },
         ];
+        cols.push({
+            field: 'inventory', headerName: 'İnventar', flex: 1, minWidth: 160, sortable: false,
+            renderCell: (p) => (
+                <Typography sx={{fontSize: 12.5, color: C.inkMuted}}>
+                    {p.value ? `${p.value.inventory_number} — ${p.value.product_name}` : '—'}
+                </Typography>
+            ),
+        });
         if (isRoot) {
             cols.push({
                 field: 'organization', headerName: 'Qurum', flex: 1, minWidth: 160,

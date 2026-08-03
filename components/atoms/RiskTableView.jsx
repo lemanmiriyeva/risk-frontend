@@ -265,7 +265,12 @@ export default function RiskTableView() {
                     <Typography sx={{fontFamily: 'var(--font-mono)', fontSize: 12}}>{p.value}</Typography>
                 )},
             {field: 'designation', headerName: 'Təyinat', width: 220},
+            {
+                field: 'inventory', headerName: 'İnventar', width: 200, sortable: false,
+                renderCell: (p) => <Typography sx={{fontSize: 12.5}}>{p.value ? `${p.value.inventory_number} — ${p.value.product_name}` : '—'}</Typography>,
+            },
         ];
+
         if (isRoot) {
             cols.push({
                 field: 'organization', headerName: 'Qurum', width: 160,
@@ -359,7 +364,10 @@ export default function RiskTableView() {
                     record[c.field] = row[c.field]?.title || '—';
                 } else if (c.field === 'created_at' || c.field === 'updated_at') {
                     record[c.field] = row[c.field] ? new Date(row[c.field]).toLocaleString('az-AZ') : '—';
-                } else if (c.field === 'treatment_option') {
+                }else if (c.field === 'inventory') {
+                    record[c.field] = row.inventory ? `${row.inventory.inventory_number} — ${row.inventory.product_name}` : '—';
+                }
+                else if (c.field === 'treatment_option') {
                     record[c.field] = treatmentLabel[row[c.field]] || row[c.field];
                 } else if (c.field === 'risk_level') {
                     record[c.field] = RISK_LEVEL_META[row[c.field]]?.label || row[c.field];

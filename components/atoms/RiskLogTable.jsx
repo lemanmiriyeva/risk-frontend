@@ -70,6 +70,7 @@ const FIELD_LABELS = {
     update_frequency: 'Yenilənmə tezliyi',
     incident_notification_notes: 'İnsident qeydləri',
     standard_references: 'Standartlara istinad',
+    inventory: 'Əlaqəli inventar',
 };
 
 function formatValue(v) {

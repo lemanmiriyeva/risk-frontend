@@ -36,6 +36,13 @@ export const DJANGO_API_ENDPOINTS = {
         LIST: API_URL + "/api/authentication/organizations/",
         USERS: API_URL + "/api/authentication/organization/users/",
     },
+    INVENTORY: {
+        LIST: API_URL + "/api/inventory/",
+        DETAIL: API_URL + "/api/inventory/",
+        SEARCH_PERSONS: API_URL + "/api/inventory/owners/persons/",
+        SEARCH_DEPARTMENTS: API_URL + "/api/inventory/owners/departments/",
+    },
+
 }
 
 export const NEXT_API_ENDPOINTS = {
@@ -73,6 +80,13 @@ export const NEXT_API_ENDPOINTS = {
     ORGANIZATION: {
         LIST: "organization/list/",
         USERS: "organization/users/",
+    },
+
+    INVENTORY: {
+        LIST: "inventory/",
+        DETAIL: "inventory/",
+        SEARCH_PERSONS: "inventory/owners/persons/",
+        SEARCH_DEPARTMENTS: "inventory/owners/departments/",
     },
 
 }

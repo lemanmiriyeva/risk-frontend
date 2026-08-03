@@ -11,6 +11,10 @@ import Grid from '@mui/material/Grid';
 import Chip from '@mui/material/Chip';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
+import Autocomplete from '@mui/material/Autocomplete';
+import CircularProgress from '@mui/material/CircularProgress';
+import {NEXT_API_ENDPOINTS} from "@/app/urls";
+import {service_api} from "@/app/service";
 
 export const TREATMENT_OPTIONS = [
     {value: 'prevention', label: 'Qarşısının alınması'},
@@ -48,18 +52,40 @@ const EMPTY_FORM = {
     update_frequency: '',
     incident_notification_notes: '',
     standard_references: '',
+    inventory_id: null,
 };
 
 export default function RiskFormDialog({open, onClose, onSubmit, initialData, loading}) {
     const [form, setForm] = useState(EMPTY_FORM);
     const [errors, setErrors] = useState({});
 
+    const [inventoryValue, setInventoryValue] = useState(null);
+    const [inventoryOptions, setInventoryOptions] = useState([]);
+    const [inventoryInput, setInventoryInput] = useState('');
+    const [inventoryLoading, setInventoryLoading] = useState(false);
+
     useEffect(() => {
         if (open) {
-            setForm(initialData ? {...EMPTY_FORM, ...initialData} : EMPTY_FORM);
+            setForm(initialData ? {...EMPTY_FORM, ...initialData, inventory_id: initialData.inventory?.id ?? null} : EMPTY_FORM);
+            setInventoryValue(initialData?.inventory || null);
+            setInventoryInput('');
             setErrors({});
         }
     }, [open, initialData]);
+
+    useEffect(() => {
+        if (!open) return;
+        const t = setTimeout(async () => {
+            setInventoryLoading(true);
+            try {
+                const res = await service_api.get(`${NEXT_API_ENDPOINTS.INVENTORY.LIST}?search=${encodeURIComponent(inventoryInput)}&page_size=20`);
+                setInventoryOptions(res.data?.results || []);
+            } catch (e) { /* səssiz */ } finally {
+                setInventoryLoading(false);
+            }
+        }, 250);
+        return () => clearTimeout(t);
+    }, [inventoryInput, open]);
 
     const handleChange = (field) => (e) => {
         setForm((f) => ({...f, [field]: e.target.value}));
@@ -75,13 +101,15 @@ export default function RiskFormDialog({open, onClose, onSubmit, initialData, lo
             const v = Number(form[k]);
             if (!v || v < 1 || v > 5) e[k] = `${label} 1-5 arasında olmalıdır`;
         });
+        if (!form.inventory_id) e.inventory_id = 'Əlaqəli inventar seçilməlidir';
         setErrors(e);
         return Object.keys(e).length === 0;
     }
 
     function handleSave() {
         if (!validate()) return;
-        onSubmit(form);
+        const {inventory, ...payload} = form; // "inventory" obyektini göndərmirik, yalnız inventory_id
+        onSubmit(payload);
     }
 
     return (
@@ -95,6 +123,40 @@ export default function RiskFormDialog({open, onClose, onSubmit, initialData, lo
                             onChange={handleChange('designation')}
                             error={!!errors.designation} helperText={errors.designation}
                             disabled={loading}
+                        />
+                    </Grid>
+
+                    <Grid item xs={12}>
+                        <Autocomplete
+                            options={inventoryOptions}
+                            loading={inventoryLoading}
+                            value={inventoryValue}
+                            getOptionLabel={(o) => o ? `${o.inventory_number} — ${o.product_name}` : ''}
+                            isOptionEqualToValue={(o, v) => o.id === v.id}
+                            inputValue={inventoryInput}
+                            onInputChange={(e, val) => setInventoryInput(val)}
+                            onChange={(e, val) => {
+                                setInventoryValue(val);
+                                setForm((f) => ({...f, inventory_id: val?.id ?? null}));
+                            }}
+                            disabled={loading}
+                            renderInput={(params) => (
+                                <TextField
+                                    {...params}
+                                    label="Əlaqəli inventar"
+                                    error={!!errors.inventory_id}
+                                    helperText={errors.inventory_id || 'İnventar nömrəsi və ya adı ilə axtarın'}
+                                    InputProps={{
+                                        ...params.InputProps,
+                                        endAdornment: (
+                                            <>
+                                                {inventoryLoading ? <CircularProgress color="inherit" size={16}/> : null}
+                                                {params.InputProps.endAdornment}
+                                            </>
+                                        ),
+                                    }}
+                                />
+                            )}
                         />
                     </Grid>
 

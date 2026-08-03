@@ -1,5 +1,5 @@
 'use server'
-import {cookies} from "next/headers";
+import {cookies, headers as nextHeaders} from "next/headers";
 import {DJANGO_API_ENDPOINTS} from "@/app/urls";
 import {handleError, isEmpty} from "@/app/utils";
 import {ACCESS_TOKEN_COOKIE, INVOICE_FILTERS, REFRESH_TOKEN_COOKIE} from "@/components/constants";
@@ -10,6 +10,18 @@ const METHODS = {
     PUT: "PUT",
     PATCH: "PATCH",
     DELETE: "DELETE",
+}
+
+function getClientIp() {
+    // Next.js server-inin qarşısında olan reverse proxy (nginx və s.)
+    // real istifadəçi IP-sini bu header-lərdə ötürür. Heç biri yoxdursa
+    // (məs. lokal dev mühitində, birbaşa qoşulanda), boş qaytarılır.
+    const h = nextHeaders();
+    const forwardedFor = h.get('x-forwarded-for');
+    if (forwardedFor) {
+        return forwardedFor.split(',')[0].trim();
+    }
+    return h.get('x-real-ip') || '';
 }
 
 const __refresh = async (headers, refresh_token) => {
@@ -49,6 +61,13 @@ async function __base_request(url, method, data = {}, access_token, refresh_toke
     if (access_token?.value) {
         _headers.set('Authorization', 'Bearer ' + access_token.value)
     }
+
+    // Real istifadəçi IP-sini Django-ya ötürürük
+    const clientIp = getClientIp();
+    if (clientIp) {
+        _headers.set('X-Forwarded-For', clientIp);
+    }
+
     const config = {
         headers: _headers,
         method,

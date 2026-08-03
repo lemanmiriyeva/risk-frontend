@@ -102,13 +102,11 @@ function DetailDialog({row, onClose}) {
                     {row.timestamp ? new Date(row.timestamp).toLocaleString('az-AZ') : '—'}
                 </Typography>
 
-                <Box sx={{border: `1px solid ${C.line}`, borderRadius: '4px', overflow: 'hidden', mb: row.changes ? 2 : 0}}>
+                <Box sx={{border: `1px solid ${C.line}`, borderRadius: '4px', overflow: 'hidden'}}>
                     {[
-                        ['Metod', row.request_method],
-                        ['URL', row.request_path],
-                        ['Status kodu', row.status_code],
+                        ['İstifadəçi', userName],
+                        ['Əməliyyat', meta.label],
                         ['IP ünvanı', row.ip_address],
-                        ['Cihaz / brauzer', row.user_agent],
                     ].map(([label, value], i) => (
                         <Box key={label} sx={{display: 'flex', flexDirection: {xs: 'column', sm: 'row'}, gap: {xs: 0.25, sm: 2}, px: 2, py: 1, borderTop: i === 0 ? 'none' : `1px solid ${C.line}`}}>
                             <Typography sx={{fontSize: 12, color: C.inkFaint, minWidth: {xs: 'auto', sm: 140}, fontWeight: 500}}>{label}</Typography>
@@ -116,17 +114,6 @@ function DetailDialog({row, onClose}) {
                         </Box>
                     ))}
                 </Box>
-
-                {row.changes && (
-                    <Box>
-                        <Typography sx={{fontSize: 12, color: C.inkFaint, fontWeight: 500, mb: 1}}>Göndərilən məlumat</Typography>
-                        <Box sx={{border: `1px solid ${C.line}`, borderRadius: '4px', p: 1.5, backgroundColor: C.surfaceRaised}}>
-                            <Typography component="pre" sx={{fontSize: 12, color: C.ink, whiteSpace: 'pre-wrap', wordBreak: 'break-word', m: 0}}>
-                                {JSON.stringify(row.changes, null, 2)}
-                            </Typography>
-                        </Box>
-                    </Box>
-                )}
             </Box>
 
             <Box sx={{px: 3, pb: 3, display: 'flex', justifyContent: 'flex-end'}}>
@@ -137,7 +124,6 @@ function DetailDialog({row, onClose}) {
         </Dialog>
     );
 }
-
 const gridSx = {
     border: `1px solid ${C.line}`,
     borderRadius: '4px',

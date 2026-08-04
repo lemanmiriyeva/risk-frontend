@@ -8,17 +8,19 @@ import HistoryIcon from '@mui/icons-material/History';
 import ViewModuleIcon from '@mui/icons-material/ViewModule';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
+import AccountBalanceOutlinedIcon from '@mui/icons-material/AccountBalanceOutlined';
 import { service_api } from "@/app/service";
 import { NEXT_API_ENDPOINTS } from "@/app/urls";
+import { GOV } from "@/components/theme/govColors";
 
 const ICON_MAP = {
-    "risk": { icon: <SecurityIcon sx={{ fontSize: 32 }} />, gradient: "linear-gradient(135deg, #1976d2 0%, #4dabf5 100%)" },
-    "risk-logs": { icon: <DescriptionIcon sx={{ fontSize: 32 }} />, gradient: "linear-gradient(135deg, #2e7d32 0%, #66bb6a 100%)" },
-    "logs": { icon: <HistoryIcon sx={{ fontSize: 32 }} />, gradient: "linear-gradient(135deg, #6a1b9a 0%, #ab47bc 100%)" },
+    "risk": <SecurityIcon sx={{ fontSize: 26 }} />,
+    "risk-logs": <DescriptionIcon sx={{ fontSize: 26 }} />,
+    "logs": <HistoryIcon sx={{ fontSize: 26 }} />,
 };
-const DEFAULT_ICON = { icon: <ViewModuleIcon sx={{ fontSize: 32 }} />, gradient: "linear-gradient(135deg, #374151 0%, #6b7280 100%)" };
+const DEFAULT_ICON = <ViewModuleIcon sx={{ fontSize: 26 }} />;
 
-function getIconConf(urlEndpoint) {
+function getIcon(urlEndpoint) {
     return ICON_MAP[urlEndpoint] || DEFAULT_ICON;
 }
 
@@ -40,22 +42,21 @@ export default function Home() {
     }, []);
 
     const accessibleModules = modules.filter((m) => !!m.url_endpoint);
-    const lockedModules = modules.filter((m) => !m.url_endpoint);
 
     if (loading) {
         return (
             <Box sx={{ minHeight: "60vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <CircularProgress size={22} />
+                <CircularProgress size={22} sx={{ color: GOV.navy }} />
             </Box>
         );
     }
 
     if (accessibleModules.length === 0) {
         return (
-            <Box sx={{ minHeight: "60vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <Box sx={{ minHeight: "60vh", display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: GOV.pageBg }}>
                 <Box sx={{ textAlign: "center", maxWidth: 380 }}>
                     <LockOutlinedIcon sx={{ fontSize: 48, color: "text.disabled", mb: 2 }} />
-                    <Typography variant="h5" sx={{ fontWeight: 700, mb: 1 }}>
+                    <Typography variant="h5" sx={{ fontWeight: 700, mb: 1, color: GOV.textPrimary }}>
                         Giriş icazəniz yoxdur
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
@@ -67,109 +68,206 @@ export default function Home() {
     }
 
     return (
-        <Box sx={{ p: { xs: 2.5, sm: 4, md: 6 }, maxWidth: {xs: '100%', sm: '92%', lg: 1400}, mx: "auto", minHeight: "100vh" }}>
-            <Typography variant="h3" sx={{ mb: 1, fontWeight: 800, letterSpacing: "-1px", fontSize: {xs: 26, sm: 36, md: 48} }}>
-                Mərkəzləşdirilmiş İnformasiya Sistemi
-            </Typography>
-            <Typography variant="subtitle1" color="text.secondary" sx={{ mb: {xs: 4, md: 6} }}>
-                Sistemi idarə etmək üçün aşağıdakı modullardan birini seçin.
-            </Typography>
-
-            <Grid container spacing={{xs: 2.5, sm: 3, md: 4}}>
-                {accessibleModules.map((module) => {
-                    const iconConf = getIconConf(module.url_endpoint);
-                    const subModules = module.sub_modules || [];
-
-                    return (
-                        <Grid item xs={12} sm={6} md={4} key={module.id}>
-                            <Paper
-                                elevation={0}
+        <Box sx={{ backgroundColor: GOV.pageBg, minHeight: "100vh" }}>
+            <Box
+                sx={{
+                    position: "relative",
+                    background: `linear-gradient(135deg, ${GOV.navy} 0%, ${GOV.navyMid} 55%, ${GOV.navySoft} 100%)`,
+                    overflow: "hidden",
+                    borderBottom: `3px solid ${GOV.gold}`,
+                }}
+            >
+                <Box
+                    aria-hidden
+                    sx={{
+                        position: "absolute",
+                        inset: 0,
+                        opacity: 0.6,
+                        backgroundImage: `radial-gradient(circle at 88% 15%, rgba(201,162,75,0.18) 0%, rgba(201,162,75,0) 45%),
+                                           radial-gradient(circle at 5% 100%, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 40%)`,
+                        pointerEvents: "none",
+                    }}
+                />
+                <Box
+                    aria-hidden
+                    sx={{
+                        position: "absolute",
+                        top: 0,
+                        right: 0,
+                        bottom: 0,
+                        width: { xs: "60%", md: "38%" },
+                        opacity: 0.05,
+                        pointerEvents: "none",
+                        backgroundImage: "repeating-linear-gradient(135deg, #fff 0px, #fff 1px, transparent 1px, transparent 26px)",
+                    }}
+                />
+                <Box
+                    sx={{
+                        position: "relative",
+                        zIndex: 1,
+                        px: { xs: 2.5, sm: 4, md: 6 },
+                        pt: { xs: 4, sm: 5, md: 6.5 },
+                        pb: { xs: 4, sm: 5, md: 6 },
+                        maxWidth: { xs: "100%", sm: "92%", lg: 1400 },
+                        mx: "auto",
+                    }}
+                >
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                        <Box
+                            sx={{
+                                width: { xs: 48, sm: 56 },
+                                height: { xs: 48, sm: 56 },
+                                borderRadius: 2,
+                                display: { xs: "none", sm: "flex" },
+                                alignItems: "center",
+                                justifyContent: "center",
+                                backgroundColor: "rgba(201,162,75,0.14)",
+                                border: "1px solid rgba(201,162,75,0.35)",
+                                color: GOV.gold,
+                                flexShrink: 0,
+                            }}
+                        >
+                            <AccountBalanceOutlinedIcon sx={{ fontSize: 28 }} />
+                        </Box>
+                        <Box>
+                            <Typography
                                 sx={{
-                                    position: "relative",
-                                    borderRadius: 4,
-                                    border: "1px solid",
-                                    borderColor: "divider",
-                                    height: "100%",
-                                    overflow: "hidden",
-                                    transition: "all 0.3s ease",
-                                    "&:hover": {
-                                        borderColor: "transparent",
-                                        boxShadow: "0 16px 40px rgba(0,0,0,0.1)",
-                                        transform: "translateY(-6px)",
-                                    },
+                                    color: GOV.gold,
+                                    letterSpacing: 3,
+                                    fontSize: { xs: 11, sm: 12 },
+                                    fontWeight: 700,
+                                    mb: 0.5,
+                                    textTransform: "uppercase",
                                 }}
                             >
+                                Rəsmi İnformasiya Sistemi
+                            </Typography>
+                            <Typography
+                                sx={{
+                                    color: GOV.textOnNavy,
+                                    fontWeight: 800,
+                                    letterSpacing: "-0.5px",
+                                    fontSize: { xs: 24, sm: 32, md: 42 },
+                                    lineHeight: 1.15,
+                                }}
+                            >
+                                Mərkəzləşdirilmiş İnformasiya Sistemi
+                            </Typography>
+                            <Typography
+                                sx={{
+                                    color: GOV.textOnNavyMuted,
+                                    fontSize: { xs: 13.5, sm: 15 },
+                                    mt: 0.75,
+                                    maxWidth: 620,
+                                }}
+                            >
+                                Sistemi idarə etmək üçün aşağıdakı modullardan birini seçin.
+                            </Typography>
+                        </Box>
+                    </Box>
+                </Box>
+            </Box>
+
+            <Box sx={{ p: { xs: 2.5, sm: 4, md: 6 }, maxWidth: { xs: '100%', sm: '92%', lg: 1400 }, mx: "auto" }}>
+                <Grid container spacing={{ xs: 2.5, sm: 3, md: 3.5 }}>
+                    {accessibleModules.map((module) => {
+                        const subModules = module.sub_modules || [];
+
+                        return (
+                            <Grid item xs={12} sm={6} md={4} key={module.id}>
                                 <Link href={`/${module.url_endpoint}`} style={{ textDecoration: "none", color: "inherit" }}>
-                                    <Box
+                                    <Paper
+                                        elevation={0}
                                         sx={{
-                                            height: 90,
-                                            background: iconConf.gradient,
-                                            display: "flex",
-                                            alignItems: "center",
-                                            px: 3,
                                             position: "relative",
+                                            borderRadius: 3,
+                                            border: "1px solid",
+                                            borderColor: GOV.cardBorder,
+                                            borderTop: `3px solid ${GOV.navy}`,
+                                            height: "100%",
+                                            overflow: "hidden",
+                                            backgroundColor: "#fff",
+                                            transition: "all 0.25s ease",
+                                            "&:hover": {
+                                                borderTopColor: GOV.gold,
+                                                boxShadow: "0 14px 34px rgba(2,6,36,0.12)",
+                                                transform: "translateY(-4px)",
+                                            },
+                                            "&:hover .module-arrow": {
+                                                backgroundColor: GOV.navy,
+                                                color: GOV.gold,
+                                                transform: "translateX(2px)",
+                                            },
                                         }}
                                     >
-                                        <Box
-                                            sx={{
-                                                width: 56,
-                                                height: 56,
-                                                borderRadius: 2.5,
-                                                backgroundColor: "rgba(255,255,255,0.2)",
-                                                backdropFilter: "blur(4px)",
-                                                display: "flex",
-                                                alignItems: "center",
-                                                justifyContent: "center",
-                                                color: "#fff",
-                                            }}
-                                        >
-                                            {iconConf.icon}
-                                        </Box>
-                                        <ArrowForwardIcon
-                                            sx={{
-                                                position: "absolute",
-                                                right: 20,
-                                                top: "50%",
-                                                transform: "translateY(-50%)",
-                                                color: "rgba(255,255,255,0.7)",
-                                            }}
-                                        />
-                                    </Box>
-
-                                    <Box sx={{ p: 3 }}>
-                                        <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5, color: "text.primary" }}>
-                                            {module.title}
-                                        </Typography>
-                                        <Typography variant="body2" color="text.secondary" sx={{ mb: subModules.length ? 2 : 0 }}>
-                                            {module.description || `${module.title} moduluna keçid etmək üçün klikləyin.`}
-                                        </Typography>
-                                    </Box>
-                                </Link>
-
-                                {subModules.length > 0 && (
-                                    <Box sx={{ px: 3, pb: 2.5, display: "flex", flexWrap: "wrap", gap: 1 }}>
-                                        {subModules.map((sub) => (
-                                            <Link key={sub.id} href={`/${module.url_endpoint}/${sub.url_endpoint}`} style={{ textDecoration: "none" }}>
-                                                <Chip
-                                                    label={sub.title}
-                                                    size="small"
-                                                    clickable
+                                        <Box sx={{ p: 3, display: "flex", flexDirection: "column", height: "100%" }}>
+                                            <Box sx={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", mb: 2 }}>
+                                                <Box
                                                     sx={{
-                                                        fontWeight: 500,
-                                                        "&:hover": { backgroundColor: "action.selected" },
+                                                        width: 52,
+                                                        height: 52,
+                                                        borderRadius: 2,
+                                                        backgroundColor: GOV.navy,
+                                                        display: "flex",
+                                                        alignItems: "center",
+                                                        justifyContent: "center",
+                                                        color: GOV.gold,
+                                                        flexShrink: 0,
                                                     }}
-                                                />
-                                            </Link>
-                                        ))}
-                                    </Box>
-                                )}
-                            </Paper>
-                        </Grid>
-                    );
-                })}
-            </Grid>
+                                                >
+                                                    {getIcon(module.url_endpoint)}
+                                                </Box>
+                                                <Box
+                                                    className="module-arrow"
+                                                    sx={{
+                                                        width: 32,
+                                                        height: 32,
+                                                        borderRadius: "50%",
+                                                        backgroundColor: GOV.pageBg,
+                                                        color: GOV.textMuted,
+                                                        display: "flex",
+                                                        alignItems: "center",
+                                                        justifyContent: "center",
+                                                        transition: "all 0.25s ease",
+                                                    }}
+                                                >
+                                                    <ArrowForwardIcon sx={{ fontSize: 17 }} />
+                                                </Box>
+                                            </Box>
 
+                                            <Typography sx={{ fontWeight: 700, mb: 0.5, color: GOV.textPrimary, fontSize: 17 }}>
+                                                {module.title}
+                                            </Typography>
+                                            <Typography variant="body2" sx={{ color: GOV.textMuted, mb: subModules.length ? 2 : 0, flexGrow: 1 }}>
+                                                {module.description || `${module.title} moduluna keçid etmək üçün klikləyin.`}
+                                            </Typography>
 
+                                            {subModules.length > 0 && (
+                                                <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.75, pt: 1.5, mt: "auto", borderTop: `1px solid ${GOV.cardBorder}` }}>
+                                                    {subModules.map((sub) => (
+                                                        <Chip
+                                                            key={sub.id}
+                                                            label={sub.title}
+                                                            size="small"
+                                                            sx={{
+                                                                fontWeight: 500,
+                                                                fontSize: 12,
+                                                                color: GOV.navySoft,
+                                                                backgroundColor: "transparent",
+                                                                border: `1px solid ${GOV.cardBorder}`,
+                                                            }}
+                                                        />
+                                                    ))}
+                                                </Box>
+                                            )}
+                                        </Box>
+                                    </Paper>
+                                </Link>
+                            </Grid>
+                        );
+                    })}
+                </Grid>
+            </Box>
         </Box>
     );
 }

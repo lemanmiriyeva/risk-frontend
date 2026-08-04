@@ -17,6 +17,7 @@ import {useSnackbar} from "notistack";
 import {handleError} from "@/app/utils";
 import {NEXT_API_ENDPOINTS} from "@/app/urls";
 import {service_api} from "@/app/service";
+import {DATA_GRID_LOCALE_AZ} from "@/lib/dataGridLocaleAz";
 
 const C = {
     bg: '#fff',
@@ -296,7 +297,7 @@ export default function ActivityLogTable() {
     }
 
     return (
-        <Box sx={{p: {xs: 2, sm: 3}, backgroundColor: C.bg}}>
+        <Box sx={{p: {xs: 2, sm: 3},maxWidth: {xs: '100%', sm: '92%', lg: 1400}, mx: 'auto'}}>
             <Typography sx={{fontSize: {xs: 20, sm: 24}, fontWeight: 700, color: C.ink, mb: 0.5}}>
                 Loqlar
             </Typography>
@@ -350,7 +351,7 @@ export default function ActivityLogTable() {
                     pageSizeOptions={[20, 50, 100]}
                     disableRowSelectionOnClick
                     disableColumnFilter
-                    localeText={{noRowsLabel: 'Heç bir loq qeydi tapılmadı'}}
+                    localeText={{...DATA_GRID_LOCALE_AZ, noRowsLabel: 'Heç bir qeyd tapılmadı'}}
                     sx={gridSx}
                 />
             </Box>

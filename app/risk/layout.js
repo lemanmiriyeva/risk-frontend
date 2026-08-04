@@ -1,5 +1,5 @@
 export const metadata = {
-    title: 'Daxil ol',
+    title: 'MİS',
     description:
         'Risk Reyestr Sistemi',
 };

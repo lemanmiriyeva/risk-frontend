@@ -26,6 +26,7 @@ import {useSnackbar} from "notistack";
 import {handleError} from "@/app/utils";
 import {NEXT_API_ENDPOINTS} from "@/app/urls";
 import {service_api} from "@/app/service";
+import {DATA_GRID_LOCALE_AZ} from "@/lib/dataGridLocaleAz";
 
 const C = {
     surface: '#FFFFFF',
@@ -255,7 +256,7 @@ function OrgDetailDialog({open, onClose, orgId}) {
                             disableRowSelectionOnClick
                             disableColumnFilter
                             density="compact"
-                            localeText={{noRowsLabel: 'İşçi tapılmadı'}}
+                            localeText={{...DATA_GRID_LOCALE_AZ, noRowsLabel: 'İşçi tapılmadı'}}
                             sx={gridSx}
                         />
                     </Box>
@@ -410,7 +411,7 @@ export default function OrganizationsListPage() {
                     disableRowSelectionOnClick
                     disableColumnFilter
                     density="comfortable"
-                    localeText={{noRowsLabel: 'Heç bir qurum tapılmadı'}}
+                    localeText={{...DATA_GRID_LOCALE_AZ, noRowsLabel: 'Heç bir qurum tapılmadı'}}
                     sx={gridSx}
                 />
             </Box>

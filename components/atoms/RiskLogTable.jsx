@@ -22,6 +22,7 @@ import {useAppSelector} from "@/lib/hooks";
 import {handleError} from "@/app/utils";
 import {NEXT_API_ENDPOINTS} from "@/app/urls";
 import {service_api} from "@/app/service";
+import {DATA_GRID_LOCALE_AZ} from "@/lib/dataGridLocaleAz";
 import ExcelJS from 'exceljs';
 import {saveAs} from 'file-saver';
 
@@ -545,24 +546,16 @@ export default function RiskLogsPage() {
 
 
     return (
-        <Box sx={{minHeight: '100vh', backgroundColor: C.bg, px: {xs: 2, md: 5}, py: 5}}>
+        <Box sx={{minHeight: '100vh', backgroundColor: C.bg, px: {xs: 2, md: 5}, pt: {xs: 3, sm: 4}, pb: 5}}>
 
 
             <Box sx={{maxWidth: 1440, mx: 'auto'}}>
                 {/* Başlıq */}
-                <Box sx={{mb: 4, pb: 3, borderBottom: `1px solid ${C.line}`}}>
-                    <Typography sx={{ fontSize: 11, letterSpacing: '0.12em', color: C.gold, textTransform: 'uppercase', mb: 1}}>
-                        Audit reyestri
-                    </Typography>
-                    <Box sx={{display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2}}>
-                        <Box>
-                            <Typography sx={{ fontSize: 28, fontWeight: 500, color: C.ink, lineHeight: 1.2}}>
-                                Risk Reyestri — Tarixçə
-                            </Typography>
-                            <Typography sx={{fontSize: 13, color: C.inkMuted, mt: 0.5}}>
-                                {count} qeyd tapıldı
-                            </Typography>
-                        </Box>
+                <Box sx={{mb: 3, pb: 2.5, borderBottom: `1px solid ${C.line}`}}>
+                    <Box sx={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2}}>
+                        <Typography sx={{fontSize: 13, color: C.inkMuted}}>
+                            <Box component="span" sx={{color: C.ink, fontWeight: 700}}>{count}</Box> qeyd tapıldı
+                        </Typography>
                         <Button
                             startIcon={<FileDownloadIcon sx={{fontSize: 16}}/>}
                             onClick={exportLogsToExcel}
@@ -730,7 +723,7 @@ export default function RiskLogsPage() {
                             pageSizeOptions={[20, 50, 100]}
                             disableRowSelectionOnClick
                             disableColumnFilter
-                            localeText={{noRowsLabel: 'Heç bir loq qeydi tapılmadı'}}
+                            localeText={{...DATA_GRID_LOCALE_AZ, noRowsLabel: 'Heç bir loq qeydi tapılmadı'}}
                             sx={gridSx}
                         />
                     </Box>

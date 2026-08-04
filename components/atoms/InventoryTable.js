@@ -21,6 +21,7 @@ import {handleError} from "@/app/utils";
 import {NEXT_API_ENDPOINTS} from "@/app/urls";
 import {service_api} from "@/app/service";
 import InventoryFormDialog from "./InventoryFormDialog";
+import {DATA_GRID_LOCALE_AZ} from "@/lib/dataGridLocaleAz";
 
 const C = {
     bg: '#fff',
@@ -154,11 +155,8 @@ export default function InventoryTable() {
     ]), []);
 
     return (
-        <Box sx={{p: {xs: 2, sm: 3}, backgroundColor: C.bg}}>
-            <Box sx={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 0.5}}>
-                <Typography sx={{fontSize: {xs: 20, sm: 24}, fontWeight: 700, color: C.ink}}>
-                    İnventar Uçotu
-                </Typography>
+        <Box sx={{p: {xs: 2, sm: 3}, maxWidth: {xs: '100%', sm: '92%', lg: 1400}, mx: 'auto'}}>
+            <Box sx={{display: 'flex', justifyContent: 'flex-end', mb: 2}}>
                 <Button
                     variant="contained" startIcon={<AddIcon/>}
                     onClick={() => {setEditingRow(null); setFormOpen(true);}}
@@ -167,9 +165,6 @@ export default function InventoryTable() {
                     Yeni inventar
                 </Button>
             </Box>
-            <Typography sx={{fontSize: 13, color: C.inkMuted, mb: 3}}>
-                Sistemdəki bütün inventar qeydləri.
-            </Typography>
 
             <Box sx={{display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 1.5, mb: 2}}>
                 <TextField
@@ -206,7 +201,7 @@ export default function InventoryTable() {
                     pageSizeOptions={[20, 50, 100]}
                     disableRowSelectionOnClick
                     disableColumnFilter
-                    localeText={{noRowsLabel: 'Heç bir inventar qeydi tapılmadı'}}
+                    localeText={{...DATA_GRID_LOCALE_AZ, noRowsLabel: 'Heç bir qeyd tapılmadı'}}
                     sx={gridSx}
                 />
             </Box>

@@ -32,6 +32,7 @@ import {useAppSelector} from "@/lib/hooks";
 import {handleError} from "@/app/utils";
 import {NEXT_API_ENDPOINTS} from "@/app/urls";
 import {service_api} from "@/app/service";
+import {DATA_GRID_LOCALE_AZ} from "@/lib/dataGridLocaleAz";
 
 const C = {
     bg: '#fff',
@@ -518,7 +519,7 @@ export default function OrgAdminUsersPage() {
                     disableRowSelectionOnClick
                     disableColumnFilter
                     density="comfortable"
-                    localeText={{noRowsLabel: 'Heç bir istifadəçi tapılmadı'}}
+                    localeText={{...DATA_GRID_LOCALE_AZ, noRowsLabel: 'Heç bir istifadəçi tapılmadı'}}
                     sx={gridSx}
                 />
             </Box>

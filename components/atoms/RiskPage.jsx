@@ -22,6 +22,7 @@ import {useAppSelector} from "@/lib/hooks";
 import {handleError} from "@/app/utils";
 import {NEXT_API_ENDPOINTS} from "@/app/urls";
 import {service_api} from "@/app/service";
+import {DATA_GRID_LOCALE_AZ} from "@/lib/dataGridLocaleAz";
 import RiskFormDialog, {TREATMENT_OPTIONS, RISK_LEVEL_META} from "./RiskFormDialog";
 
 
@@ -481,7 +482,7 @@ export default function RiskRegistryPage() {
     }
 
     return (
-        <Box sx={{minHeight: '100vh', backgroundColor: C.bg, px: {xs: 2, md: 5}, py: 5}}>
+        <Box sx={{minHeight: '100vh', backgroundColor: C.bg, px: {xs: 2, md: 5}, pt: {xs: 3, sm: 4}, pb: 5}}>
             <GlobalStyles styles={{
                 '@import': "url('https://fonts.googleapis.com/css2?family=Newsreader:wght@500;600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap')",
                 ':root': {
@@ -493,19 +494,11 @@ export default function RiskRegistryPage() {
 
             <Box sx={{maxWidth: 1440, mx: 'auto'}}>
                 {/* Başlıq */}
-                <Box sx={{mb: 4, pb: 3, borderBottom: `1px solid ${C.line}`}}>
-                    <Typography sx={{fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '0.12em', color: C.gold, textTransform: 'uppercase', mb: 1}}>
-                        Reyestr
-                    </Typography>
-                    <Box sx={{display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2}}>
-                        <Box>
-                            <Typography sx={{fontSize: 28, fontWeight: 500, color: C.ink, lineHeight: 1.2}}>
-                                Risk Reyestri
-                            </Typography>
-                            <Typography sx={{fontSize: 13, color: C.inkMuted, mt: 0.5}}>
-                                {count} risk qeydi tapıldı
-                            </Typography>
-                        </Box>
+                <Box sx={{mb: 3, pb: 2.5, borderBottom: `1px solid ${C.line}`}}>
+                    <Box sx={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2}}>
+                        <Typography sx={{fontSize: 13, color: C.inkMuted}}>
+                            <Box component="span" sx={{color: C.ink, fontWeight: 700}}>{count}</Box> risk qeydi tapıldı
+                        </Typography>
 
                         <Button
                             variant="contained"
@@ -627,7 +620,7 @@ export default function RiskRegistryPage() {
                         disableRowSelectionOnClick
                         disableColumnFilter
                         density="comfortable"
-                        localeText={{noRowsLabel: 'Heç bir qeyd tapılmadı'}}
+                        localeText={{...DATA_GRID_LOCALE_AZ, noRowsLabel: 'Heç bir qeyd tapılmadı'}}
                         sx={gridSx}
                     />
                 </Box>

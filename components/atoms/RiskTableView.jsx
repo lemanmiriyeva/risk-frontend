@@ -20,6 +20,7 @@ import {useAppSelector} from "@/lib/hooks";
 import {handleError, logPageView} from "@/app/utils";
 import {NEXT_API_ENDPOINTS} from "@/app/urls";
 import {service_api} from "@/app/service";
+import {DATA_GRID_LOCALE_AZ} from "@/lib/dataGridLocaleAz";
 import {TREATMENT_OPTIONS, RISK_LEVEL_META} from "./RiskFormDialog";
 import ExcelJS from 'exceljs';
 import {saveAs} from 'file-saver';
@@ -406,7 +407,7 @@ export default function RiskTableView() {
     }
 
     return (
-        <Box sx={{minHeight: '100vh', backgroundColor: C.bg, px: {xs: 2, md: 5}, py: 5}}>
+        <Box sx={{minHeight: '100vh', backgroundColor: C.bg, px: {xs: 2, md: 5}, pt: {xs: 3, sm: 4}, pb: 5}}>
             <GlobalStyles styles={{
                 '@import': "url('https://fonts.googleapis.com/css2?family=Newsreader:wght@500;600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap')",
                 ':root': {
@@ -417,19 +418,11 @@ export default function RiskTableView() {
             }}/>
 
             <Box sx={{maxWidth: 1440, mx: 'auto'}}>
-                <Box sx={{mb: 4, pb: 3, borderBottom: `1px solid ${C.line}`}}>
-                    <Typography sx={{fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '0.12em', color: C.gold, textTransform: 'uppercase', mb: 1}}>
-                        Reyestr — Salt oxuma
-                    </Typography>
-                    <Box sx={{display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2}}>
-                        <Box>
-                            <Typography sx={{fontFamily: 'var(--font-serif)', fontSize: 28, fontWeight: 500, color: C.ink, lineHeight: 1.2}}>
-                                Risk Cədvəlinə Baxış
-                            </Typography>
-                            <Typography sx={{fontSize: 13, color: C.inkMuted, mt: 0.5}}>
-                                {count} risk qeydi — bütün sahələr göstərilir
-                            </Typography>
-                        </Box>
+                <Box sx={{mb: 3, pb: 2.5, borderBottom: `1px solid ${C.line}`}}>
+                    <Box sx={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2}}>
+                        <Typography sx={{fontSize: 13, color: C.inkMuted}}>
+                            <Box component="span" sx={{color: C.ink, fontWeight: 700}}>{count}</Box> risk qeydi — bütün sahələr göstərilir
+                        </Typography>
                         <Button
                             startIcon={<FileDownloadIcon sx={{fontSize: 16}}/>}
                             onClick={exportToExcel}
@@ -518,7 +511,7 @@ export default function RiskTableView() {
                         disableRowSelectionOnClick
                         disableColumnFilter
                         sortingMode="client"
-                        localeText={{noRowsLabel: 'Heç bir qeyd tapılmadı'}}
+                        localeText={{...DATA_GRID_LOCALE_AZ, noRowsLabel: 'Heç bir qeyd tapılmadı'}}
                         sx={gridSx}
                     />
                 </Box>

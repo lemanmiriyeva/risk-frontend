@@ -16,6 +16,7 @@ import {useAppSelector} from "@/lib/hooks";
 import {handleError} from "@/app/utils";
 import {NEXT_API_ENDPOINTS} from "@/app/urls";
 import {service_api} from "@/app/service";
+import {DATA_GRID_LOCALE_AZ} from "@/lib/dataGridLocaleAz";
 
 const C = {
     surface: '#FFFFFF',
@@ -236,7 +237,7 @@ export default function OrganizationDetailsPage() {
                             disableRowSelectionOnClick
                             disableColumnFilter
                             density="comfortable"
-                            localeText={{noRowsLabel: 'İşçi tapılmadı'}}
+                            localeText={{...DATA_GRID_LOCALE_AZ, noRowsLabel: 'İşçi tapılmadı'}}
                             sx={gridSx}
                         />
                     </Box>

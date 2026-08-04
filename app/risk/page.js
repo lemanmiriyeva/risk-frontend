@@ -2,19 +2,22 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Box, Typography, Grid, Paper, CircularProgress, Chip } from "@mui/material";
+import { Box, Typography, Grid, Paper, CircularProgress } from "@mui/material";
 import ListAltIcon from '@mui/icons-material/ListAlt';
 import TableChartOutlinedIcon from '@mui/icons-material/TableChartOutlined';
 import DescriptionIcon from '@mui/icons-material/Description';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
+import SecurityIcon from '@mui/icons-material/Security';
 import { service_api } from "@/app/service";
 import { NEXT_API_ENDPOINTS } from "@/app/urls";
+import { GOV } from "@/components/theme/govColors";
+import ModuleHero from "@/components/ModuleHero";
 
 const SUB_ICON_MAP = {
-    "list": <ListAltIcon sx={{ fontSize: 28 }} />,
-    "table": <TableChartOutlinedIcon sx={{ fontSize: 28 }} />,
-    "logs": <DescriptionIcon sx={{ fontSize: 28 }} />,
+    "list": <ListAltIcon sx={{ fontSize: 24 }} />,
+    "table": <TableChartOutlinedIcon sx={{ fontSize: 24 }} />,
+    "logs": <DescriptionIcon sx={{ fontSize: 24 }} />,
 };
 
 export default function Page() {
@@ -39,7 +42,7 @@ export default function Page() {
     if (loading) {
         return (
             <Box sx={{ minHeight: "60vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <CircularProgress size={22} />
+                <CircularProgress size={22} sx={{ color: GOV.navy }} />
             </Box>
         );
     }
@@ -63,64 +66,79 @@ export default function Page() {
     }
 
     return (
-        <Box sx={{ p: { xs: 2.5, sm: 4, md: 6 }, maxWidth: {xs: '100%', sm: '92%', lg: 1400}, mx: "auto", minHeight: "100vh" }}>
-            <Typography variant="h4" sx={{ mb: 1, fontWeight: 800, fontSize: {xs: 24, sm: 28, md: 34} }}>
-                {riskModule.title}
-            </Typography>
-            <Typography variant="subtitle1" color="text.secondary" sx={{ mb: {xs: 3, md: 5} }}>
-                Davam etmək üçün aşağıdakı bölmələrdən birini seçin.
-            </Typography>
+        <Box sx={{ backgroundColor: GOV.pageBg, minHeight: "100vh" }}>
+            <ModuleHero
+                eyebrow="Modul"
+                title={riskModule.title}
+                subtitle="Davam etmək üçün aşağıdakı bölmələrdən birini seçin."
+                breadcrumb={[riskModule.title]}
+                icon={<SecurityIcon sx={{ fontSize: 26 }} />}
+            />
 
-            <Grid container spacing={{xs: 2, sm: 2.5, md: 3}}>
-                {subModules.map((sub) => (
-                    <Grid item xs={12} sm={6} md={4} key={sub.id}>
-                        <Link
-                            href={`/${riskModule.url_endpoint}/${sub.url_endpoint}`}
-                            style={{ textDecoration: "none", color: "inherit" }}
-                        >
-                            <Paper
-                                elevation={0}
-                                sx={{
-                                    p: 3,
-                                    borderRadius: 3,
-                                    border: "1px solid",
-                                    borderColor: "divider",
-                                    height: "100%",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: 2,
-                                    transition: "all 0.2s ease",
-                                    "&:hover": {
-                                        borderColor: "primary.main",
-                                        boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
-                                        transform: "translateY(-3px)",
-                                    },
-                                }}
+            <Box sx={{ p: { xs: 2.5, sm: 4, md: 6 }, maxWidth: { xs: '100%', sm: '92%', lg: 1400 }, mx: "auto" }}>
+                <Grid container spacing={{ xs: 2, sm: 2.5, md: 3 }} >
+                    {subModules.map((sub) => (
+                        <Grid item xs={12} sm={6} md={4} key={sub.id}>
+                            <Link
+                                href={`/${riskModule.url_endpoint}/${sub.url_endpoint}`}
+                                style={{ textDecoration: "none", color: "inherit" }}
                             >
-                                <Box
+                                <Paper
+                                    elevation={0}
                                     sx={{
-                                        width: 48, height: 48, borderRadius: 2,
-                                        backgroundColor: "action.hover",
-                                        display: "flex", alignItems: "center", justifyContent: "center",
-                                        flexShrink: 0,
+                                        p: 2.75,
+                                        borderRadius: 2.5,
+                                        border: "1px solid",
+                                        borderColor: GOV.cardBorder,
+                                        borderLeft: `3px solid ${GOV.navy}`,
+                                        height: "100%",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: 2,
+                                        backgroundColor: "#fff",
+                                        transition: "all 0.2s ease",
+                                        "&:hover": {
+                                            borderLeftColor: GOV.gold,
+                                            boxShadow: "0 10px 26px rgba(2,6,36,0.10)",
+                                            transform: "translateY(-3px)",
+                                        },
+                                        "&:hover .sub-arrow": {
+                                            color: GOV.gold,
+                                            transform: "translateX(3px)",
+                                        },
                                     }}
                                 >
-                                    {SUB_ICON_MAP[sub.url_endpoint] || <ListAltIcon sx={{ fontSize: 28 }} />}
-                                </Box>
-                                <Box sx={{ flex: 1 }}>
-                                    <Typography sx={{ fontWeight: 600 }}>{sub.title}</Typography>
-                                    {sub.description && (
-                                        <Typography variant="body2" color="text.secondary">
-                                            {sub.description}
+                                    <Box
+                                        sx={{
+                                            width: 46, height: 46, borderRadius: 2,
+                                            backgroundColor: GOV.navy,
+                                            color: GOV.gold,
+                                            display: "flex", alignItems: "center", justifyContent: "center",
+                                            flexShrink: 0,
+                                        }}
+                                    >
+                                        {SUB_ICON_MAP[sub.url_endpoint] || <ListAltIcon sx={{ fontSize: 24 }} />}
+                                    </Box>
+                                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                                        <Typography sx={{ fontWeight: 700, color: GOV.textPrimary, fontSize: 15.5 }}>
+                                            {sub.title}
                                         </Typography>
-                                    )}
-                                </Box>
-                                <ArrowForwardIcon sx={{ color: "text.disabled", fontSize: 20 }} />
-                            </Paper>
-                        </Link>
-                    </Grid>
-                ))}
-            </Grid>
+                                        {sub.description && (
+                                            <Typography variant="body2" sx={{ color: GOV.textMuted }}>
+                                                {sub.description}
+                                            </Typography>
+                                        )}
+                                    </Box>
+                                    <ArrowForwardIcon
+                                        className="sub-arrow"
+                                        sx={{ color: GOV.textMuted, fontSize: 19, transition: "all 0.2s ease", flexShrink: 0 }}
+                                    />
+                                </Paper>
+                            </Link>
+                        </Grid>
+                    ))}
+                </Grid>
+            </Box>
         </Box>
     );
 }

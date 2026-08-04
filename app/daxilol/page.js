@@ -13,6 +13,7 @@ import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import {useRouter, useSearchParams} from "next/navigation";
 import {handleError, isEmpty} from "@/app/utils";
 import {useAppDispatch} from "@/lib/hooks";
+import {setUser} from "@/lib/features/user/userSlice";
 import {NEXT_API_ENDPOINTS} from "@/app/urls";
 import {APP_ROUTES} from "@/components/constants";
 import PasswordReset from "@/app/daxilol/ResetPassword";
@@ -111,6 +112,10 @@ export default function Page() {
             const user_res = await service_api.get(NEXT_API_ENDPOINTS.AUTHENTICATION.USER)
             const user = await user_res.data
             if (!isEmpty(user)) {
+                // Naviqasiya panelinin dərhal düzgün ad/soyadı göstərməsi üçün
+                // (səhifə yenilənməsini gözləmədən) istifadəçini Redux-a yazırıq.
+                dispatch(setUser(user))
+
                 if (!user.two_fa_confirmed) {
                     router.push(APP_ROUTES.TWO_FA_SETUP)
                 } else if (!user.is_approved) {          // ⬅️ BURA

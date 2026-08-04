@@ -50,7 +50,7 @@ export default function BaseHeader({env}) {
                 <Toolbar disableGutters style={{display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", rowGap: 8, minHeight: "auto"}}>
                     <Box
                         onClick={() => router.push(APP_ROUTES.HOME)}
-                        sx={{position: 'relative', width: {xs: 130, sm: 180, md: 220}, height: {xs: 26, sm: 36, md: 44}, cursor: 'pointer', flexShrink: 0}}
+                        sx={{position: 'relative', width: {xs: 130, sm: 180, md: 260}, height: {xs: 26, sm: 36, md: 44}, cursor: 'pointer', flexShrink: 0}}
                     >
                         <Image src={logo} alt={"logo"} fill style={{objectFit: 'contain', objectPosition: 'left center'}} priority/>
                     </Box>

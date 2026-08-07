@@ -33,7 +33,7 @@ function PasswordReset({ open, handleClose, handleSubmit, loading}) {
                 sx={{ display: 'flex', flexDirection: 'column', gap: 2, width: '100%' }}
             >
                 <DialogContentText>
-                    Şifrəni sıfırlamaq üçün istifadəçi adınızı daxil edin.
+                    Şifrəni sıfırlamaq üçün istifadəçi adınızı və ya email ünvanınızı daxil edin.
                 </DialogContentText>
                 {/*Elektron poçt ünvanınızı*/}
                 <Box sx={{mt: 1}}>
@@ -42,7 +42,7 @@ function PasswordReset({ open, handleClose, handleSubmit, loading}) {
                         margin="normal"
                         required
                         fullWidth
-                        label="İstifadəçi adı"
+                        label="İstifadəçi adı və ya email"
                         value={username}
                         onChange={e => setUsername(e.target.value)}
                         autoFocus

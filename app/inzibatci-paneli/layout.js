@@ -1,7 +1,7 @@
 export const metadata = {
-    title: 'Qurum idarəetməsi',
+    title: 'MİS-İnzibatçı Paneli',
     description:
-        'Risk Reyestr Sistemi',
+        'İnzibatçı Paneli',
 };
 export default function layout({children}) {
     return (

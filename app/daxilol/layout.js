@@ -1,7 +1,7 @@
 export const metadata = {
-    title: 'Daxil ol',
+    title: 'MİS-Daxil ol',
     description:
-        'Risk Reyestr Sistemi',
+        'Daxil ol',
 };
 export default function layout({children}) {
     return (

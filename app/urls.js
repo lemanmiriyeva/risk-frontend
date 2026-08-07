@@ -12,6 +12,7 @@ export const DJANGO_API_ENDPOINTS = {
         DEPARTMENTS: API_URL + "/api/authentication/departments/",
         TWO_FA_SETUP: API_URL + "/api/authentication/2fa/setup/",
         TWO_FA_VERIFY: API_URL + "/api/authentication/2fa/verify/",
+        TWO_FA_REQUEST_RESET: API_URL + "/api/authentication/2fa/request-reset/",
         ROLES: API_URL + "/api/authentication/roles/",
     },
     RISK: {
@@ -30,6 +31,7 @@ export const DJANGO_API_ENDPOINTS = {
         STATUS: API_URL + "/api/status/",
         CHECK_MODULE_ACCESS: API_URL + '/api/check-module-access/',
         ORG_MODULE_ACCESS: API_URL + "/api/organization/module-access/",
+        MODULE_ORG_ACCESS: API_URL + "/api/modules/organization-access/",
     },
 
     ORGANIZATION: {
@@ -41,6 +43,11 @@ export const DJANGO_API_ENDPOINTS = {
         DETAIL: API_URL + "/api/inventory/",
         SEARCH_PERSONS: API_URL + "/api/inventory/owners/persons/",
         SEARCH_DEPARTMENTS: API_URL + "/api/inventory/owners/departments/",
+    },
+    ATTENDANCE_PERMISSIONS: {
+        LIST: API_URL + "/api/attendance-permissions/",
+        DETAIL: API_URL + "/api/attendance-permissions/",
+        REVIEW: API_URL + "/api/attendance-permissions/",
     },
 
 }
@@ -56,6 +63,7 @@ export const NEXT_API_ENDPOINTS = {
         DEPARTMENTS: 'auth/departments/',
         TWO_FA_SETUP: "auth/2fa-setup/",
         TWO_FA_VERIFY: "auth/2fa-verify/",
+        TWO_FA_REQUEST_RESET: "auth/2fa-request-reset/",
         ROLES: 'auth/roles/',
     },
     RISK:{
@@ -75,6 +83,7 @@ export const NEXT_API_ENDPOINTS = {
         STATUS: "status/",
         CHECK_MODULE_ACCESS: 'check-module-access/',
         ORG_MODULE_ACCESS: "organization/module-access/",
+        MODULE_ORG_ACCESS: "modules/organization-access/",
     },
 
     ORGANIZATION: {
@@ -87,6 +96,11 @@ export const NEXT_API_ENDPOINTS = {
         DETAIL: "inventory/",
         SEARCH_PERSONS: "inventory/owners/persons/",
         SEARCH_DEPARTMENTS: "inventory/owners/departments/",
+    },
+    ATTENDANCE_PERMISSIONS: {
+        LIST: "attendance-permissions/",
+        DETAIL: "attendance-permissions/",
+        REVIEW: "attendance-permissions/",
     },
 
 }

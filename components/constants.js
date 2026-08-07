@@ -38,6 +38,7 @@ export const APP_ROUTES = {
     TWO_FA_SETUP: "/2fa-qurulmasi",
     PENDING_APPROVAL: "/gozleme",
     ORG_ADMIN: "/inzibatci-paneli-idaresi",
+    PROFILE: "/sexsi-kabinet",
 }
 
 export const DISPLAY_DATE_FORMAT = 'DD MMM YYYY'

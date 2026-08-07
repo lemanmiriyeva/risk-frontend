@@ -1,7 +1,7 @@
 export const metadata = {
-    title: 'Daxil ol',
+    title: 'MİS-2 faktorlu autentifikasiya',
     description:
-        'Risk Reyestr Sistemi',
+        '2 faktorlu autentifikasiya',
 };
 export default function layout({children}) {
     return (

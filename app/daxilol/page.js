@@ -17,6 +17,7 @@ import {setUser} from "@/lib/features/user/userSlice";
 import {NEXT_API_ENDPOINTS} from "@/app/urls";
 import {APP_ROUTES} from "@/components/constants";
 import PasswordReset from "@/app/daxilol/ResetPassword";
+import TwoFAResetDialog from "@/components/atoms/TwoFaResetDialog";
 import {useSnackbar} from "notistack";
 import {service_api} from "@/app/service";
 import bina from "@/app/msn_bina.png"
@@ -81,6 +82,9 @@ export default function Page() {
     const [twoFaStep, setTwoFaStep] = useState(false);
     const [pendingCredentials, setPendingCredentials] = useState(null);
     const [code, setCode] = useState('');
+    // Authenticator tətbiqi silinib/telefon dəyişilib itirilib halı üçün 2FA sıfırlama sorğusu
+    const [showTwoFaResetDialog, setShowTwoFaResetDialog] = useState(false);
+    const [twoFaResetLoading, setTwoFaResetLoading] = useState(false);
     // user store
     const dispatch = useAppDispatch()
     const handleClickShowPassword = () => setShowPassword((show) => !show);
@@ -174,6 +178,36 @@ export default function Page() {
         setErrors({username: null, password: null, common: null})
     }
 
+
+    function handleOpenTwoFaResetDialog(e) {
+        e.preventDefault()
+        setShowTwoFaResetDialog(true)
+    }
+
+    function handleCloseTwoFaResetDialog() {
+        setShowTwoFaResetDialog(false)
+    }
+
+    async function handleTwoFaResetSubmit() {
+        if (!pendingCredentials) return
+        setTwoFaResetLoading(true)
+        try {
+            await service_api.post(NEXT_API_ENDPOINTS.AUTHENTICATION.TWO_FA_REQUEST_RESET, {
+                username: pendingCredentials.username,
+                password: pendingCredentials.password,
+            })
+            enqueueSnackbar(
+                'Sorğunuz qəbul olundu. Məlumatlarınız doğrudursa, e-poçt ünvanınıza bildiriş göndərildi. Yenidən daxil olmağa cəhd edin.',
+                {variant: 'success', autoHideDuration: 6000}
+            )
+            setShowTwoFaResetDialog(false)
+            handleBackToCredentials()
+        } catch (e) {
+            enqueueSnackbar(handleError(e), {variant: 'error'})
+        } finally {
+            setTwoFaResetLoading(false)
+        }
+    }
 
     const handleCapsLock = (event) => {
         setCapsLockOn(event.getModifierState && event.getModifierState('CapsLock'));
@@ -403,7 +437,16 @@ export default function Page() {
                                         sx={{mb: 2}}
                                     />
 
-                                    <Box sx={{display: 'flex', justifyContent: 'flex-end', mt: -1, mb: 2.5}}>
+                                    <Box sx={{display: 'flex', justifyContent: 'space-between', mt: -1, mb: 2.5}}>
+                                        <Link
+                                            onClick={handleOpenTwoFaResetDialog}
+                                            component="button"
+                                            type="button"
+                                            underline="hover"
+                                            sx={{fontSize: 13, color: '#4F5B92'}}
+                                        >
+                                            Administrator ilə əlaqə
+                                        </Link>
                                         <Link
                                             onClick={handleBackToCredentials}
                                             component="button"
@@ -414,6 +457,10 @@ export default function Page() {
                                             Geri qayıt
                                         </Link>
                                     </Box>
+                                    <Typography sx={{fontSize: 12, color: '#9CA3AF', mt: -1.5, mb: 2.5}}>
+                                        Autentifikasiya tətbiqi silinibsə və ya telefonunuz dəyişilib/itirilibsə,
+                                        yuxarıdakı bağlantı vasitəsilə 2FA-nızı sıfırlaya bilərsiniz.
+                                    </Typography>
                                 </>
                             )}
 
@@ -455,6 +502,13 @@ export default function Page() {
                 handleClose={handleClose}
                 handleSubmit={handlePasswordReset}
                 loading={loading}
+            />
+
+            <TwoFAResetDialog
+                open={showTwoFaResetDialog}
+                handleClose={handleCloseTwoFaResetDialog}
+                handleSubmit={handleTwoFaResetSubmit}
+                loading={twoFaResetLoading}
             />
         </Box>
     );

@@ -14,12 +14,20 @@ import Link from 'next/link'
 import {usePathname, useRouter} from 'next/navigation';
 import IconButton from "@mui/material/IconButton";
 import useMediaQuery from '@mui/material/useMediaQuery';
+import Menu from "@mui/material/Menu";
+import MenuItem from "@mui/material/MenuItem";
+import ListItemIcon from "@mui/material/ListItemIcon";
+import ListItemText from "@mui/material/ListItemText";
+import Divider from "@mui/material/Divider";
+import Avatar from "@mui/material/Avatar";
 // Icons
 import LogoutIcon from '@mui/icons-material/Logout';
 import WarehouseIcon from '@mui/icons-material/Warehouse';
 import AssignmentIndIcon from '@mui/icons-material/AssignmentInd';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
+import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import Alert from "@mui/material/Alert";
 import Image from "next/image";
 import logo from '../app/logo.svg'
@@ -34,10 +42,17 @@ export default function BaseHeader({env}) {
 
     // Methods
     const displayUser = user => `${user?.firstname} ${user?.lastname}`
+    const initials = user => `${(user?.firstname || '')[0] || ''}${(user?.lastname || '')[0] || ''}`.toUpperCase() || '—'
 
     const pathname = usePathname();
     const router = useRouter();
     const isCompact = useMediaQuery('(max-width:600px)');
+
+    const [anchorEl, setAnchorEl] = useState(null);
+    const menuOpen = Boolean(anchorEl);
+    const openMenu = (e) => setAnchorEl(e.currentTarget);
+    const closeMenu = () => setAnchorEl(null);
+    const goTo = (route) => { closeMenu(); router.push(route); }
 
 
 
@@ -77,46 +92,87 @@ export default function BaseHeader({env}) {
                         {/*        </Link>*/}
                         {/*    )*/}
                         {/*)}*/}
-                        <Tooltip title={displayUser(user)}>
-                            <Box sx={{
-                                display: 'flex', alignItems: 'center'
-                            }}>
-                                <AssignmentIndIcon sx={{marginRight: 1, display: {xs: 'none', sm: 'inline-flex'}}} color={'text.primary'}/>
+                        <Tooltip title="Hesab menyusu">
+                            <Box
+                                onClick={openMenu}
+                                sx={{
+                                    display: 'flex', alignItems: 'center', cursor: 'pointer', gap: 1,
+                                    borderRadius: 999, pl: 0.5, pr: {xs: 0.5, sm: 1.25}, py: 0.5,
+                                    border: '1px solid rgba(255,255,255,0.12)',
+                                    backgroundColor: menuOpen ? 'rgba(201,162,75,0.14)' : 'rgba(255,255,255,0.04)',
+                                    transition: 'background-color .15s ease, border-color .15s ease',
+                                    '&:hover': {backgroundColor: 'rgba(201,162,75,0.14)', borderColor: 'rgba(201,162,75,0.4)'},
+                                }}
+                            >
+                                <Avatar sx={{
+                                    width: 30, height: 30, fontSize: 13, fontWeight: 700,
+                                    bgcolor: '#C9A24B', color: '#0E1730',
+                                }}>
+                                    {user?.isLoaded === false ? '' : initials(user)}
+                                </Avatar>
                                 <Typography
                                     variant="caption"
                                     noWrap
                                     component="p"
                                     sx={{
-                                        mr: 2,
-                                        display: {
-                                            xs: 'none',
-                                            md: 'flex'
-                                        },
-                                        fontSize: 16,
+                                        display: {xs: 'none', md: 'flex'},
+                                        fontSize: 15,
                                         fontWeight: 700,
-                                        textDecoration: 'none'
+                                        color: '#E7EAF3',
                                     }}
                                 >
-                                    {displayUser(user) || <Skeleton variant="text" width={150} color={'#fff'}
+                                    {displayUser(user) || <Skeleton variant="text" width={130} color={'#fff'}
                                                                     sx={{fontSize: '1rem'}}/>}
                                 </Typography>
-                                {isCompact ? (
-                                    <Tooltip title="Çıxış">
-                                        <Link href={APP_ROUTES.SIGNOUT}>
-                                            <IconButton size="small" sx={{color: '#fff'}}>
-                                                <LogoutIcon fontSize="small"/>
-                                            </IconButton>
-                                        </Link>
-                                    </Tooltip>
-                                ) : (
-                                    <Link href={APP_ROUTES.SIGNOUT}>
-                                        <Button startIcon={<LogoutIcon/>} variant={"text"} sx={{
-                                            color: '#fff', whiteSpace: 'nowrap'
-                                        }}>Çıxış</Button>
-                                    </Link>
-                                )}
+                                <KeyboardArrowDownIcon sx={{
+                                    color: '#9AA5C7', fontSize: 20,
+                                    transform: menuOpen ? 'rotate(180deg)' : 'none', transition: 'transform .15s ease',
+                                }}/>
                             </Box>
                         </Tooltip>
+                        <Menu
+                            anchorEl={anchorEl}
+                            open={menuOpen}
+                            onClose={closeMenu}
+                            anchorOrigin={{vertical: 'bottom', horizontal: 'right'}}
+                            transformOrigin={{vertical: 'top', horizontal: 'right'}}
+                            slotProps={{
+                                paper: {
+                                    sx: {
+                                        mt: 1, minWidth: 220, borderRadius: 2.5,
+                                        backgroundColor: '#0E1730', color: '#E7EAF3',
+                                        border: '1px solid rgba(255,255,255,0.08)',
+                                        boxShadow: '0 20px 45px rgba(2,6,36,0.5)',
+                                    }
+                                }
+                            }}
+                        >
+                            <Box sx={{px: 2, py: 1.5}}>
+                                <Typography sx={{fontSize: 14, fontWeight: 700, color: '#fff', lineHeight: 1.3}} noWrap>
+                                    {displayUser(user)}
+                                </Typography>
+                                <Typography sx={{fontSize: 12.5, color: '#9AA5C7'}} noWrap>
+                                    {user?.email}
+                                </Typography>
+                            </Box>
+                            <Divider sx={{borderColor: 'rgba(255,255,255,0.08)'}}/>
+                            <MenuItem onClick={() => goTo(APP_ROUTES.PROFILE)} sx={{py: 1.2, px: 2, '&:hover': {backgroundColor: 'rgba(201,162,75,0.1)'}}}>
+                                <ListItemIcon>
+                                    <PersonOutlineIcon fontSize="small" sx={{color: '#C9A24B'}}/>
+                                </ListItemIcon>
+                                <ListItemText primaryTypographyProps={{fontSize: 14, fontWeight: 600}}>
+                                    Hesabım
+                                </ListItemText>
+                            </MenuItem>
+                            <MenuItem onClick={() => goTo(APP_ROUTES.SIGNOUT)} sx={{py: 1.2, px: 2, '&:hover': {backgroundColor: 'rgba(239,83,80,0.12)'}}}>
+                                <ListItemIcon>
+                                    <LogoutIcon fontSize="small" sx={{color: '#EF5350'}}/>
+                                </ListItemIcon>
+                                <ListItemText primaryTypographyProps={{fontSize: 14, fontWeight: 600, color: '#EF9A9A'}}>
+                                    Çıxış
+                                </ListItemText>
+                            </MenuItem>
+                        </Menu>
                     </Box>
 
                 </Toolbar>

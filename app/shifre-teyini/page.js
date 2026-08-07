@@ -55,7 +55,7 @@ export default function Page() {
 
     function validate() {
         const errs = {};
-        if (!username) errs.username = 'İstifadəçi adı tələb olunur';
+        if (!username) errs.username = 'İstifadəçi adı və ya email tələb olunur';
         if (!code) errs.code = 'Mailinizə gələn kodu daxil edin';
         if (!newPassword || newPassword.length < 8) errs.newPassword = 'Şifrə ən azı 8 simvol olmalıdır';
         if (newPassword !== confirmPassword) errs.confirmPassword = 'Şifrələr uyğun gəlmir';
@@ -145,7 +145,7 @@ export default function Page() {
                         </Typography>
 
                         <TextField
-                            fullWidth margin="normal" label="İstifadəçi adı" disabled={loading}
+                            fullWidth margin="normal" label="İstifadəçi adı və ya email" disabled={loading}
                             value={username} onChange={(e) => setUsername(e.target.value)}
                             error={!!errors.username} helperText={errors.username}
                         />

@@ -11,8 +11,11 @@ import BaseHeader from "../components/BaseHeader";
 import Theme from '../components/main/Theme'
 import StoreProvider from "@/app/StoreProvider";
 export const metadata = {
-  title: 'Əsas menyu',
-  description: 'MSN Risk Reyestr Sistemi',
+  title: 'Mərkəzləşdirilmiş İnformasiya Sistemi',
+  description: 'Mərkəzləşdirilmiş İnformasiya Sistemi',
+    icons: {
+        icon: "icon.png",
+    },
 }
 
 export default function RootLayout({ children, params }) {

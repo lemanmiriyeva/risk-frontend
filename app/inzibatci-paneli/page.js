@@ -12,8 +12,10 @@ import {useAppSelector} from "@/lib/hooks";
 import OrgAdminUsersPage from "@/components/atoms/OrgAdminUsersPage";
 import OrganizationDetailsPage from "@/components/atoms/OrganizationDetailsPage";
 import OrganizationsListPage from "@/components/atoms/OrganizationsListPage";
+import ModulePermissionsPage from "@/components/atoms/ModulePermissionPage";
 import ModuleHero from "@/components/ModuleHero";
 import { GOV } from "@/components/theme/govColors";
+import ExtensionOutlinedIcon from '@mui/icons-material/ExtensionOutlined';
 
 const C = {line: '#E4E1D8', ink: '#1D1B16', inkMuted: '#6B6558', gold: '#9C7A2E'};
 
@@ -31,16 +33,18 @@ export default function Page() {
         );
     }
 
-    // Root: "Qurumlar" (bütün qurumlar) + "İstifadəçilər" (bütün qurumların user-ləri)
-    // Qurum admini: "Qurum məlumatları" (yalnız öz qurumu) + "İstifadəçilər" (yalnız öz qurumu)
+    // Root: "Qurumlar" (bütün qurumlar) + "İstifadəçilər" (bütün qurumların user-ləri) + "Modul icazələri"
+    // Qurum admini: "Qurum məlumatları" (yalnız öz qurumu) + "İstifadəçilər" (yalnız öz qurumu) + "Modul icazələri"
     const tabs = isRoot
         ? [
             {label: 'Qurumlar', icon: <DomainOutlinedIcon fontSize="small"/>, component: <OrganizationsListPage/>},
             {label: 'İstifadəçilər', icon: <GroupOutlinedIcon fontSize="small"/>, component: <OrgAdminUsersPage/>},
+            {label: 'Modul icazələri', icon: <ExtensionOutlinedIcon fontSize="small"/>, component: <ModulePermissionsPage isSuperUser/>},
         ]
         : [
             {label: 'Qurum məlumatları', icon: <DomainOutlinedIcon fontSize="small"/>, component: <OrganizationDetailsPage/>},
             {label: 'İstifadəçilər', icon: <GroupOutlinedIcon fontSize="small"/>, component: <OrgAdminUsersPage/>},
+            {label: 'Modul icazələri', icon: <ExtensionOutlinedIcon fontSize="small"/>, component: <ModulePermissionsPage isSuperUser={false}/>},
         ];
 
     return (

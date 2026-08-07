@@ -1,7 +1,7 @@
 export const metadata = {
-    title: 'MİS-Şifrəni təyin et',
+    title: 'MİS - Şəxsi Kabinet',
     description:
-        'Şifrəni təyin et',
+        'Şəxsi Kabinet',
 };
 export default function layout({children}) {
     return (

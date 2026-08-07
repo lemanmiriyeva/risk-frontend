@@ -38,14 +38,16 @@ const C = {
 };
 
 const STATUS_META = {
-    pending: {label: 'Gözləmədə', fg: '#8A7A2E', bg: 'rgba(138,122,46,0.1)'},
+    pending: {label: 'Gözləmədə (Şöbə müdiri)', fg: '#8A7A2E', bg: 'rgba(138,122,46,0.1)'},
+    awaiting_apparatus: {label: 'Aparat rəhbərini gözləyir', fg: '#8A5A2E', bg: 'rgba(138,90,46,0.1)'},
     approved: {label: 'Təsdiqlənib', fg: '#2F6B4F', bg: 'rgba(47,107,79,0.1)'},
     rejected: {label: 'Rədd edilib', fg: '#A23B3B', bg: 'rgba(162,59,59,0.1)'},
 };
 
 const STATUS_FILTERS = [
     {value: '', label: 'Bütün statuslar'},
-    {value: 'pending', label: 'Gözləmədə'},
+    {value: 'pending', label: 'Gözləmədə (Şöbə müdiri)'},
+    {value: 'awaiting_apparatus', label: 'Aparat rəhbərini gözləyir'},
     {value: 'approved', label: 'Təsdiqlənib'},
     {value: 'rejected', label: 'Rədd edilib'},
 ];
@@ -170,8 +172,12 @@ export default function AttendancePermissionsPage() {
                 },
             },
             {
-                field: 'reviewed_by_name', headerName: 'Baxan', width: 150,
-                valueGetter: (value, row) => row.reviewed_by_name || '—',
+                field: 'reviewed_by_name', headerName: 'Baxan', width: 170,
+                valueGetter: (value, row) => {
+                    if (row.status === 'pending') return '—';
+                    if (row.status === 'awaiting_apparatus') return `${row.department_reviewed_by_name || '—'} (təsdiqlədi)`;
+                    return row.reviewed_by_name || row.department_reviewed_by_name || '—';
+                },
             },
             {
                 field: 'actions', headerName: '', width: 110, sortable: false, filterable: false, disableColumnMenu: true,

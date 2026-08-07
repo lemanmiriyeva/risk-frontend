@@ -1,5 +1,5 @@
 "use client"
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import TextField from '@mui/material/TextField';
@@ -12,6 +12,7 @@ import Grid from "@mui/material/Grid";
 import Tooltip from "@mui/material/Tooltip";
 import {useSnackbar} from "notistack";
 
+import CameraAltOutlinedIcon from '@mui/icons-material/CameraAltOutlined';
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
 import BadgeOutlinedIcon from '@mui/icons-material/BadgeOutlined';
 import MailOutlineIcon from '@mui/icons-material/MailOutline';
@@ -78,6 +79,9 @@ export default function Page() {
     const [dirty, setDirty] = useState(false);
 
     const [readOnly, setReadOnly] = useState({username: '', email: '', fin_kod: '', organization: null, name: ''});
+    const [image, setImage] = useState('');
+    const [avatarUploading, setAvatarUploading] = useState(false);
+    const fileInputRef = useRef(null);
 
     const [firstname, setFirstname] = useState('');
     const [lastname, setLastname] = useState('');
@@ -93,6 +97,7 @@ export default function Page() {
             organization: data.organization || null,
             name: data.name || `${data.firstname || ''} ${data.lastname || ''}`.trim(),
         })
+        setImage(data.image || '');
         setFirstname(data.firstname || '');
         setLastname(data.lastname || '');
         setPhoneNumber(data.phone_number || '');
@@ -121,6 +126,36 @@ export default function Page() {
         if (!lastname.trim()) errs.lastname = 'Soyad tələb olunur';
         setErrors(errs);
         return Object.keys(errs).length === 0;
+    }
+
+    async function handleAvatarChange(e) {
+        const file = e.target.files?.[0];
+        e.target.value = null; // eyni faylı təkrar seçmək mümkün olsun deyə
+        if (!file) return;
+
+        if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+            enqueueSnackbar('Yalnız JPG, PNG və ya WEBP formatı dəstəklənir.', {variant: 'error'});
+            return;
+        }
+        if (file.size > 5 * 1024 * 1024) {
+            enqueueSnackbar('Şəkil 5MB-dan böyük ola bilməz.', {variant: 'error'});
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('image', file);
+
+        setAvatarUploading(true);
+        try {
+            const res = await service_api.patch(NEXT_API_ENDPOINTS.AUTHENTICATION.USER, formData);
+            fillForm(res.data);
+            dispatch(updateUser(res.data));
+            enqueueSnackbar('Profil şəkli yeniləndi.', {variant: 'success'});
+        } catch (err) {
+            enqueueSnackbar(handleError(err), {variant: 'error'});
+        } finally {
+            setAvatarUploading(false);
+        }
     }
 
     async function handleSubmit(e) {
@@ -175,13 +210,37 @@ export default function Page() {
                     ŞƏXSİ KABİNET
                 </Typography>
                 <Box sx={{display: 'flex', alignItems: 'center', gap: 2.5, position: 'relative', zIndex: 1}}>
-                    <Avatar sx={{
-                        width: 76, height: 76, fontSize: 28, fontWeight: 700,
-                        bgcolor: 'rgba(201,162,75,0.15)', color: GOLD,
-                        border: `2px solid ${GOLD}`,
-                    }}>
-                        {initials}
-                    </Avatar>
+                    <Tooltip title="Profil şəklini dəyiş">
+                        <Box
+                            onClick={() => !avatarUploading && fileInputRef.current?.click()}
+                            sx={{position: 'relative', width: 76, height: 76, cursor: 'pointer'}}
+                        >
+                            <Avatar
+                                src={image || undefined}
+                                sx={{
+                                    width: 76, height: 76, fontSize: 28, fontWeight: 700,
+                                    bgcolor: 'rgba(201,162,75,0.15)', color: GOLD,
+                                    border: `2px solid ${GOLD}`,
+                                }}
+                            >
+                                {initials}
+                            </Avatar>
+                            <Box sx={{
+                                position: 'absolute', bottom: 0, right: 0, width: 26, height: 26,
+                                borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                backgroundColor: GOLD, border: `2px solid ${NAVY_DEEP}`,
+                            }}>
+                                {avatarUploading
+                                    ? <CircularProgress size={13} sx={{color: NAVY_DEEP}}/>
+                                    : <CameraAltOutlinedIcon sx={{fontSize: 14, color: NAVY_DEEP}}/>}
+                            </Box>
+                            <input
+                                ref={fileInputRef} type="file" hidden
+                                accept="image/png, image/jpeg, image/webp"
+                                onChange={handleAvatarChange}
+                            />
+                        </Box>
+                    </Tooltip>
                     <Box>
                         <Typography sx={{color: '#fff', fontSize: {xs: 22, md: 28}, fontWeight: 800, lineHeight: 1.2}}>
                             {readOnly.name || 'İstifadəçi'}

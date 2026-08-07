@@ -49,6 +49,12 @@ export const DJANGO_API_ENDPOINTS = {
         DETAIL: API_URL + "/api/attendance-permissions/",
         REVIEW: API_URL + "/api/attendance-permissions/",
     },
+    NOTIFICATIONS: {
+        LIST: API_URL + "/api/notifications/",
+        UNREAD_COUNT: API_URL + "/api/notifications/unread-count/",
+        MARK_READ: API_URL + "/api/notifications/",
+        MARK_ALL_READ: API_URL + "/api/notifications/mark-all-read/",
+    },
 
 }
 
@@ -101,6 +107,12 @@ export const NEXT_API_ENDPOINTS = {
         LIST: "attendance-permissions/",
         DETAIL: "attendance-permissions/",
         REVIEW: "attendance-permissions/",
+    },
+    NOTIFICATIONS: {
+        LIST: "notifications/",
+        UNREAD_COUNT: "notifications/unread-count/",
+        MARK_READ: "notifications/",
+        MARK_ALL_READ: "notifications/mark-all-read/",
     },
 
 }

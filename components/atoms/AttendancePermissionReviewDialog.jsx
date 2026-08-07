@@ -40,6 +40,16 @@ export default function AttendancePermissionReviewDialog({target, action, onClos
                 <Typography sx={{fontSize: 13.5, color: C.inkMuted}}>
                     <b>{target.user_name}</b> — {target.date} {target.start_time}–{target.end_time} — {target.location}
                 </Typography>
+                {isApprove && target.status === 'pending' && (
+                    <Typography sx={{fontSize: 12, color: C.inkMuted, mt: 0.5, fontStyle: 'italic'}}>
+                        Təsdiqlədikdən sonra sorğu Aparat rəhbərinin son təsdiqinə göndəriləcək.
+                    </Typography>
+                )}
+                {isApprove && target.status === 'awaiting_apparatus' && (
+                    <Typography sx={{fontSize: 12, color: C.inkMuted, mt: 0.5, fontStyle: 'italic'}}>
+                        Bu son təsdiqdir - sorğu sahibinə dərhal bildiriş gedəcək.
+                    </Typography>
+                )}
             </Box>
             <Box sx={{px: 3, pb: 1}}>
                 <TextField

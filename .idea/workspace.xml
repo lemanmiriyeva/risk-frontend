@@ -5,35 +5,19 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="82004209-f401-44a9-ba85-a455e4c04d94" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/app/api/attendance-permissions/[id]/review/route.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/api/attendance-permissions/route.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/api/auth/2fa-request-reset/route.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/api/modules/organization-access/route.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/api/organization/module-access/route.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/icazeler/page.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/sexsi-kabinet/layout.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/sexsi-kabinet/page.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/components/atoms/AttendancePermissionFormDialog.jsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/components/atoms/AttendancePermissionReviewDialog.jsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/components/atoms/AttendancePermissionsPage.jsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/components/atoms/ModulePermissionPage.jsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/components/atoms/TwoFaResetDialog.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/api/notifications/[id]/read/route.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/api/notifications/mark-all-read/route.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/api/notifications/route.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/api/notifications/unread-count/route.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/components/atoms/NotificationBell.jsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/2fa-qurulmasi/layout.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/2fa-qurulmasi/layout.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/api/auth/user/route.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/api/auth/user/route.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/daxilol/ResetPassword.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/daxilol/ResetPassword.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/daxilol/layout.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/daxilol/layout.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/daxilol/page.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/daxilol/page.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/favicon.ico" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/gozleme/layout.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/gozleme/layout.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/inzibatci-paneli/layout.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/inzibatci-paneli/layout.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/inzibatci-paneli/page.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/inzibatci-paneli/page.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/layout.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/layout.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/loqlar/layout.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/loqlar/layout.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/shifre-teyini/layout.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/shifre-teyini/layout.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/shifre-teyini/page.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/shifre-teyini/page.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/api/utils.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/api/utils.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/sexsi-kabinet/page.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/sexsi-kabinet/page.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/urls.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/urls.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/BaseHeader.js" beforeDir="false" afterPath="$PROJECT_DIR$/components/BaseHeader.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/atoms/AttendancePermissionReviewDialog.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/atoms/AttendancePermissionReviewDialog.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/atoms/AttendancePermissionsPage.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/atoms/AttendancePermissionsPage.jsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/constants.js" beforeDir="false" afterPath="$PROJECT_DIR$/components/constants.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -73,6 +57,7 @@
 }</component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\laman.bashirova\Documents\RiskRegisterSystem\risk-frontend\app\api\notifications" />
       <recent name="C:\Users\laman.bashirova\Documents\RiskRegisterSystem\risk-frontend\app\api\organization" />
       <recent name="C:\Users\laman.bashirova\Documents\RiskRegisterSystem\risk-frontend\app\api" />
       <recent name="C:\Users\laman.bashirova\Documents\RiskRegisterSystem\risk-frontend\app\api\auth" />
@@ -117,7 +102,7 @@
       <workItem from="1785733726062" duration="13206000" />
       <workItem from="1785820526367" duration="6698000" />
       <workItem from="1785993338996" duration="13594000" />
-      <workItem from="1786080105804" duration="595000" />
+      <workItem from="1786080105804" duration="8587000" />
     </task>
     <servers />
   </component>

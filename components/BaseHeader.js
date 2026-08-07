@@ -32,6 +32,7 @@ import Alert from "@mui/material/Alert";
 import Image from "next/image";
 import logo from '../app/logo.svg'
 import Theme from "@/components/main/Theme";
+import NotificationBell from "@/components/atoms/NotificationBell";
 
 
 export default function BaseHeader({env}) {
@@ -92,6 +93,7 @@ export default function BaseHeader({env}) {
                         {/*        </Link>*/}
                         {/*    )*/}
                         {/*)}*/}
+                        <NotificationBell/>
                         <Tooltip title="Hesab menyusu">
                             <Box
                                 onClick={openMenu}
@@ -104,10 +106,13 @@ export default function BaseHeader({env}) {
                                     '&:hover': {backgroundColor: 'rgba(201,162,75,0.14)', borderColor: 'rgba(201,162,75,0.4)'},
                                 }}
                             >
-                                <Avatar sx={{
-                                    width: 30, height: 30, fontSize: 13, fontWeight: 700,
-                                    bgcolor: '#C9A24B', color: '#0E1730',
-                                }}>
+                                <Avatar
+                                    src={user?.image || undefined}
+                                    sx={{
+                                        width: 30, height: 30, fontSize: 13, fontWeight: 700,
+                                        bgcolor: '#C9A24B', color: '#0E1730',
+                                    }}
+                                >
                                     {user?.isLoaded === false ? '' : initials(user)}
                                 </Avatar>
                                 <Typography

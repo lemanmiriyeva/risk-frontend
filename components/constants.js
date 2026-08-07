@@ -39,6 +39,7 @@ export const APP_ROUTES = {
     PENDING_APPROVAL: "/gozleme",
     ORG_ADMIN: "/inzibatci-paneli-idaresi",
     PROFILE: "/sexsi-kabinet",
+    NOTIFICATIONS: "/bildirisler",
 }
 
 export const DISPLAY_DATE_FORMAT = 'DD MMM YYYY'

@@ -128,6 +128,41 @@ export async function patch_request(url, data, access_token, refresh_token, head
     return await __base_request(url, METHODS.PATCH, data, access_token, refresh_token, headers)
 }
 
+// FormData (şəkil və s. fayl) göndərmək üçün - Content-Type qəsdən qoyulmur ki,
+// fetch multipart boundary-ni özü təyin etsin.
+export async function patch_form_request(url, formData, access_token, refresh_token) {
+    const _headers = new Headers({'Accept': 'application/json'})
+    if (access_token?.value) {
+        _headers.set('Authorization', 'Bearer ' + access_token.value)
+    }
+    const clientIp = getClientIp();
+    if (clientIp) {
+        _headers.set('X-Forwarded-For', clientIp);
+    }
+
+    const res = await fetch(url, {method: METHODS.PATCH, headers: _headers, body: formData})
+
+    if (res.status === 401 && refresh_token?.value) {
+        try {
+            const new_token_pair = await __refresh({'Content-Type': 'application/json', 'Accept': 'application/json'}, refresh_token.value)
+            if (new_token_pair?.access) {
+                _headers.set('Authorization', 'Bearer ' + new_token_pair.access)
+                return await fetch(url, {method: METHODS.PATCH, headers: _headers, body: formData})
+            }
+            cookies().delete('access')
+            cookies().delete('refresh')
+            return Response.json({detail: 'unauthorized'}, {status: 401})
+        } catch (e) {
+            if (e.message === 'refresh_not_valid') {
+                cookies().delete('access')
+                cookies().delete('refresh')
+            }
+            return Response.json(handleError(e), {status: 401})
+        }
+    }
+    return res
+}
+
 export async function delete_request(url, access_token, refresh_token, headers = {}) {
     return await __base_request(url, METHODS.DELETE, null, access_token, refresh_token, headers)
 }

@@ -5,6 +5,7 @@ import { Grid, Typography, Box, Paper, CircularProgress, Chip } from "@mui/mater
 import SecurityIcon from '@mui/icons-material/Security';
 import DescriptionIcon from '@mui/icons-material/Description';
 import HistoryIcon from '@mui/icons-material/History';
+import FactCheckOutlinedIcon from '@mui/icons-material/FactCheckOutlined';
 import ViewModuleIcon from '@mui/icons-material/ViewModule';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
@@ -17,6 +18,7 @@ const ICON_MAP = {
     "risk": <SecurityIcon sx={{ fontSize: 26 }} />,
     "risk-logs": <DescriptionIcon sx={{ fontSize: 26 }} />,
     "logs": <HistoryIcon sx={{ fontSize: 26 }} />,
+    "emeliyyatlar": <FactCheckOutlinedIcon sx={{ fontSize: 26 }} />,
 };
 const DEFAULT_ICON = <ViewModuleIcon sx={{ fontSize: 26 }} />;
 

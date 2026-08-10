@@ -55,6 +55,11 @@ export const DJANGO_API_ENDPOINTS = {
         MARK_READ: API_URL + "/api/notifications/",
         MARK_ALL_READ: API_URL + "/api/notifications/mark-all-read/",
     },
+    OPERATIONS: {
+        LIST: API_URL + "/api/operations/",
+        DETAIL: API_URL + "/api/operations/",
+        REVIEW: API_URL + "/api/operations/",
+    },
 
 }
 
@@ -113,6 +118,11 @@ export const NEXT_API_ENDPOINTS = {
         UNREAD_COUNT: "notifications/unread-count/",
         MARK_READ: "notifications/",
         MARK_ALL_READ: "notifications/mark-all-read/",
+    },
+    OPERATIONS: {
+        LIST: "operations/",
+        DETAIL: "operations/",
+        REVIEW: "operations/",
     },
 
 }

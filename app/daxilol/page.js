@@ -1,5 +1,5 @@
 "use client"
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import Button from '@mui/material/Button';
 import CssBaseline from '@mui/material/CssBaseline';
 import TextField from '@mui/material/TextField';
@@ -94,6 +94,7 @@ export default function Page() {
     const router = useRouter();
     const [showForgotModal, setShowForgotModal] = useState(false);
     const [urlUserId, setUrlUserId] = useState(null);
+    const formRef = useRef(null);
 
     useEffect(() => {
         const id = searchParams.get('id');
@@ -140,7 +141,13 @@ export default function Page() {
                 const msg = error?.response?.data?.detail || handleError(error);
                 setErrors((errors) => ({...errors, common: msg}));
                 enqueueSnackbar(msg, {variant: 'error', autoHideDuration: 5000});
-                if (twoFaStep) setCode('')
+                if (twoFaStep) {
+                    setCode('')
+                } else {
+                    // İstifadəçi adı/şifrə sahələrini boşaldırıq ki, istifadəçi hər dəfə yenidən yaza bilsin
+                    // (uncontrolled input olduğu üçün ən etibarlı yol form.reset()-dir).
+                    formRef.current?.reset()
+                }
             }
         } finally {
             setLoading(false)
@@ -346,7 +353,7 @@ export default function Page() {
                                 : 'Hesab məlumatlarınızı daxil edin.'}
                         </Typography>
 
-                        <Box component="form" onSubmit={handleSubmit} noValidate>
+                        <Box component="form" ref={formRef} onSubmit={handleSubmit} noValidate>
                             {!twoFaStep ? (
                                 <>
                                     <Typography sx={{fontSize: 13, fontWeight: 600, color: '#374151', mb: 0.75}}>

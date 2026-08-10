@@ -5,15 +5,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="82004209-f401-44a9-ba85-a455e4c04d94" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/app/api/operations/[id]/review/route.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/api/operations/route.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/emeliyyatlar/page.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/components/atoms/OperationDetailDialog.jsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/components/atoms/OperationReviewDialog.jsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/components/atoms/OperationsPage.jsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/daxilol/page.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/daxilol/page.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/urls.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/urls.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/atoms/AttendancePermissionFormDialog.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/atoms/AttendancePermissionFormDialog.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/atoms/AttendancePermissionsPage.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/atoms/AttendancePermissionsPage.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/atoms/OperationsPage.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/atoms/OperationsPage.jsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -98,7 +93,7 @@
       <workItem from="1785820526367" duration="6698000" />
       <workItem from="1785993338996" duration="13594000" />
       <workItem from="1786080105804" duration="10586000" />
-      <workItem from="1786341649280" duration="6854000" />
+      <workItem from="1786341649280" duration="11374000" />
     </task>
     <servers />
   </component>

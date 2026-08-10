@@ -109,7 +109,7 @@ export default function AttendancePermissionsPage() {
         if (!search) return rows;
         const term = search.toLowerCase();
         return rows.filter((r) =>
-            [r.user_name, r.location, r.department_name, r.reason].filter(Boolean).some((v) => v.toLowerCase().includes(term))
+            [r.user_name, r.department_name, r.reason].filter(Boolean).some((v) => v.toLowerCase().includes(term))
         );
     }, [rows, search]);
 
@@ -131,10 +131,24 @@ export default function AttendancePermissionsPage() {
         if (!reviewTarget) return;
         setReviewing(true);
         try {
-            await service_api.patch(`${NEXT_API_ENDPOINTS.ATTENDANCE_PERMISSIONS.REVIEW}${reviewTarget.id}/review/`, {
+            const res = await service_api.patch(`${NEXT_API_ENDPOINTS.ATTENDANCE_PERMISSIONS.REVIEW}${reviewTarget.id}/review/`, {
                 action, comment,
             });
-            enqueueSnackbar(action === 'approve' ? 'İcazə təsdiqləndi.' : 'İcazə rədd edildi.', {variant: 'success'});
+
+            // Backend-dən qayıdan həqiqi statusa görə mesaj seçilir - "təsdiqlənib" mesajı
+            // yalnız son mərhələ (Aparat rəhbəri) təsdiqlədikdə göstərilməlidir. Şöbə müdiri
+            // (1-ci mərhələ) təsdiqləyəndə sorğu hələ AWAITING_APPARATUS statusuna keçir,
+            // proses bitməyib.
+            const resultStatus = res?.data?.status;
+            let message;
+            if (action !== 'approve') {
+                message = 'İcazə rədd edildi.';
+            } else if (resultStatus === 'awaiting_apparatus') {
+                message = 'Təsdiqiniz qeydə alındı - sorğu Aparat rəhbərinin təsdiqini gözləyir.';
+            } else {
+                message = 'İcazə təsdiqləndi.';
+            }
+            enqueueSnackbar(message, {variant: 'success'});
             setReviewTarget(null);
             setReviewAction(null);
             fetchRows();

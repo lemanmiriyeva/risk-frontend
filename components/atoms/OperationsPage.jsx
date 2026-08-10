@@ -159,7 +159,7 @@ export default function OperationsPage() {
                 return <Chip label={`${params.row.status_display || meta.label}${step}`} size="small" sx={{backgroundColor: meta.bg, color: meta.fg, fontWeight: 500}}/>;
             },
         },
-        {field: 'object_repr', headerName: 'Obyekt', flex: 1.3, minWidth: 200},
+        // {field: 'object_repr', headerName: 'Obyekt', flex: 1.3, minWidth: 200},
         {
             field: 'user_name', headerName: 'İstifadəçi', width: 160,
             valueGetter: (value, row) => row.user_name || row.user_username_snapshot || '—',
@@ -200,11 +200,11 @@ export default function OperationsPage() {
 
     return (
         <Box sx={{maxWidth: 1440, mx: 'auto', mt: 4}}>
-            <Box sx={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', mb: 3, flexWrap: 'wrap', gap: 2}}>
-                <Typography sx={{fontSize: 14, color: C.inkMuted}}>
-                    Bütün modullarda baş vermiş əməliyyatların (CRUD + təsdiq axını) mərkəzi reyestri.
-                </Typography>
-            </Box>
+            {/*<Box sx={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', mb: 3, flexWrap: 'wrap', gap: 2}}>*/}
+            {/*    <Typography sx={{fontSize: 14, color: C.inkMuted}}>*/}
+            {/*        Bütün modullarda baş vermiş əməliyyatların (CRUD + təsdiq axını) mərkəzi reyestri.*/}
+            {/*    </Typography>*/}
+            {/*</Box>*/}
 
             <Box sx={{display: 'flex', gap: 1.5, mb: 3, flexWrap: 'wrap', alignItems: 'center'}}>
                 <TextField

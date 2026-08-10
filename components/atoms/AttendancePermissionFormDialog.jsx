@@ -6,14 +6,36 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
+import MenuItem from '@mui/material/MenuItem';
 import Grid from '@mui/material/Grid';
 import CircularProgress from '@mui/material/CircularProgress';
+
+const WORK_START_MINUTES = 9 * 60;   // 09:00
+const WORK_END_MINUTES = 18 * 60;    // 18:00
+
+// 09:00 - 18:00 aralığında, 1 dəqiqəlik addımlarla saat siyahısı (24 saatlıq format, AM/PM yoxdur).
+const TIME_OPTIONS = Array.from(
+    {length: WORK_END_MINUTES - WORK_START_MINUTES + 1},
+    (_, i) => {
+        const total = WORK_START_MINUTES + i;
+        const hh = String(Math.floor(total / 60)).padStart(2, '0');
+        const mm = String(total % 60).padStart(2, '0');
+        return `${hh}:${mm}`;
+    }
+);
+
+function todayStr() {
+    const d = new Date();
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+}
 
 const EMPTY_FORM = {
     date: '',
     start_time: '',
     end_time: '',
-    location: '',
     reason: '',
 };
 
@@ -35,12 +57,12 @@ export default function AttendancePermissionFormDialog({open, onClose, onSubmit,
     function validate() {
         const e = {};
         if (!form.date) e.date = 'Tarix seçilməlidir';
+        if (form.date && form.date < todayStr()) e.date = 'Keçmiş tarix seçilə bilməz';
         if (!form.start_time) e.start_time = 'Başlanğıc saatı seçilməlidir';
         if (!form.end_time) e.end_time = 'Bitmə saatı seçilməlidir';
         if (form.start_time && form.end_time && form.start_time >= form.end_time) {
             e.end_time = 'Bitmə saatı başlanğıc saatından sonra olmalıdır';
         }
-        if (!form.location?.trim()) e.location = 'Yer göstərilməlidir';
         setErrors(e);
         return Object.keys(e).length === 0;
     }
@@ -59,29 +81,33 @@ export default function AttendancePermissionFormDialog({open, onClose, onSubmit,
                         <TextField
                             fullWidth type="date" label="Tarix" InputLabelProps={{shrink: true}}
                             value={form.date} onChange={handleChange('date')}
+                            inputProps={{min: todayStr()}}
                             error={!!errors.date} helperText={errors.date} disabled={loading}
                         />
                     </Grid>
                     <Grid item xs={12} sm={6}>
                         <TextField
-                            fullWidth type="time" label="Başlanğıc saatı" InputLabelProps={{shrink: true}}
+                            select fullWidth label="Başlanğıc saatı"
                             value={form.start_time} onChange={handleChange('start_time')}
                             error={!!errors.start_time} helperText={errors.start_time} disabled={loading}
-                        />
+                            SelectProps={{MenuProps: {PaperProps: {style: {maxHeight: 320}}}}}
+                        >
+                            {TIME_OPTIONS.map((t) => (
+                                <MenuItem key={t} value={t}>{t}</MenuItem>
+                            ))}
+                        </TextField>
                     </Grid>
                     <Grid item xs={12} sm={6}>
                         <TextField
-                            fullWidth type="time" label="Bitmə saatı" InputLabelProps={{shrink: true}}
+                            select fullWidth label="Bitmə saatı"
                             value={form.end_time} onChange={handleChange('end_time')}
                             error={!!errors.end_time} helperText={errors.end_time} disabled={loading}
-                        />
-                    </Grid>
-                    <Grid item xs={12}>
-                        <TextField
-                            fullWidth label="Yer" placeholder="Məs: Poliklinika, Notarius ofisi..."
-                            value={form.location} onChange={handleChange('location')}
-                            error={!!errors.location} helperText={errors.location} disabled={loading}
-                        />
+                            SelectProps={{MenuProps: {PaperProps: {style: {maxHeight: 320}}}}}
+                        >
+                            {TIME_OPTIONS.map((t) => (
+                                <MenuItem key={t} value={t}>{t}</MenuItem>
+                            ))}
+                        </TextField>
                     </Grid>
                     <Grid item xs={12}>
                         <TextField

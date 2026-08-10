@@ -173,26 +173,7 @@ export default function OperationsPage() {
                             <VisibilityOutlinedIcon fontSize="small" sx={{color: C.inkMuted}}/>
                         </IconButton>
                     </Tooltip>
-                    {params.row.can_review && (
-                        <>
-                            <Tooltip title="Təsdiqlə">
-                                <IconButton size="small" onClick={() => {
-                                    setReviewTarget(params.row);
-                                    setReviewAction('approve');
-                                }} sx={{color: '#2F6B4F'}}>
-                                    <CheckCircleOutlineIcon fontSize="small"/>
-                                </IconButton>
-                            </Tooltip>
-                            <Tooltip title="Rədd et">
-                                <IconButton size="small" onClick={() => {
-                                    setReviewTarget(params.row);
-                                    setReviewAction('reject');
-                                }} sx={{color: '#A23B3B'}}>
-                                    <HighlightOffIcon fontSize="small"/>
-                                </IconButton>
-                            </Tooltip>
-                        </>
-                    )}
+
                 </Box>
             ),
         },

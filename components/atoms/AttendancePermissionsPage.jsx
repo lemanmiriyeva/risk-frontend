@@ -14,6 +14,7 @@ import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
+import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 import AssignmentTurnedInOutlinedIcon from '@mui/icons-material/AssignmentTurnedInOutlined';
 import {DataGrid} from '@mui/x-data-grid';
 import {useSnackbar} from "notistack";
@@ -24,6 +25,7 @@ import {service_api} from "@/app/service";
 import {DATA_GRID_LOCALE_AZ} from "@/lib/dataGridLocaleAz";
 import AttendancePermissionFormDialog from "./AttendancePermissionFormDialog";
 import AttendancePermissionReviewDialog from "./AttendancePermissionReviewDialog";
+import AttendancePermissionDetailDialog from "./AttendancePermissionDetailDialog";
 
 const C = {
     bg: '#fff',
@@ -59,6 +61,7 @@ const gridSx = {
     '& .MuiDataGrid-columnHeaders': {backgroundColor: C.surface, borderBottom: `1px solid ${C.lineStrong}`},
     '& .MuiDataGrid-columnHeaderTitle': {fontSize: 11, letterSpacing: '0.05em', color: C.inkFaint, textTransform: 'uppercase', fontWeight: 500},
     '& .MuiDataGrid-cell': {borderBottom: `1px solid ${C.line}`, fontSize: 13.5, color: C.ink, display: 'flex', alignItems: 'center'},
+    '& .MuiDataGrid-row': {cursor: 'pointer'},
     '& .MuiDataGrid-row:hover': {backgroundColor: 'rgba(0,0,0,0.015)'},
     '& .MuiDataGrid-cell:focus, & .MuiDataGrid-cell:focus-within': {outline: 'none'},
     '& .MuiDataGrid-columnHeader:focus, & .MuiDataGrid-columnHeader:focus-within': {outline: 'none'},
@@ -85,6 +88,9 @@ export default function AttendancePermissionsPage() {
     const [reviewTarget, setReviewTarget] = useState(null);
     const [reviewAction, setReviewAction] = useState(null);
     const [reviewing, setReviewing] = useState(false);
+
+    // Detallı baxış modalı üçün seçilmiş sətir
+    const [detailTarget, setDetailTarget] = useState(null);
 
     const fetchRows = useCallback(async () => {
         setLoading(true);
@@ -194,30 +200,45 @@ export default function AttendancePermissionsPage() {
                 },
             },
             {
-                field: 'actions', headerName: '', width: 110, sortable: false, filterable: false, disableColumnMenu: true,
-                renderCell: (params) => {
-                    if (!params.row.can_review) return null;
-                    return (
-                        <Box sx={{display: 'flex', gap: 0.5}}>
-                            <Tooltip title="Təsdiqlə">
-                                <IconButton size="small" onClick={() => {
-                                    setReviewTarget(params.row);
-                                    setReviewAction('approve');
-                                }} sx={{color: '#2F6B4F'}}>
-                                    <CheckCircleOutlineIcon fontSize="small"/>
-                                </IconButton>
-                            </Tooltip>
-                            <Tooltip title="Rədd et">
-                                <IconButton size="small" onClick={() => {
-                                    setReviewTarget(params.row);
-                                    setReviewAction('reject');
-                                }} sx={{color: '#A23B3B'}}>
-                                    <HighlightOffIcon fontSize="small"/>
-                                </IconButton>
-                            </Tooltip>
-                        </Box>
-                    );
-                },
+                field: 'actions', headerName: '', width: 150, sortable: false, filterable: false, disableColumnMenu: true,
+                renderCell: (params) => (
+                    <Box sx={{display: 'flex', gap: 0.5}}>
+                        <Tooltip title="Ətraflı bax">
+                            <IconButton
+                                size="small"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setDetailTarget(params.row);
+                                }}
+                                sx={{color: C.inkMuted}}
+                            >
+                                <VisibilityOutlinedIcon fontSize="small"/>
+                            </IconButton>
+                        </Tooltip>
+                        {params.row.can_review && (
+                            <>
+                                <Tooltip title="Təsdiqlə">
+                                    <IconButton size="small" onClick={(e) => {
+                                        e.stopPropagation();
+                                        setReviewTarget(params.row);
+                                        setReviewAction('approve');
+                                    }} sx={{color: '#2F6B4F'}}>
+                                        <CheckCircleOutlineIcon fontSize="small"/>
+                                    </IconButton>
+                                </Tooltip>
+                                <Tooltip title="Rədd et">
+                                    <IconButton size="small" onClick={(e) => {
+                                        e.stopPropagation();
+                                        setReviewTarget(params.row);
+                                        setReviewAction('reject');
+                                    }} sx={{color: '#A23B3B'}}>
+                                        <HighlightOffIcon fontSize="small"/>
+                                    </IconButton>
+                                </Tooltip>
+                            </>
+                        )}
+                    </Box>
+                ),
             },
         );
         return cols;
@@ -265,6 +286,7 @@ export default function AttendancePermissionsPage() {
                     disableRowSelectionOnClick
                     disableColumnFilter
                     density="comfortable"
+                    onRowClick={(params) => setDetailTarget(params.row)}
                     localeText={{...DATA_GRID_LOCALE_AZ, noRowsLabel: 'Heç bir icazə sorğusu tapılmadı'}}
                     sx={gridSx}
                 />
@@ -286,6 +308,12 @@ export default function AttendancePermissionsPage() {
                 }}
                 onConfirm={handleReviewConfirm}
                 loading={reviewing}
+            />
+
+            <AttendancePermissionDetailDialog
+                open={!!detailTarget}
+                target={detailTarget}
+                onClose={() => setDetailTarget(null)}
             />
         </Box>
     );

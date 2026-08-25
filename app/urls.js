@@ -1,4 +1,4 @@
-export const API_URL =process.env.NEXT_PUBLIC_API_URL
+export const API_URL = process.env.NEXT_PUBLIC_API_URL
 
 export const DJANGO_API_ENDPOINTS = {
     AUTHENTICATION: {
@@ -26,7 +26,7 @@ export const DJANGO_API_ENDPOINTS = {
         LIST: API_URL + "/api/activity-logs/",
     },
 
-    CORE:{
+    CORE: {
         MODULES: API_URL + "/api/modules/",
         STATUS: API_URL + "/api/status/",
         CHECK_MODULE_ACCESS: API_URL + '/api/check-module-access/',
@@ -46,8 +46,11 @@ export const DJANGO_API_ENDPOINTS = {
     },
     ATTENDANCE_PERMISSIONS: {
         LIST: API_URL + "/api/attendance-permissions/",
-        DETAIL: API_URL + "/api/attendance-permissions/",
         REVIEW: API_URL + "/api/attendance-permissions/",
+        CONFIG: API_URL + "/api/attendance-permissions/config/",
+        CONFIG_USERS: API_URL + "/api/attendance-permissions/config/users/",
+        CONFIG_DEPARTMENT: (id) =>API_URL + `/api/attendance-permissions/config/departments/${id}/`
+
     },
     NOTIFICATIONS: {
         LIST: API_URL + "/api/notifications/",
@@ -77,10 +80,10 @@ export const NEXT_API_ENDPOINTS = {
         TWO_FA_REQUEST_RESET: "auth/2fa-request-reset/",
         ROLES: 'auth/roles/',
     },
-    RISK:{
-        LIST:"risk/",
-        DETAIL:"risk/",
-        LOGS:"risk/logs/",
+    RISK: {
+        LIST: "risk/",
+        DETAIL: "risk/",
+        LOGS: "risk/logs/",
         EXPORT_LOG: 'risk/export-log/',
 
     },
@@ -89,7 +92,7 @@ export const NEXT_API_ENDPOINTS = {
         LIST: "activity-logs/",
     },
 
-    CORE:{
+    CORE: {
         MODULES: "modules/",
         STATUS: "status/",
         CHECK_MODULE_ACCESS: 'check-module-access/',
@@ -110,8 +113,11 @@ export const NEXT_API_ENDPOINTS = {
     },
     ATTENDANCE_PERMISSIONS: {
         LIST: "attendance-permissions/",
-        DETAIL: "attendance-permissions/",
         REVIEW: "attendance-permissions/",
+        CONFIG: "attendance-permissions/config/",
+        CONFIG_USERS: "attendance-permissions/config/users/",
+        CONFIG_DEPARTMENT: (id) =>
+            `/attendance-permissions/config/departments/${id}/`,
     },
     NOTIFICATIONS: {
         LIST: "notifications/",

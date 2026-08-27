@@ -23,6 +23,8 @@ import WcOutlinedIcon from '@mui/icons-material/WcOutlined';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import SaveOutlinedIcon from '@mui/icons-material/SaveOutlined';
 import VerifiedUserOutlinedIcon from '@mui/icons-material/VerifiedUserOutlined';
+import AccountTreeOutlinedIcon from '@mui/icons-material/AccountTreeOutlined';
+import WorkOutlineIcon from '@mui/icons-material/WorkOutline';
 
 import {service_api} from "@/app/service";
 import {NEXT_API_ENDPOINTS} from "@/app/urls";
@@ -30,33 +32,33 @@ import {handleError} from "@/app/utils";
 import {useAppDispatch} from "@/lib/hooks";
 import {updateUser} from "@/lib/features/user/userSlice";
 
-const GENDER_OPTIONS = [
-    {value: 'male', label: 'Kişi'},
-    {value: 'female', label: 'Qadın'},
-]
+const GENDER_OPTIONS = [{value: 'male', label: 'Kişi'}, {value: 'female', label: 'Qadın'},]
 
 const GOLD = '#C9A24B';
 const NAVY = '#0E1730';
 const NAVY_DEEP = '#020624';
 
+const PHONE_PREFIX = '+994';
+
+function stripPhonePrefix(value) {
+    if (!value) return '';
+    return value.replace(/^\+?994/, '').replace(/\D/g, '').slice(0, 9);
+}
+
 function fieldSx(disabled) {
     return {
         '& .MuiOutlinedInput-root': {
-            borderRadius: 1.5,
-            backgroundColor: disabled ? '#F3F4F7' : '#FFFFFF',
-        },
-        '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
+            borderRadius: 1.5, backgroundColor: disabled ? '#F3F4F7' : '#FFFFFF',
+        }, '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
             borderColor: GOLD,
-        },
-        '& .MuiInputLabel-root.Mui-focused': {
+        }, '& .MuiInputLabel-root.Mui-focused': {
             color: '#8A6D2C',
         },
     };
 }
 
 function LockedField({label, value, icon}) {
-    return (
-        <TextField
+    return (<TextField
             fullWidth margin="normal" label={label} value={value} disabled
             sx={fieldSx(true)}
             InputProps={{
@@ -65,8 +67,7 @@ function LockedField({label, value, icon}) {
                     <LockOutlinedIcon sx={{fontSize: 17, color: '#C3C8D1'}}/>
                 </Tooltip>,
             }}
-        />
-    );
+        />);
 }
 
 export default function Page() {
@@ -78,7 +79,16 @@ export default function Page() {
     const [errors, setErrors] = useState({});
     const [dirty, setDirty] = useState(false);
 
-    const [readOnly, setReadOnly] = useState({username: '', email: '', fin_kod: '', organization: null, name: ''});
+    const [readOnly, setReadOnly] = useState({
+        username: '',
+        email: '',
+        fin_kod: '',
+        organization: null,
+        name: '',
+        department: '',
+        mainDepartment: '',
+        role: '',
+    });
     const [image, setImage] = useState('');
     const [avatarUploading, setAvatarUploading] = useState(false);
     const fileInputRef = useRef(null);
@@ -96,11 +106,14 @@ export default function Page() {
             fin_kod: data.fin_kod || '—',
             organization: data.organization || null,
             name: data.name || `${data.firstname || ''} ${data.lastname || ''}`.trim(),
+            department: data.department?.title || '',
+            mainDepartment: data.main_department?.title || '',
+            role: data.role?.title || '',
         })
         setImage(data.image || '');
         setFirstname(data.firstname || '');
         setLastname(data.lastname || '');
-        setPhoneNumber(data.phone_number || '');
+        setPhoneNumber(stripPhonePrefix(data.phone_number));
         setBirthDate(data.birth_date || '');
         setGender(data.gender || '');
         setDirty(false);
@@ -167,7 +180,7 @@ export default function Page() {
             const payload = {
                 firstname,
                 lastname,
-                phone_number: phoneNumber || null,
+                phone_number: phoneNumber ? `${PHONE_PREFIX}${phoneNumber}` : null,
                 birth_date: birthDate || null,
                 gender: gender || null,
             };
@@ -187,23 +200,29 @@ export default function Page() {
     const initials = `${(firstname || '')[0] || ''}${(lastname || '')[0] || ''}`.toUpperCase() || '—';
 
     if (loading) {
-        return (
-            <Box sx={{display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '70vh'}}>
+        return (<Box sx={{display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '70vh'}}>
                 <CircularProgress sx={{color: NAVY}}/>
-            </Box>
-        );
+            </Box>);
     }
 
-    return (
-        <Box sx={{backgroundColor: '#EEF1F5', minHeight: 'calc(100vh - 64px)', pb: 8}}>
+    return (<Box sx={{backgroundColor: '#EEF1F5', minHeight: 'calc(100vh - 64px)', pb: 8}}>
 
             {/* HERO */}
             <Box sx={{
-                position: 'relative', overflow: 'hidden', background: `linear-gradient(135deg, ${NAVY} 0%, ${NAVY_DEEP} 100%)`,
-                px: {xs: 3, md: 8}, pt: {xs: 5, md: 7}, pb: {xs: 9, md: 11},
+                position: 'relative',
+                overflow: 'hidden',
+                background: `linear-gradient(135deg, ${NAVY} 0%, ${NAVY_DEEP} 100%)`,
+                px: {xs: 3, md: 8},
+                pt: {xs: 5, md: 7},
+                pb: {xs: 9, md: 11},
             }}>
                 <Box sx={{
-                    position: 'absolute', top: -60, right: -60, width: 260, height: 260, borderRadius: '50%',
+                    position: 'absolute',
+                    top: -60,
+                    right: -60,
+                    width: 260,
+                    height: 260,
+                    borderRadius: '50%',
                     background: 'radial-gradient(circle, rgba(201,162,75,0.18) 0%, rgba(201,162,75,0) 70%)',
                 }}/>
                 <Typography sx={{color: GOLD, letterSpacing: 4, fontSize: 12.5, fontWeight: 700, mb: 2}}>
@@ -218,21 +237,32 @@ export default function Page() {
                             <Avatar
                                 src={image || undefined}
                                 sx={{
-                                    width: 76, height: 76, fontSize: 28, fontWeight: 700,
-                                    bgcolor: 'rgba(201,162,75,0.15)', color: GOLD,
+                                    width: 76,
+                                    height: 76,
+                                    fontSize: 28,
+                                    fontWeight: 700,
+                                    bgcolor: 'rgba(201,162,75,0.15)',
+                                    color: GOLD,
                                     border: `2px solid ${GOLD}`,
                                 }}
                             >
                                 {initials}
                             </Avatar>
                             <Box sx={{
-                                position: 'absolute', bottom: 0, right: 0, width: 26, height: 26,
-                                borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                backgroundColor: GOLD, border: `2px solid ${NAVY_DEEP}`,
+                                position: 'absolute',
+                                bottom: 0,
+                                right: 0,
+                                width: 26,
+                                height: 26,
+                                borderRadius: '50%',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                backgroundColor: GOLD,
+                                border: `2px solid ${NAVY_DEEP}`,
                             }}>
-                                {avatarUploading
-                                    ? <CircularProgress size={13} sx={{color: NAVY_DEEP}}/>
-                                    : <CameraAltOutlinedIcon sx={{fontSize: 14, color: NAVY_DEEP}}/>}
+                                {avatarUploading ? <CircularProgress size={13} sx={{color: NAVY_DEEP}}/> :
+                                    <CameraAltOutlinedIcon sx={{fontSize: 14, color: NAVY_DEEP}}/>}
                             </Box>
                             <input
                                 ref={fileInputRef} type="file" hidden
@@ -250,13 +280,12 @@ export default function Page() {
                                 size="small" label={readOnly.username}
                                 sx={{backgroundColor: 'rgba(255,255,255,0.08)', color: '#C9D0E6', fontWeight: 600}}
                             />
-                            {readOnly.organization && (
-                                <Chip
-                                    size="small" icon={<ApartmentOutlinedIcon sx={{color: `${GOLD} !important`, fontSize: 16}}/>}
+                            {readOnly.organization && (<Chip
+                                    size="small"
+                                    icon={<ApartmentOutlinedIcon sx={{color: `${GOLD} !important`, fontSize: 16}}/>}
                                     label={readOnly.organization.title}
                                     sx={{backgroundColor: 'rgba(201,162,75,0.12)', color: GOLD, fontWeight: 600}}
-                                />
-                            )}
+                                />)}
                         </Box>
                     </Box>
                 </Box>
@@ -269,12 +298,21 @@ export default function Page() {
                     {/* Read-only account info */}
                     <Grid item xs={12} md={5}>
                         <Box sx={{
-                            backgroundColor: '#fff', borderRadius: 3, p: {xs: 3, sm: 4},
-                            boxShadow: '0 20px 45px rgba(15, 23, 55, 0.08)', height: '100%',
+                            backgroundColor: '#fff',
+                            borderRadius: 3,
+                            p: {xs: 3, sm: 4},
+                            boxShadow: '0 20px 45px rgba(15, 23, 55, 0.08)',
+                            height: '100%',
                         }}>
                             <Box sx={{display: 'flex', alignItems: 'center', gap: 1, mb: 0.5}}>
                                 <VerifiedUserOutlinedIcon sx={{fontSize: 18, color: '#9CA3AF'}}/>
-                                <Typography sx={{fontSize: 12.5, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: 0.5}}>
+                                <Typography sx={{
+                                    fontSize: 12.5,
+                                    fontWeight: 700,
+                                    color: '#9CA3AF',
+                                    textTransform: 'uppercase',
+                                    letterSpacing: 0.5
+                                }}>
                                     Hesab məlumatları
                                 </Typography>
                             </Box>
@@ -282,12 +320,21 @@ export default function Page() {
                                 Bu sahələr yalnız sistem administratoru tərəfindən dəyişdirilə bilər.
                             </Typography>
 
-                            <LockedField label="İstifadəçi adı" value={readOnly.username} icon={<PersonOutlineIcon fontSize="small"/>}/>
-                            <LockedField label="Email" value={readOnly.email} icon={<MailOutlineIcon fontSize="small"/>}/>
-                            <LockedField label="FIN kod" value={readOnly.fin_kod} icon={<BadgeOutlinedIcon fontSize="small"/>}/>
-                            {readOnly.organization && (
-                                <LockedField label="Qurum" value={readOnly.organization.title} icon={<ApartmentOutlinedIcon fontSize="small"/>}/>
-                            )}
+                            <LockedField label="İstifadəçi adı" value={readOnly.username}
+                                         icon={<PersonOutlineIcon fontSize="small"/>}/>
+                            <LockedField label="Email" value={readOnly.email}
+                                         icon={<MailOutlineIcon fontSize="small"/>}/>
+                            <LockedField label="FIN kod" value={readOnly.fin_kod}
+                                         icon={<BadgeOutlinedIcon fontSize="small"/>}/>
+                            {readOnly.organization && (<LockedField label="Qurum" value={readOnly.organization.title}
+                                                                    icon={<ApartmentOutlinedIcon fontSize="small"/>}/>)}
+                            {readOnly.mainDepartment && (
+                                <LockedField label="Əsas departament" value={readOnly.mainDepartment}
+                                             icon={<AccountTreeOutlinedIcon fontSize="small"/>}/>)}
+                            {readOnly.department && (<LockedField label="Şöbə" value={readOnly.department}
+                                                                  icon={<AccountTreeOutlinedIcon fontSize="small"/>}/>)}
+                            {readOnly.role && (<LockedField label="Vəzifə" value={readOnly.role}
+                                                            icon={<WorkOutlineIcon fontSize="small"/>}/>)}
                         </Box>
                     </Grid>
 
@@ -296,11 +343,20 @@ export default function Page() {
                         <Box
                             component="form" onSubmit={handleSubmit}
                             sx={{
-                                backgroundColor: '#fff', borderRadius: 3, p: {xs: 3, sm: 4},
+                                backgroundColor: '#fff',
+                                borderRadius: 3,
+                                p: {xs: 3, sm: 4},
                                 boxShadow: '0 20px 45px rgba(15, 23, 55, 0.08)',
                             }}
                         >
-                            <Typography sx={{fontSize: 12.5, fontWeight: 700, color: NAVY, textTransform: 'uppercase', letterSpacing: 0.5, mb: 0.5}}>
+                            <Typography sx={{
+                                fontSize: 12.5,
+                                fontWeight: 700,
+                                color: NAVY,
+                                textTransform: 'uppercase',
+                                letterSpacing: 0.5,
+                                mb: 0.5
+                            }}>
                                 Şəxsi və əlaqə məlumatları
                             </Typography>
                             <Typography sx={{fontSize: 12.5, color: '#9CA3AF', mb: 1}}>
@@ -310,56 +366,102 @@ export default function Page() {
                             <TextField
                                 fullWidth margin="normal" label="Ad" disabled={saving}
                                 value={firstname}
-                                onChange={(e) => { setFirstname(e.target.value); setDirty(true); }}
+                                onChange={(e) => {
+                                    setFirstname(e.target.value);
+                                    setDirty(true);
+                                }}
                                 error={!!errors.firstname} helperText={errors.firstname}
                                 sx={fieldSx(false)}
-                                InputProps={{startAdornment: <Box sx={{display: 'flex', mr: 1, color: '#9CA3AF'}}><PersonOutlineIcon fontSize="small"/></Box>}}
+                                InputProps={{
+                                    startAdornment: <Box
+                                        sx={{display: 'flex', mr: 1, color: '#9CA3AF'}}><PersonOutlineIcon
+                                        fontSize="small"/></Box>
+                                }}
                             />
                             <TextField
                                 fullWidth margin="normal" label="Soyad" disabled={saving}
                                 value={lastname}
-                                onChange={(e) => { setLastname(e.target.value); setDirty(true); }}
+                                onChange={(e) => {
+                                    setLastname(e.target.value);
+                                    setDirty(true);
+                                }}
                                 error={!!errors.lastname} helperText={errors.lastname}
                                 sx={fieldSx(false)}
-                                InputProps={{startAdornment: <Box sx={{display: 'flex', mr: 1, color: '#9CA3AF'}}><PersonOutlineIcon fontSize="small"/></Box>}}
+                                InputProps={{
+                                    startAdornment: <Box
+                                        sx={{display: 'flex', mr: 1, color: '#9CA3AF'}}><PersonOutlineIcon
+                                        fontSize="small"/></Box>
+                                }}
                             />
                             <TextField
                                 fullWidth margin="normal" label="Telefon nömrəsi" disabled={saving}
                                 value={phoneNumber}
-                                onChange={(e) => { setPhoneNumber(e.target.value); setDirty(true); }}
-                                error={!!errors.phone_number} helperText={errors.phone_number || 'Əlaqə üçün istifadə olunur'}
+                                onChange={(e) => {
+                                    const digits = e.target.value.replace(/\D/g, '').slice(0, 9);
+                                    setPhoneNumber(digits);
+                                    setDirty(true);
+                                }}
+                                placeholder="XX XXX XX XX"
+                                error={!!errors.phone_number}
+                                helperText={errors.phone_number || 'Əlaqə üçün istifadə olunur'}
                                 sx={fieldSx(false)}
-                                InputProps={{startAdornment: <Box sx={{display: 'flex', mr: 1, color: '#9CA3AF'}}><LocalPhoneOutlinedIcon fontSize="small"/></Box>}}
+                                InputProps={{
+                                    startAdornment: (<Box sx={{
+                                            display: 'flex', alignItems: 'center', gap: 0.75, mr: 1, color: '#9CA3AF'
+                                        }}>
+                                            <LocalPhoneOutlinedIcon fontSize="small"/>
+                                            <Typography sx={{
+                                                fontSize: 14, color: NAVY, fontWeight: 600
+                                            }}>{PHONE_PREFIX}</Typography>
+                                        </Box>),
+                                }}
                             />
                             <TextField
                                 fullWidth margin="normal" label="Doğum tarixi" type="date" disabled={saving}
                                 value={birthDate}
-                                onChange={(e) => { setBirthDate(e.target.value); setDirty(true); }}
+                                onChange={(e) => {
+                                    setBirthDate(e.target.value);
+                                    setDirty(true);
+                                }}
                                 InputLabelProps={{shrink: true}}
                                 error={!!errors.birth_date} helperText={errors.birth_date}
                                 sx={fieldSx(false)}
-                                InputProps={{startAdornment: <Box sx={{display: 'flex', mr: 1, color: '#9CA3AF'}}><CalendarMonthOutlinedIcon fontSize="small"/></Box>}}
+                                InputProps={{
+                                    startAdornment: <Box
+                                        sx={{display: 'flex', mr: 1, color: '#9CA3AF'}}><CalendarMonthOutlinedIcon
+                                        fontSize="small"/></Box>
+                                }}
                             />
                             <TextField
                                 fullWidth margin="normal" select label="Cinsiyyət" disabled={saving}
                                 value={gender}
-                                onChange={(e) => { setGender(e.target.value); setDirty(true); }}
+                                onChange={(e) => {
+                                    setGender(e.target.value);
+                                    setDirty(true);
+                                }}
                                 error={!!errors.gender} helperText={errors.gender}
                                 sx={fieldSx(false)}
-                                InputProps={{startAdornment: <Box sx={{display: 'flex', mr: 1, color: '#9CA3AF'}}><WcOutlinedIcon fontSize="small"/></Box>}}
+                                InputProps={{
+                                    startAdornment: <Box sx={{display: 'flex', mr: 1, color: '#9CA3AF'}}><WcOutlinedIcon
+                                        fontSize="small"/></Box>
+                                }}
                             >
                                 <MenuItem value="">—</MenuItem>
                                 {GENDER_OPTIONS.map(opt => (
-                                    <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>
-                                ))}
+                                    <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>))}
                             </TextField>
 
                             <Button
                                 type="submit" fullWidth variant="contained" disabled={saving || !dirty}
                                 startIcon={saving ? null : <SaveOutlinedIcon/>}
                                 sx={{
-                                    mt: 3, backgroundColor: NAVY, textTransform: 'none', fontWeight: 700,
-                                    py: 1.2, borderRadius: 1.5, letterSpacing: 0.3,
+                                    mt: 3,
+                                    backgroundColor: NAVY,
+                                    textTransform: 'none',
+                                    fontWeight: 700,
+                                    py: 1.2,
+                                    borderRadius: 1.5,
+                                    letterSpacing: 0.3,
                                     '&:hover': {backgroundColor: '#0B1024'},
                                     '&.Mui-disabled': {backgroundColor: '#D9DCE3', color: '#9CA3AF'},
                                 }}
@@ -370,6 +472,5 @@ export default function Page() {
                     </Grid>
                 </Grid>
             </Box>
-        </Box>
-    );
+        </Box>);
 }

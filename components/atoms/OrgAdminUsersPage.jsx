@@ -152,9 +152,12 @@ function UserDetailDialog({open, onClose, data}) {
     );
 }
 
-function UserFormDialog({open, onClose, onSubmit, initialData, loading, isRoot, organizations, roles, departments}) {
+function UserFormDialog({open, onClose, onSubmit, initialData, loading, isRoot, organizations, currentUserOrgId}) {
+    const {enqueueSnackbar} = useSnackbar();
     const [form, setForm] = useState(EMPTY_FORM);
-    const flatDepartments = useMemo(() => flattenDepartments(departments), [departments]);
+    const [orgDepartments, setOrgDepartments] = useState([]);
+    const [orgRoles, setOrgRoles] = useState([]);
+    const [loadingOptions, setLoadingOptions] = useState(false);
 
     useEffect(() => {
         if (initialData) {
@@ -172,11 +175,57 @@ function UserFormDialog({open, onClose, onSubmit, initialData, loading, isRoot, 
                 organization: initialData.organization?.id || '',
             });
         } else {
-            setForm(EMPTY_FORM);
+            setForm({...EMPTY_FORM, organization: isRoot ? '' : (currentUserOrgId || '')});
         }
-    }, [initialData, open]);
+    }, [initialData, open, isRoot, currentUserOrgId]);
 
     const isEdit = !!initialData;
+    // Redaktədə qurum sabitdir (dəyişdirilə bilmir); yaratmada isə seçilən (və ya root
+    // olmayan halda öz) qurum əsas götürülür - departament/vəzifə seçimləri bu quruma görə gəlir.
+    const effectiveOrgId = isEdit ? initialData.organization?.id : (isRoot ? form.organization : currentUserOrgId);
+
+    useEffect(() => {
+        if (!effectiveOrgId) {
+            setOrgDepartments([]);
+            setOrgRoles([]);
+            return;
+        }
+        let cancelled = false;
+        setLoadingOptions(true);
+        (async () => {
+            try {
+                const [deptRes, roleRes] = await Promise.all([
+                    service_api.get(`${NEXT_API_ENDPOINTS.ORGANIZATION.DEPARTMENTS}?organization=${effectiveOrgId}`),
+                    service_api.get(`${NEXT_API_ENDPOINTS.ORGANIZATION.ROLES}?organization=${effectiveOrgId}`),
+                ]);
+                if (cancelled) return;
+                setOrgDepartments(deptRes.data || []);
+                setOrgRoles(roleRes.data || []);
+            } catch (e) {
+                if (!cancelled) enqueueSnackbar(handleError(e), {variant: 'error'});
+            } finally {
+                if (!cancelled) setLoadingOptions(false);
+            }
+        })();
+        return () => {
+            cancelled = true;
+        };
+    }, [effectiveOrgId, enqueueSnackbar]);
+
+    const flatDepartments = useMemo(() => flattenDepartments(orgDepartments), [orgDepartments]);
+
+    // Departament dəyişəndə, əgər əvvəl seçilmiş vəzifə yeni departamentə aid deyilsə, təmizlənir.
+    function setDepartment(depId) {
+        setForm((f) => {
+            const roleStillValid = orgRoles.some((r) => r.id === f.role && r.department === Number(depId));
+            return {...f, department: depId, role: roleStillValid ? f.role : ''};
+        });
+    }
+
+    const rolesForSelectedDepartment = useMemo(
+        () => orgRoles.filter((r) => r.department === Number(form.department)),
+        [orgRoles, form.department]
+    );
 
     function set(field, value) {
         setForm((f) => ({...f, [field]: value}));
@@ -232,30 +281,43 @@ function UserFormDialog({open, onClose, onSubmit, initialData, loading, isRoot, 
                                value={form.fin_kod} onChange={(e) => set('fin_kod', e.target.value)}/>
                 </Box>
 
-                <Box sx={{display: 'flex', gap: 2}}>
-                    <TextField select label="Vəzifə" fullWidth size="small" sx={fieldSx}
-                               value={form.role} onChange={(e) => set('role', e.target.value)}>
-                        <MenuItem value="">—</MenuItem>
-                        {roles.map((r) => (
-                            <MenuItem key={r.id} value={r.id}>{r.title}</MenuItem>
+                {isRoot && !isEdit && (
+                    <TextField select label="Qurum" required fullWidth size="small" sx={fieldSx}
+                               value={form.organization} onChange={(e) => {
+                        const value = e.target.value;
+                        setForm((f) => ({...f, organization: value, department: '', role: ''}));
+                    }}>
+                        {organizations.map((o) => (
+                            <MenuItem key={o.id} value={o.id}>{o.title}</MenuItem>
                         ))}
                     </TextField>
+                )}
+
+                <Box sx={{display: 'flex', gap: 2}}>
                     <TextField select label="Departament/Şöbə" fullWidth size="small" sx={fieldSx}
-                               value={form.department} onChange={(e) => set('department', e.target.value)}>
+                               disabled={!effectiveOrgId}
+                               value={form.department} onChange={(e) => setDepartment(e.target.value)}
+                               helperText={!effectiveOrgId && isRoot ? 'Əvvəlcə qurum seçin' : ' '}>
                         <MenuItem value="">—</MenuItem>
                         {flatDepartments.map((d) => (
                             <MenuItem key={d.id} value={d.id}>{d.label}</MenuItem>
                         ))}
                     </TextField>
-                </Box>
-
-                {isRoot && !isEdit && (
-                    <TextField select label="Qurum" required fullWidth size="small" sx={fieldSx}
-                               value={form.organization} onChange={(e) => set('organization', e.target.value)}>
-                        {organizations.map((o) => (
-                            <MenuItem key={o.id} value={o.id}>{o.title}</MenuItem>
+                    <TextField select label="Vəzifə" fullWidth size="small" sx={fieldSx}
+                               disabled={!form.department}
+                               value={form.role} onChange={(e) => set('role', e.target.value)}
+                               helperText={!form.department ? 'Əvvəlcə departament seçin' : ' '}>
+                        <MenuItem value="">—</MenuItem>
+                        {rolesForSelectedDepartment.map((r) => (
+                            <MenuItem key={r.id} value={r.id}>{r.title}</MenuItem>
                         ))}
                     </TextField>
+                </Box>
+                {loadingOptions && (
+                    <Box sx={{display: 'flex', alignItems: 'center', gap: 1, mt: -1}}>
+                        <CircularProgress size={13}/>
+                        <Typography sx={{fontSize: 12, color: C.inkFaint}}>Departament/vəzifə siyahısı yüklənir...</Typography>
+                    </Box>
                 )}
 
                 <Box sx={{display: 'flex', gap: 3, px: 0.5, py: 1, backgroundColor: C.surfaceRaised, borderRadius: '8px', border: `1px solid ${C.line}`}}>
@@ -297,8 +359,6 @@ export default function OrgAdminUsersPage() {
     const isOrgAdmin = !!user?.is_org_admin;
 
     const [organizations, setOrganizations] = useState([]);
-    const [roles, setRoles] = useState([]);
-    const [departments, setDepartments] = useState([]);
     const [selectedOrg, setSelectedOrg] = useState('');
 
     const [rows, setRows] = useState([]);
@@ -324,21 +384,6 @@ export default function OrgAdminUsersPage() {
             }
         })();
     }, [isRoot, enqueueSnackbar]);
-
-    useEffect(() => {
-        (async () => {
-            try {
-                const [rolesRes, deptRes] = await Promise.all([
-                    service_api.get(NEXT_API_ENDPOINTS.AUTHENTICATION.ROLES),
-                    service_api.get(NEXT_API_ENDPOINTS.AUTHENTICATION.DEPARTMENTS),
-                ]);
-                setRoles(rolesRes.data || []);
-                setDepartments(deptRes.data || []);
-            } catch (e) {
-                enqueueSnackbar(handleError(e), {variant: 'error'});
-            }
-        })();
-    }, [enqueueSnackbar]);
 
     const fetchUsers = useCallback(async () => {
         setLoading(true);
@@ -532,8 +577,7 @@ export default function OrgAdminUsersPage() {
                 loading={saving}
                 isRoot={isRoot}
                 organizations={organizations}
-                roles={roles}
-                departments={departments}
+                currentUserOrgId={user?.organization?.id}
             />
 
             <UserDetailDialog

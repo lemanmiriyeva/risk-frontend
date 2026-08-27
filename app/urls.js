@@ -37,6 +37,8 @@ export const DJANGO_API_ENDPOINTS = {
     ORGANIZATION: {
         LIST: API_URL + "/api/authentication/organizations/",
         USERS: API_URL + "/api/authentication/organization/users/",
+        DEPARTMENTS: API_URL + "/api/authentication/organization/departments/",
+        ROLES: API_URL + "/api/authentication/organization/roles/",
     },
     INVENTORY: {
         LIST: API_URL + "/api/inventory/",
@@ -103,6 +105,8 @@ export const NEXT_API_ENDPOINTS = {
     ORGANIZATION: {
         LIST: "organization/list/",
         USERS: "organization/users/",
+        DEPARTMENTS: "organization/departments/",
+        ROLES: "organization/roles/",
     },
 
     INVENTORY: {

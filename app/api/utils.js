@@ -71,7 +71,15 @@ async function __base_request(url, method, data = {}, access_token, refresh_toke
     const config = {
         headers: _headers,
         method,
-        body: JSON.stringify(data)
+        body: JSON.stringify(data),
+        // Next.js 14-də fetch() defolt olaraq 'force-cache' istifadə edir - hətta
+        // Route Handler dinamik olsa belə (cookies()/Request istifadə etsə belə),
+        // BURADAKI daxili fetch çağırışı ayrıca keşlənə bilər. Nəticədə, məsələn,
+        // istifadəçi/modul icazəsi POST ilə uğurla dəyişdirilsə də, sonrakı GET
+        // sorğusu köhnə (keşlənmiş) cavabı qaytarır və UI-da checkbox köhnə
+        // vəziyyətini göstərir. 'no-store' bunu tam söndürür - Django-dan həmişə
+        // canlı məlumat gəlir.
+        cache: 'no-store',
     }
     if (method === METHODS.GET || isEmpty(data))
         delete config.body
@@ -140,14 +148,49 @@ export async function patch_form_request(url, formData, access_token, refresh_to
         _headers.set('X-Forwarded-For', clientIp);
     }
 
-    const res = await fetch(url, {method: METHODS.PATCH, headers: _headers, body: formData})
+    const res = await fetch(url, {method: METHODS.PATCH, headers: _headers, body: formData, cache: 'no-store'})
 
     if (res.status === 401 && refresh_token?.value) {
         try {
             const new_token_pair = await __refresh({'Content-Type': 'application/json', 'Accept': 'application/json'}, refresh_token.value)
             if (new_token_pair?.access) {
                 _headers.set('Authorization', 'Bearer ' + new_token_pair.access)
-                return await fetch(url, {method: METHODS.PATCH, headers: _headers, body: formData})
+                return await fetch(url, {method: METHODS.PATCH, headers: _headers, body: formData, cache: 'no-store'})
+            }
+            cookies().delete('access')
+            cookies().delete('refresh')
+            return Response.json({detail: 'unauthorized'}, {status: 401})
+        } catch (e) {
+            if (e.message === 'refresh_not_valid') {
+                cookies().delete('access')
+                cookies().delete('refresh')
+            }
+            return Response.json(handleError(e), {status: 401})
+        }
+    }
+    return res
+}
+
+// eyni məntiq, YARATMA (POST + multipart) üçün - məs. sərəncam/xəbər faylı/şəkli
+// ilə birlikdə yaradılanda istifadə olunur.
+export async function post_form_request(url, formData, access_token, refresh_token) {
+    const _headers = new Headers({'Accept': 'application/json'})
+    if (access_token?.value) {
+        _headers.set('Authorization', 'Bearer ' + access_token.value)
+    }
+    const clientIp = getClientIp();
+    if (clientIp) {
+        _headers.set('X-Forwarded-For', clientIp);
+    }
+
+    const res = await fetch(url, {method: METHODS.POST, headers: _headers, body: formData, cache: 'no-store'})
+
+    if (res.status === 401 && refresh_token?.value) {
+        try {
+            const new_token_pair = await __refresh({'Content-Type': 'application/json', 'Accept': 'application/json'}, refresh_token.value)
+            if (new_token_pair?.access) {
+                _headers.set('Authorization', 'Bearer ' + new_token_pair.access)
+                return await fetch(url, {method: METHODS.POST, headers: _headers, body: formData, cache: 'no-store'})
             }
             cookies().delete('access')
             cookies().delete('refresh')

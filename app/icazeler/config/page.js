@@ -428,6 +428,41 @@ export default function AttendancePermissionConfigPage() {
 
     /*
     |--------------------------------------------------------------------------
+    | ŞÖBƏ MÜDİRİ YOXDURSA - AVTOMATİK REJİM (ƏVƏZLƏYİCİ / APARAT RƏHBƏRİ)
+    |--------------------------------------------------------------------------
+    */
+
+    const handleNoManagerFallbackChange = (
+        departmentId,
+        value
+    ) => {
+
+        setDepartments((current) => {
+
+            return current.map((item) => {
+
+                if (
+                    item.department !== departmentId
+                ) {
+                    return item;
+                }
+
+                return {
+                    ...item,
+
+                    no_manager_fallback:
+                    value,
+                };
+
+            });
+
+        });
+
+    };
+
+
+    /*
+    |--------------------------------------------------------------------------
     | DEPARTAMENT SAVE
     |--------------------------------------------------------------------------
     */
@@ -441,17 +476,22 @@ export default function AttendancePermissionConfigPage() {
 
 
         /*
-         * Müdir OFF-dursa,
-         * əvəzləyici mütləq olmalıdır.
+         * Müdir OFF-dursa VƏ rejim "Əvəzləyici"-dirsə,
+         * əvəzləyici mütləq olmalıdır. "Birbaşa Aparat
+         * rəhbəri" rejimində əvəzləyiciyə ehtiyac yoxdur.
          */
+
+        const noManagerFallback =
+            department.no_manager_fallback || "replacement";
 
         if (
             !department.manager_enabled &&
+            noManagerFallback === "replacement" &&
             !department.replacement_user
         ) {
 
             setError(
-                `${department.department_name} üçün şöbə müdiri deaktivdir. Əvəzləyici şəxs seçilməlidir.`
+                `${department.department_name} üçün şöbə müdiri deaktivdir. Əvəzləyici şəxs seçilməlidir (və ya "Birbaşa Aparat rəhbəri" rejimini seçin).`
             );
 
             return;
@@ -476,6 +516,9 @@ export default function AttendancePermissionConfigPage() {
 
                         replacement_user:
                         department.replacement_user,
+
+                        no_manager_fallback:
+                        noManagerFallback,
                     }
                 );
 
@@ -1314,76 +1357,140 @@ export default function AttendancePermissionConfigPage() {
 
                                             {managerDisabled ? (
 
-                                                <FormControl
-                                                    fullWidth
-                                                    size="small"
-                                                >
+                                                <Box sx={{display: "flex", flexDirection: "column", gap: 0.75}}>
 
-                                                    <Select
-                                                        value={
-                                                            department.replacement_user
-                                                                ? String(
-                                                                    department.replacement_user
-                                                                )
-                                                                : ""
-                                                        }
-
-                                                        displayEmpty
-
-                                                        onChange={
-                                                            (event) =>
-                                                                handleReplacementChange(
-                                                                    department.department,
-                                                                    event.target.value
-                                                                )
-                                                        }
-
-                                                        sx={{
-                                                            fontSize: 12.5,
-
-                                                            borderRadius:
-                                                                "8px",
-                                                        }}
+                                                    {/* Şöbə müdiri yoxdursa - hansı rejim işləsin */}
+                                                    <FormControl
+                                                        fullWidth
+                                                        size="small"
                                                     >
 
-                                                        <MenuItem
-                                                            value=""
+                                                        <Select
+                                                            value={
+                                                                department.no_manager_fallback ||
+                                                                "replacement"
+                                                            }
+
+                                                            onChange={
+                                                                (event) =>
+                                                                    handleNoManagerFallbackChange(
+                                                                        department.department,
+                                                                        event.target.value
+                                                                    )
+                                                            }
+
+                                                            sx={{
+                                                                fontSize: 12.5,
+
+                                                                borderRadius:
+                                                                    "8px",
+                                                            }}
                                                         >
-                                                            Əvəzləyici seçin
-                                                        </MenuItem>
 
+                                                            <MenuItem value="replacement">
+                                                                Əvəzləyici şəxs (1-ci mərhələ)
+                                                            </MenuItem>
 
-                                                        {departmentUsers.map(
-                                                            (user) => (
+                                                            <MenuItem value="apparatus">
+                                                                Birbaşa Aparat rəhbəri
+                                                            </MenuItem>
+
+                                                        </Select>
+
+                                                    </FormControl>
+
+                                                    {/* Rejim "Əvəzləyici"-dirsə, konkret şəxs seçilir */}
+                                                    {(department.no_manager_fallback || "replacement") === "replacement" && (
+
+                                                        <FormControl
+                                                            fullWidth
+                                                            size="small"
+                                                        >
+
+                                                            <Select
+                                                                value={
+                                                                    department.replacement_user
+                                                                        ? String(
+                                                                            department.replacement_user
+                                                                        )
+                                                                        : ""
+                                                                }
+
+                                                                displayEmpty
+
+                                                                onChange={
+                                                                    (event) =>
+                                                                        handleReplacementChange(
+                                                                            department.department,
+                                                                            event.target.value
+                                                                        )
+                                                                }
+
+                                                                sx={{
+                                                                    fontSize: 12.5,
+
+                                                                    borderRadius:
+                                                                        "8px",
+                                                                }}
+                                                            >
 
                                                                 <MenuItem
-                                                                    key={
-                                                                        user.id
-                                                                    }
-
-                                                                    value={
-                                                                        String(
-                                                                            user.id
-                                                                        )
-                                                                    }
+                                                                    value=""
                                                                 >
-
-                                                                    {
-                                                                        user.name
-                                                                    }
-
-                                                                    {user.role_name
-                                                                        ? ` — ${user.role_name}`
-                                                                        : ""}
-
+                                                                    Əvəzləyici seçin
                                                                 </MenuItem>
 
-                                                            )
-                                                        )}
 
-                                                    </Select>
+                                                                {departmentUsers.map(
+                                                                    (user) => (
 
-                                                </FormControl>
+                                                                        <MenuItem
+                                                                            key={
+                                                                                user.id
+                                                                            }
+
+                                                                            value={
+                                                                                String(
+                                                                                    user.id
+                                                                                )
+                                                                            }
+                                                                        >
+
+                                                                            {
+                                                                                user.name
+                                                                            }
+
+                                                                            {user.role_name
+                                                                                ? ` — ${user.role_name}`
+                                                                                : ""}
+
+                                                                        </MenuItem>
+
+                                                                    )
+                                                                )}
+
+                                                            </Select>
+
+                                                        </FormControl>
+
+                                                    )}
+
+                                                    {(department.no_manager_fallback || "replacement") === "apparatus" && (
+
+                                                        <Typography
+                                                            sx={{
+                                                                fontSize: 11.5,
+
+                                                                color:
+                                                                colors.lightText,
+                                                            }}
+                                                        >
+                                                            1-ci mərhələ keçilir, sorğu birbaşa Aparat rəhbərinə gedir.
+                                                        </Typography>
+
+                                                    )}
+
+                                                </Box>
 
                                             ) : (
 

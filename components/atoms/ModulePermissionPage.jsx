@@ -9,6 +9,7 @@ import InputLabel from '@mui/material/InputLabel';
 import Switch from '@mui/material/Switch';
 import Checkbox from '@mui/material/Checkbox';
 import CircularProgress from '@mui/material/CircularProgress';
+import Tooltip from '@mui/material/Tooltip';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import ExtensionOutlinedIcon from '@mui/icons-material/ExtensionOutlined';
@@ -297,28 +298,44 @@ function UserGrantList({users, savingKey, targetKey, onToggle}) {
             {users.map(u => {
                 const key = targetKey(u);
                 const isSaving = savingKey === key;
+                // Superuser və qurum admini bu modula HƏMİŞƏ avtomatik girişə malikdir
+                // (bax: core/permissions.py Module.has_permission). Bu halda switch
+                // sadəcə vəziyyəti göstərir - deaktiv edilə bilməz, çünki explicit
+                // permitted_users-dən çıxarmaq real girişi dəyişdirməyəcək.
+                const locked = !!u.implicit_access;
                 return (
-                    <Box
+                    <Tooltip
                         key={u.id}
-                        sx={{
-                            display: 'flex', alignItems: 'center', gap: 0.5, pl: 1, pr: 0.5, py: 0.25,
-                            border: `1px solid ${u.has_access ? C.gold : C.line}`,
-                            backgroundColor: u.has_access ? C.goldTint : 'transparent',
-                            borderRadius: '999px',
-                        }}
+                        title={locked ? 'Avtomatik giriş (superuser / qurum admini) - dəyişdirilə bilməz' : ''}
                     >
-                        <Typography sx={{fontSize: 12.5, color: C.ink}}>{u.name || u.username}</Typography>
-                        {isSaving ? (
-                            <CircularProgress size={14} sx={{color: C.gold, mx: 0.5}}/>
-                        ) : (
-                            <Switch
-                                size="small"
-                                checked={u.has_access}
-                                onChange={(e) => onToggle(u, e.target.checked)}
-                                sx={{'& .MuiSwitch-switchBase.Mui-checked': {color: C.gold}, '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {backgroundColor: C.gold}}}
-                            />
-                        )}
-                    </Box>
+                        <Box
+                            sx={{
+                                display: 'flex', alignItems: 'center', gap: 0.5, pl: 1, pr: 0.5, py: 0.25,
+                                border: `1px solid ${u.has_access ? C.gold : C.line}`,
+                                backgroundColor: u.has_access ? C.goldTint : 'transparent',
+                                borderRadius: '999px',
+                                opacity: locked ? 0.85 : 1,
+                            }}
+                        >
+                            <Typography sx={{fontSize: 12.5, color: C.ink}}>{u.name || u.username}</Typography>
+                            {locked && (
+                                <Typography sx={{fontSize: 10, color: C.gold, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.03em'}}>
+                                    Avtomatik
+                                </Typography>
+                            )}
+                            {isSaving ? (
+                                <CircularProgress size={14} sx={{color: C.gold, mx: 0.5}}/>
+                            ) : (
+                                <Switch
+                                    size="small"
+                                    checked={u.has_access}
+                                    disabled={locked}
+                                    onChange={(e) => onToggle(u, e.target.checked)}
+                                    sx={{'& .MuiSwitch-switchBase.Mui-checked': {color: C.gold}, '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {backgroundColor: C.gold}}}
+                                />
+                            )}
+                        </Box>
+                    </Tooltip>
                 );
             })}
         </Box>

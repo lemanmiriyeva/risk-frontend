@@ -5,25 +5,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="82004209-f401-44a9-ba85-a455e4c04d94" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/app/api/organization/departments/[id]/route.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/api/organization/departments/route.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/api/organization/roles/[id]/route.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/api/organization/roles/route.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/inzibatci-paneli/departamentler/page.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/inzibatci-paneli/icaze-tenzimlemeleri/page.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/inzibatci-paneli/istifadeciler/page.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/inzibatci-paneli/modul-icazeleri/page.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/inzibatci-paneli/qurumlar/page.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/inzibatci-paneli/vezifeler/page.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/components/atoms/AdminPanelBackLink.jsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/components/atoms/AttendancePermissionConfigPage.jsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/components/atoms/DepartmentsPage.jsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/components/atoms/RolesPage.jsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/inzibatci-paneli/page.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/inzibatci-paneli/page.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/sexsi-kabinet/page.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/sexsi-kabinet/page.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/urls.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/urls.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/atoms/OrgAdminUsersPage.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/atoms/OrgAdminUsersPage.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/GlasstechSales _ Təkliflər.pdf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/icazeler/config/page.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/icazeler/config/page.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/atoms/ModulePermissionPage.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/atoms/ModulePermissionPage.jsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -115,7 +100,8 @@
       <workItem from="1787570809490" duration="1510000" />
       <workItem from="1787644341191" duration="7540000" />
       <workItem from="1787742938227" duration="748000" />
-      <workItem from="1787807707142" duration="4093000" />
+      <workItem from="1787807707142" duration="6079000" />
+      <workItem from="1789451396559" duration="2022000" />
     </task>
     <servers />
   </component>

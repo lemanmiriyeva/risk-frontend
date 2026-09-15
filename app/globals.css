@@ -2,6 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+  Tailwind-in "preflight" bazası html/body üçün sistemin defolt font
+  stack-ini (ui-sans-serif, system-ui, ...) təyin edir. Bu, @fontsource/roboto
+  ilə yüklənən Roboto fontunu "üstələyirdi" və nəticədə hər istifadəçidə
+  (fərqli OS/brauzerdə) fərqli, "normal görünməyən" fontlar göstərilirdi.
+  Aşağıdakı qayda @tailwind bazasından SONRA gəldiyi üçün onu ötür və
+  bütün səhifələrdə eyni Roboto fontunu təmin edir.
+*/
+html, body {
+    font-family: Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
 .building{
     height: 100% !important;
 }

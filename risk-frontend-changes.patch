@@ -1,0 +1,261 @@
+diff --git a/app/globals.css b/app/globals.css
+index 3c177fe..43e00e0 100644
+--- a/app/globals.css
++++ b/app/globals.css
+@@ -2,6 +2,18 @@
+ @tailwind components;
+ @tailwind utilities;
+ 
++/*
++  Tailwind-in "preflight" bazası html/body üçün sistemin defolt font
++  stack-ini (ui-sans-serif, system-ui, ...) təyin edir. Bu, @fontsource/roboto
++  ilə yüklənən Roboto fontunu "üstələyirdi" və nəticədə hər istifadəçidə
++  (fərqli OS/brauzerdə) fərqli, "normal görünməyən" fontlar göstərilirdi.
++  Aşağıdakı qayda @tailwind bazasından SONRA gəldiyi üçün onu ötür və
++  bütün səhifələrdə eyni Roboto fontunu təmin edir.
++*/
++html, body {
++    font-family: Roboto, "Helvetica Neue", Arial, sans-serif;
++}
++
+ .building{
+     height: 100% !important;
+ }
+diff --git a/components/atoms/ModulePermissionPage.jsx b/components/atoms/ModulePermissionPage.jsx
+index 8c236a7..5963a60 100644
+--- a/components/atoms/ModulePermissionPage.jsx
++++ b/components/atoms/ModulePermissionPage.jsx
+@@ -95,6 +95,27 @@ function OrgAccessMatrix() {
+         }
+     }
+ 
++    async function togglePublic(moduleId, grant) {
++        const key = `module_public:${moduleId}:public`;
++        setSavingKey(key);
++        try {
++            await service_api.post(NEXT_API_ENDPOINTS.CORE.MODULE_ORG_ACCESS, {
++                target: 'module_public', id: moduleId, grant,
++            });
++            setData(prev => {
++                if (!prev) return prev;
++                const next = structuredClone(prev);
++                const m = next.modules.find(m => m.id === moduleId);
++                if (m) m.is_public = grant;
++                return next;
++            });
++        } catch (err) {
++            enqueueSnackbar(handleError(err), {variant: 'error'});
++        } finally {
++            setSavingKey(null);
++        }
++    }
++
+     if (loading) {
+         return <Box sx={{display: 'flex', justifyContent: 'center', py: 6}}><CircularProgress size={26} sx={{color: C.gold}}/></Box>;
+     }
+@@ -105,7 +126,7 @@ function OrgAccessMatrix() {
+     const rows = [];
+     data.modules.forEach(m => {
+         rows.push({...m, isSub: false});
+-        m.sub_modules.forEach(sm => rows.push({...sm, isSub: true, parentTitle: m.title}));
++        m.sub_modules.forEach(sm => rows.push({...sm, isSub: true, parentTitle: m.title, parentPublic: m.is_public}));
+     });
+ 
+     return (
+@@ -120,6 +141,12 @@ function OrgAccessMatrix() {
+                     }}>
+                         Modul / Alt modul
+                     </Box>
++                    <Box sx={{
++                        display: 'table-cell', p: 1.25, fontSize: 11.5, fontWeight: 700, color: C.gold,
++                        borderBottom: `1px solid ${C.lineStrong}`, textAlign: 'center', minWidth: 110,
++                    }}>
++                        Hər kəsə açıq
++                    </Box>
+                     {data.organizations.map(org => (
+                         <Box key={org.id} sx={{
+                             display: 'table-cell', p: 1.25, fontSize: 11.5, fontWeight: 700, color: C.ink,
+@@ -130,7 +157,8 @@ function OrgAccessMatrix() {
+                     ))}
+                 </Box>
+ 
+-                {rows.map(row => (
++                {rows.map(row => {
++                    return (
+                     <Box key={`${row.isSub ? 'sub' : 'mod'}-${row.id}`} sx={{display: 'table-row', '&:hover': {backgroundColor: 'rgba(0,0,0,0.015)'}}}>
+                         <Box sx={{
+                             display: 'table-cell', p: 1.25, borderBottom: `1px solid ${C.line}`, position: 'sticky', left: 0,
+@@ -143,27 +171,54 @@ function OrgAccessMatrix() {
+                                 </Typography>
+                             </Box>
+                         </Box>
++                        <Box sx={{display: 'table-cell', p: 0.5, borderBottom: `1px solid ${C.line}`, textAlign: 'center'}}>
++                            {row.isSub ? (
++                                <Tooltip title="Əsas modul hər kəsə açıq olduqda bu da avtomatik açıq olur">
++                                    <Typography sx={{fontSize: 11, color: C.inkFaint}}>
++                                        {row.parentPublic ? 'Miras' : '—'}
++                                    </Typography>
++                                </Tooltip>
++                            ) : savingKey === `module_public:${row.id}:public` ? (
++                                <CircularProgress size={16} sx={{color: C.gold}}/>
++                            ) : (
++                                <Tooltip title="Aktiv edilsə, bu modul və alt modulları bütün istifadəçilərə açıq olur">
++                                    <Checkbox
++                                        size="small"
++                                        checked={!!row.is_public}
++                                        onChange={(e) => togglePublic(row.id, e.target.checked)}
++                                        sx={{color: C.lineStrong, '&.Mui-checked': {color: C.gold}}}
++                                    />
++                                </Tooltip>
++                            )}
++                        </Box>
+                         {data.organizations.map(org => {
+                             const target = row.isSub ? 'sub_module' : 'module';
+                             const checked = row.organization_ids.includes(org.id);
+                             const key = `${target}:${row.id}:${org.id}`;
++                            const disabled = row.isSub ? row.parentPublic : row.is_public;
+                             return (
+                                 <Box key={org.id} sx={{display: 'table-cell', p: 0.5, borderBottom: `1px solid ${C.line}`, textAlign: 'center'}}>
+                                     {savingKey === key ? (
+                                         <CircularProgress size={16} sx={{color: C.gold}}/>
+                                     ) : (
+-                                        <Checkbox
+-                                            size="small"
+-                                            checked={checked}
+-                                            onChange={(e) => toggle(target, row.id, org.id, e.target.checked)}
+-                                            sx={{color: C.lineStrong, '&.Mui-checked': {color: C.gold}}}
+-                                        />
++                                        <Tooltip title={disabled ? 'Bu modul hər kəsə açıqdır - qurum əsaslı giriş artıq lazım deyil' : ''}>
++                                            <span>
++                                                <Checkbox
++                                                    size="small"
++                                                    checked={disabled ? true : checked}
++                                                    disabled={disabled}
++                                                    onChange={(e) => toggle(target, row.id, org.id, e.target.checked)}
++                                                    sx={{color: C.lineStrong, '&.Mui-checked': {color: C.gold}}}
++                                                />
++                                            </span>
++                                        </Tooltip>
+                                     )}
+                                 </Box>
+                             );
+                         })}
+                     </Box>
+-                ))}
++                    );
++                })}
+             </Box>
+         </Box>
+     );
+@@ -207,10 +262,18 @@ function UserAccessPanel({organizationId, showOrgPicker, organizations, onOrgCha
+                 if (!prev) return prev;
+                 const next = structuredClone(prev);
+                 const applyToggle = (obj) => {
+-                    obj.users = obj.users.map(u => u.id === userId ? {...u, has_access: grant} : u);
++                    obj.users = obj.users.map(u => {
++                        if (u.id !== userId) return u;
++                        if (target === 'module_admin') {
++                            // Modul admini təyin olunanda avtomatik giriş də alır (backend-də olduğu kimi);
++                            // geri alınanda giriş (permitted_users) dəyişmir, yalnız admin statusu düşür.
++                            return {...u, is_module_admin: grant, has_access: grant ? true : u.has_access};
++                        }
++                        return {...u, has_access: grant};
++                    });
+                 };
+                 for (const m of next.modules) {
+-                    if (target === 'module' && m.id === id) applyToggle(m);
++                    if ((target === 'module' || target === 'module_admin') && m.id === id) applyToggle(m);
+                     if (target === 'sub_module') {
+                         const sub = m.sub_modules.find(s => s.id === id);
+                         if (sub) applyToggle(sub);
+@@ -266,6 +329,9 @@ function UserAccessPanel({organizationId, showOrgPicker, organizations, onOrgCha
+                                     savingKey={savingKey}
+                                     targetKey={(u) => `module:${module.id}:${u.id}`}
+                                     onToggle={(u, grant) => toggle('module', module.id, u.id, grant)}
++                                    allowAdmin
++                                    adminTargetKey={(u) => `module_admin:${module.id}:${u.id}`}
++                                    onToggleAdmin={(u, grant) => toggle('module_admin', module.id, u.id, grant)}
+                                 />
+                                 {module.sub_modules?.map(sub => (
+                                     <Box key={sub.id} sx={{mt: 1.5, pl: 2.5, borderLeft: `2px solid ${C.line}`}}>
+@@ -289,7 +355,7 @@ function UserAccessPanel({organizationId, showOrgPicker, organizations, onOrgCha
+     );
+ }
+ 
+-function UserGrantList({users, savingKey, targetKey, onToggle}) {
++function UserGrantList({users, savingKey, targetKey, onToggle, allowAdmin, adminTargetKey, onToggleAdmin}) {
+     if (!users?.length) {
+         return <Typography sx={{fontSize: 12.5, color: C.inkFaint}}>Bu qurumda aktiv işçi yoxdur.</Typography>;
+     }
+@@ -303,6 +369,8 @@ function UserGrantList({users, savingKey, targetKey, onToggle}) {
+                 // sadəcə vəziyyəti göstərir - deaktiv edilə bilməz, çünki explicit
+                 // permitted_users-dən çıxarmaq real girişi dəyişdirməyəcək.
+                 const locked = !!u.implicit_access;
++                const adminKey = allowAdmin ? adminTargetKey(u) : null;
++                const isSavingAdmin = allowAdmin && savingKey === adminKey;
+                 return (
+                     <Tooltip
+                         key={u.id}
+@@ -334,6 +402,24 @@ function UserGrantList({users, savingKey, targetKey, onToggle}) {
+                                     sx={{'& .MuiSwitch-switchBase.Mui-checked': {color: C.gold}, '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {backgroundColor: C.gold}}}
+                                 />
+                             )}
++                            {allowAdmin && (
++                                <Tooltip title="İş modulu admini - bu modul daxilində məzmun əlavə/redaktə səlahiyyəti">
++                                    <Box sx={{display: 'flex', alignItems: 'center', borderLeft: `1px solid ${C.line}`, pl: 0.5, ml: 0.25}}>
++                                        <Typography sx={{fontSize: 10, color: C.inkFaint, mr: 0.25}}>Admin</Typography>
++                                        {isSavingAdmin ? (
++                                            <CircularProgress size={12} sx={{color: C.gold, mx: 0.5}}/>
++                                        ) : (
++                                            <Checkbox
++                                                size="small"
++                                                checked={!!u.is_module_admin}
++                                                disabled={locked}
++                                                onChange={(e) => onToggleAdmin(u, e.target.checked)}
++                                                sx={{p: 0.25, color: C.lineStrong, '&.Mui-checked': {color: C.gold}}}
++                                            />
++                                        )}
++                                    </Box>
++                                </Tooltip>
++                            )}
+                         </Box>
+                     </Tooltip>
+                 );
+diff --git a/components/main/Theme.js b/components/main/Theme.js
+index bcd85c3..3bde5ba 100644
+--- a/components/main/Theme.js
++++ b/components/main/Theme.js
+@@ -1,11 +1,25 @@
+ 'use client'
+ import React from "react";
+ import {ThemeProvider, createTheme} from '@mui/material';
++import CssBaseline from '@mui/material/CssBaseline';
+ 
+ 
+ export default function ({children, mode}) {
+ 
+     const materialTheme = createTheme({
++        typography: {
++            // @fontsource/roboto app/layout.js-də import olunur, amma CssBaseline
++            // olmadan bu font YALNIZ MUI Typography komponentlərinə tətbiq olunurdu.
++            // CssBaseline (aşağıda) bunu bütün body/html-ə tətbiq edir ki, bütün
++            // istifadəçilərdə (fərqli OS/brauzerdə) eyni font görünsün, sistemin
++            // default fontuna (ui-sans-serif/system-ui) "geri düşmə" olmasın.
++            fontFamily: [
++                'Roboto',
++                '"Helvetica Neue"',
++                'Arial',
++                'sans-serif',
++            ].join(','),
++        },
+         palette: {
+             primary: {
+                 light: '#020624',
+@@ -27,6 +41,7 @@ export default function ({children, mode}) {
+ 
+     return (
+         <ThemeProvider theme={materialTheme} defaultMode={mode || 'light'}>
++            <CssBaseline/>
+             {children}
+         </ThemeProvider>
+     )

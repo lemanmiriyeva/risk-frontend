@@ -200,54 +200,18 @@ export default function AttendancePermissionConfigPage() {
 
     /*
     |--------------------------------------------------------------------------
-    | APARAT RƏHBƏRİ SEÇ
-    |--------------------------------------------------------------------------
-    */
-
-    const handleApparatusHeadChange = (event) => {
-
-        const value = event.target.value;
-
-
-        setApparatus((current) => {
-
-            if (!current) {
-                return current;
-            }
-
-
-            return {
-                ...current,
-
-                apparatus_head: value === "" ? null : Number(value),
-            };
-
-        });
-
-    };
-
-
-    /*
-    |--------------------------------------------------------------------------
     | APARAT RƏHBƏRİ SAVE
     |--------------------------------------------------------------------------
+    |
+    | Aparat rəhbəri artıq əl ilə seçilmir - sistemdə "Aparat rəhbəri"
+    | vəzifəsində olan şəxs avtomatik göstərilir. Bu düymə yalnız
+    | aktiv/deaktiv (apparatus_head_enabled) vəziyyətini saxlayır.
+    |
     */
 
     const saveApparatus = async () => {
 
         if (!apparatus) {
-            return;
-        }
-
-
-        /*
-         * Aktivdirsə, şəxs seçilməlidir.
-         */
-
-        if (apparatus.apparatus_head_enabled && !apparatus.apparatus_head) {
-
-            setError("Aparat rəhbəri aktivdirsə, şəxs seçilməlidir.");
-
             return;
         }
 
@@ -260,8 +224,6 @@ export default function AttendancePermissionConfigPage() {
 
             const response = await service_api.patch(API.CONFIG, {
                 apparatus_head_enabled: apparatus.apparatus_head_enabled,
-
-                apparatus_head: apparatus.apparatus_head,
             });
 
 
@@ -450,20 +412,20 @@ export default function AttendancePermissionConfigPage() {
     if (loading) {
 
         return (<Box
-                sx={{
-                    minHeight: "60vh",
+            sx={{
+                minHeight: "60vh",
 
-                    display: "flex",
+                display: "flex",
 
-                    alignItems: "center",
+                alignItems: "center",
 
-                    justifyContent: "center",
-                }}
-            >
-                <CircularProgress
-                    size={32}
-                />
-            </Box>);
+                justifyContent: "center",
+            }}
+        >
+            <CircularProgress
+                size={32}
+            />
+        </Box>);
 
     }
 
@@ -475,831 +437,809 @@ export default function AttendancePermissionConfigPage() {
     */
 
     return (<Box
+        sx={{
+            width: "100%",
+
+            minHeight: "100vh",
+
+            backgroundColor: colors.background,
+
+            px: {
+                xs: 1.5, sm: 2.5, md: 4,
+            },
+
+            py: {
+                xs: 2, md: 4,
+            },
+        }}
+    >
+
+        <Box
             sx={{
                 width: "100%",
 
-                minHeight: "100vh",
+                maxWidth: 1500,
 
-                backgroundColor: colors.background,
-
-                px: {
-                    xs: 1.5, sm: 2.5, md: 4,
-                },
-
-                py: {
-                    xs: 2, md: 4,
-                },
+                mx: "auto",
             }}
         >
 
-            <Box
-                sx={{
-                    width: "100%",
-
-                    maxWidth: 1500,
-
-                    mx: "auto",
-                }}
-            >
-
-                {/* =====================================================
+            {/* =====================================================
                     HEADER
                 ====================================================== */}
 
+            <Box
+                sx={{
+                    display: "flex",
+
+                    alignItems: "center",
+
+                    gap: 1.5,
+
+                    mb: 3,
+                }}
+            >
+
                 <Box
                     sx={{
+                        width: 42,
+
+                        height: 42,
+
                         display: "flex",
 
                         alignItems: "center",
 
-                        gap: 1.5,
+                        justifyContent: "center",
 
-                        mb: 3,
+                        borderRadius: "10px",
+
+                        backgroundColor: colors.white,
+
+                        border: `1px solid ${colors.border}`,
                     }}
                 >
 
+                    <SettingsOutlinedIcon
+                        sx={{
+                            color: colors.gold,
+
+                            fontSize: 22,
+                        }}
+                    />
+
+                </Box>
+
+
+                <Box>
+
+                    <Typography
+                        sx={{
+                            fontSize: {
+                                xs: 18, md: 21,
+                            },
+
+                            fontWeight: 600,
+
+                            color: colors.text,
+                        }}
+                    >
+                        İcazə konfiqurasiyası
+                    </Typography>
+
+
+                    <Typography
+                        sx={{
+                            fontSize: 13,
+
+                            color: colors.muted,
+
+                            mt: 0.3,
+                        }}
+                    >
+                        Aparat rəhbəri və
+                        departamentlər üzrə
+                        icazə təsdiqçilərinin
+                        idarə edilməsi
+                    </Typography>
+
+                </Box>
+
+            </Box>
+
+
+            {/* =====================================================
+                    APARAT RƏHBƏRİ
+                ====================================================== */}
+
+            <Paper
+                elevation={0}
+                sx={{
+                    backgroundColor: colors.white,
+
+                    border: `1px solid ${colors.border}`,
+
+                    borderRadius: "12px",
+
+                    mb: 3,
+
+                    overflow: "hidden",
+                }}
+            >
+
+                {/* TITLE */}
+
+                <Box
+                    sx={{
+                        px: {
+                            xs: 2, md: 3,
+                        },
+
+                        py: 2,
+
+                        borderBottom: `1px solid ${colors.border}`,
+                    }}
+                >
+
+                    <Typography
+                        sx={{
+                            fontSize: 15,
+
+                            fontWeight: 600,
+
+                            color: colors.text,
+                        }}
+                    >
+                        Aparat rəhbəri
+                    </Typography>
+
+
+                    <Typography
+                        sx={{
+                            fontSize: 12.5,
+
+                            color: colors.muted,
+
+                            mt: 0.5,
+                        }}
+                    >
+                        Aparat rəhbəri mərhələsini
+                        aktiv/deaktiv edin. Bu vəzifədə
+                        olan şəxs avtomatik göstərilir.
+                    </Typography>
+
+                </Box>
+
+
+                {apparatus && (
+
                     <Box
                         sx={{
-                            width: 42,
+                            px: {
+                                xs: 2, md: 3,
+                            },
 
-                            height: 42,
+                            py: 2.5,
 
-                            display: "flex",
+                            display: "grid",
+
+                            gridTemplateColumns: {
+                                xs: "1fr", md: "220px minmax(250px, 1fr) 130px",
+                            },
+
+                            gap: 2,
 
                             alignItems: "center",
-
-                            justifyContent: "center",
-
-                            borderRadius: "10px",
-
-                            backgroundColor: colors.white,
-
-                            border: `1px solid ${colors.border}`,
                         }}
                     >
 
-                        <SettingsOutlinedIcon
-                            sx={{
-                                color: colors.gold,
+                        {/* SWITCH */}
 
-                                fontSize: 22,
+                        <FormControlLabel
+                            control={<Switch
+                                checked={!!apparatus.apparatus_head_enabled}
+
+                                onChange={handleApparatusEnabledChange}
+                            />}
+
+                            label={apparatus.apparatus_head_enabled ? "Aktivdir" : "Söndürülüb"}
+
+                            sx={{
+                                m: 0,
+
+                                "& .MuiFormControlLabel-label": {
+                                    fontSize: 13,
+
+                                    color: colors.text,
+                                },
                             }}
                         />
 
+
+                        {/* AD SOYAD (avtomatik təyin olunur, seçim yoxdur) */}
+
+                        <Box
+                            sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                height: 38,
+                                px: 1.5,
+                                borderRadius: "8px",
+                                border: `1px solid ${colors.border}`,
+                                backgroundColor: colors.background,
+                                opacity: apparatus.apparatus_head_enabled ? 1 : 0.6,
+                            }}
+                        >
+                            <Typography
+                                sx={{
+                                    fontSize: 13,
+                                    color: apparatus.apparatus_head_name ? colors.text : colors.lightText,
+                                    fontStyle: apparatus.apparatus_head_name ? "normal" : "italic",
+                                }}
+                            >
+                                {apparatus.apparatus_head_name || "Aparat rəhbəri vəzifəsində heç kim təyin edilməyib"}
+                            </Typography>
+                        </Box>
+
+
+                        {/* SAVE */}
+
+                        <Button
+                            variant="contained"
+
+                            onClick={saveApparatus}
+
+                            disabled={savingApparatus}
+
+                            startIcon={savingApparatus ? (<CircularProgress
+                                size={15}
+                                sx={{
+                                    color: "inherit",
+                                }}
+                            />) : (<SaveOutlinedIcon
+                                sx={{
+                                    fontSize: 17,
+                                }}
+                            />)}
+
+                            sx={{
+                                height: 38,
+
+                                backgroundColor: colors.text,
+
+                                color: colors.white,
+
+                                borderRadius: "8px",
+
+                                boxShadow: "none",
+
+                                textTransform: "none",
+
+                                fontSize: 12.5,
+
+                                "&:hover": {
+                                    backgroundColor: colors.gold,
+
+                                    boxShadow: "none",
+                                },
+                            }}
+                        >
+                            {savingApparatus ? "Saxlanılır..." : "Yadda saxla"}
+                        </Button>
+
                     </Box>
 
+                )}
 
-                    <Box>
+
+                {/* WARNING */}
+
+                {apparatus && !apparatus.apparatus_head_enabled && (
+
+                    <Box
+                        sx={{
+                            mx: {
+                                xs: 2, md: 3,
+                            },
+
+                            mb: 2.5,
+
+                            px: 1.5,
+
+                            py: 1.2,
+
+                            borderRadius: "7px",
+
+                            backgroundColor: "#FFF8E8",
+
+                            border: "1px solid #EEDDAA",
+                        }}
+                    >
 
                         <Typography
                             sx={{
-                                fontSize: {
-                                    xs: 18, md: 21,
-                                },
+                                fontSize: 12,
 
-                                fontWeight: 600,
-
-                                color: colors.text,
+                                color: "#876A24",
                             }}
                         >
-                            İcazə konfiqurasiyası
+                            Aparat rəhbəri təsdiq
+                            mərhələsi söndürülüb.
+                            Şöbə müdiri təsdiqindən
+                            sonra sorğu avtomatik
+                            təsdiqlənəcək.
                         </Typography>
 
+                    </Box>
+
+                )}
+
+            </Paper>
+
+
+            {/* =====================================================
+                    DEPARTAMENTLƏR
+                ====================================================== */}
+
+            <Paper
+                elevation={0}
+                sx={{
+                    backgroundColor: colors.white,
+
+                    border: `1px solid ${colors.border}`,
+
+                    borderRadius: "12px",
+
+                    overflow: "hidden",
+                }}
+            >
+
+                {/* TITLE */}
+
+                <Box
+                    sx={{
+                        px: {
+                            xs: 2, md: 3,
+                        },
+
+                        py: 2,
+
+                        borderBottom: `1px solid ${colors.border}`,
+                    }}
+                >
+
+                    <Typography
+                        sx={{
+                            fontSize: 15,
+
+                            fontWeight: 600,
+
+                            color: colors.text,
+                        }}
+                    >
+                        Departamentlər
+                    </Typography>
+
+
+                    <Typography
+                        sx={{
+                            fontSize: 12.5,
+
+                            color: colors.muted,
+
+                            mt: 0.5,
+                        }}
+                    >
+                        Hər departament üçün şöbə
+                        müdirini aktiv/deaktiv edə
+                        və deaktiv olduqda
+                        əvəzləyici şəxs seçə bilərsiniz.
+                    </Typography>
+
+                </Box>
+
+
+                {/* =================================================
+                        DESKTOP HEADER
+                    ================================================== */}
+
+                <Box
+                    sx={{
+                        display: {
+                            xs: "none", md: "grid",
+                        },
+
+                        gridTemplateColumns: "1.4fr 1.3fr 1.5fr 125px",
+
+                        gap: 2,
+
+                        px: 3,
+
+                        py: 1.5,
+
+                        backgroundColor: "#FAF9F5",
+
+                        borderBottom: `1px solid ${colors.border}`,
+                    }}
+                >
+
+                    <Typography
+                        sx={tableHeaderStyle}
+                    >
+                        Departament
+                    </Typography>
+
+
+                    <Typography
+                        sx={tableHeaderStyle}
+                    >
+                        Şöbə müdiri
+                    </Typography>
+
+
+                    <Typography
+                        sx={tableHeaderStyle}
+                    >
+                        Əvəzləyici
+                    </Typography>
+
+
+                    <Typography
+                        sx={tableHeaderStyle}
+                    >
+                        Əməliyyat
+                    </Typography>
+
+                </Box>
+
+
+                {/* =================================================
+                        DEPARTAMENT ROWS
+                    ================================================== */}
+
+                {departments.length === 0 ? (
+
+                    <Box
+                        sx={{
+                            p: 4,
+
+                            textAlign: "center",
+                        }}
+                    >
 
                         <Typography
                             sx={{
                                 fontSize: 13,
 
                                 color: colors.muted,
-
-                                mt: 0.3,
                             }}
                         >
-                            Aparat rəhbəri və
-                            departamentlər üzrə
-                            icazə təsdiqçilərinin
-                            idarə edilməsi
+                            Departament tapılmadı.
                         </Typography>
 
                     </Box>
 
-                </Box>
+                ) : (
+
+                    departments.map((department) => {
+
+                        const isSaving = savingDepartment === department.department;
 
 
-                {/* =====================================================
-                    APARAT RƏHBƏRİ
-                ====================================================== */}
-
-                <Paper
-                    elevation={0}
-                    sx={{
-                        backgroundColor: colors.white,
-
-                        border: `1px solid ${colors.border}`,
-
-                        borderRadius: "12px",
-
-                        mb: 3,
-
-                        overflow: "hidden",
-                    }}
-                >
-
-                    {/* TITLE */}
-
-                    <Box
-                        sx={{
-                            px: {
-                                xs: 2, md: 3,
-                            },
-
-                            py: 2,
-
-                            borderBottom: `1px solid ${colors.border}`,
-                        }}
-                    >
-
-                        <Typography
-                            sx={{
-                                fontSize: 15,
-
-                                fontWeight: 600,
-
-                                color: colors.text,
-                            }}
-                        >
-                            Aparat rəhbəri
-                        </Typography>
+                        const managerDisabled = !department.manager_enabled;
 
 
-                        <Typography
-                            sx={{
-                                fontSize: 12.5,
+                        /*
+                         * Həmin departamentin
+                         * istifadəçiləri.
+                         */
 
-                                color: colors.muted,
-
-                                mt: 0.5,
-                            }}
-                        >
-                            Aparat rəhbəri mərhələsini
-                            aktiv/deaktiv edin və
-                            təsdiqləyəcək şəxsi seçin.
-                        </Typography>
-
-                    </Box>
+                        const departmentUsers = activeUsers.filter((user) => user.department === department.department);
 
 
-                    {apparatus && (
+                        return (
 
-                        <Box
-                            sx={{
-                                px: {
-                                    xs: 2, md: 3,
-                                },
-
-                                py: 2.5,
-
-                                display: "grid",
-
-                                gridTemplateColumns: {
-                                    xs: "1fr", md: "220px minmax(250px, 1fr) 130px",
-                                },
-
-                                gap: 2,
-
-                                alignItems: "center",
-                            }}
-                        >
-
-                            {/* SWITCH */}
-
-                            <FormControlLabel
-                                control={<Switch
-                                    checked={!!apparatus.apparatus_head_enabled}
-
-                                    onChange={handleApparatusEnabledChange}
-                                />}
-
-                                label={apparatus.apparatus_head_enabled ? "Aktivdir" : "Söndürülüb"}
+                            <Box
+                                key={department.department}
 
                                 sx={{
-                                    m: 0,
-
-                                    "& .MuiFormControlLabel-label": {
-                                        fontSize: 13,
-
-                                        color: colors.text,
+                                    px: {
+                                        xs: 2, md: 3,
                                     },
-                                }}
-                            />
 
+                                    py: 2,
 
-                            {/* SELECT */}
+                                    borderBottom: `1px solid ${colors.border}`,
 
-                            <FormControl
-                                size="small"
-                                fullWidth
-                            >
+                                    display: "grid",
 
-                                <Select
-                                    value={apparatus.apparatus_head ? String(apparatus.apparatus_head) : ""}
-
-                                    disabled={!apparatus.apparatus_head_enabled}
-
-                                    displayEmpty
-
-                                    onChange={handleApparatusHeadChange}
-
-                                    sx={{
-                                        fontSize: 13,
-
-                                        borderRadius: "8px",
-                                    }}
-                                >
-
-                                    <MenuItem value="">
-                                        Aparat rəhbəri seçin
-                                    </MenuItem>
-
-
-                                    {activeUsers.map((user) => (
-
-                                        <MenuItem
-                                            key={user.id}
-                                            value={String(user.id)}
-                                        >
-
-                                            {user.name}
-
-                                            {user.role_name ? ` — ${user.role_name}` : ""}
-
-                                        </MenuItem>
-
-                                    ))}
-
-                                </Select>
-
-                            </FormControl>
-
-
-                            {/* SAVE */}
-
-                            <Button
-                                variant="contained"
-
-                                onClick={saveApparatus}
-
-                                disabled={savingApparatus}
-
-                                startIcon={savingApparatus ? (<CircularProgress
-                                        size={15}
-                                        sx={{
-                                            color: "inherit",
-                                        }}
-                                    />) : (<SaveOutlinedIcon
-                                        sx={{
-                                            fontSize: 17,
-                                        }}
-                                    />)}
-
-                                sx={{
-                                    height: 38,
-
-                                    backgroundColor: colors.text,
-
-                                    color: colors.white,
-
-                                    borderRadius: "8px",
-
-                                    boxShadow: "none",
-
-                                    textTransform: "none",
-
-                                    fontSize: 12.5,
-
-                                    "&:hover": {
-                                        backgroundColor: colors.gold,
-
-                                        boxShadow: "none",
+                                    gridTemplateColumns: {
+                                        xs: "1fr", md: "1.4fr 1.3fr 1.5fr 125px",
                                     },
+
+                                    gap: {
+                                        xs: 1.5, md: 2,
+                                    },
+
+                                    alignItems: "center",
                                 }}
                             >
-                                {savingApparatus ? "Saxlanılır..." : "Yadda saxla"}
-                            </Button>
 
-                        </Box>
-
-                    )}
-
-
-                    {/* WARNING */}
-
-                    {apparatus && !apparatus.apparatus_head_enabled && (
-
-                        <Box
-                            sx={{
-                                mx: {
-                                    xs: 2, md: 3,
-                                },
-
-                                mb: 2.5,
-
-                                px: 1.5,
-
-                                py: 1.2,
-
-                                borderRadius: "7px",
-
-                                backgroundColor: "#FFF8E8",
-
-                                border: "1px solid #EEDDAA",
-                            }}
-                        >
-
-                            <Typography
-                                sx={{
-                                    fontSize: 12,
-
-                                    color: "#876A24",
-                                }}
-                            >
-                                Aparat rəhbəri təsdiq
-                                mərhələsi söndürülüb.
-                                Şöbə müdiri təsdiqindən
-                                sonra sorğu avtomatik
-                                təsdiqlənəcək.
-                            </Typography>
-
-                        </Box>
-
-                    )}
-
-                </Paper>
-
-
-                {/* =====================================================
-                    DEPARTAMENTLƏR
-                ====================================================== */}
-
-                <Paper
-                    elevation={0}
-                    sx={{
-                        backgroundColor: colors.white,
-
-                        border: `1px solid ${colors.border}`,
-
-                        borderRadius: "12px",
-
-                        overflow: "hidden",
-                    }}
-                >
-
-                    {/* TITLE */}
-
-                    <Box
-                        sx={{
-                            px: {
-                                xs: 2, md: 3,
-                            },
-
-                            py: 2,
-
-                            borderBottom: `1px solid ${colors.border}`,
-                        }}
-                    >
-
-                        <Typography
-                            sx={{
-                                fontSize: 15,
-
-                                fontWeight: 600,
-
-                                color: colors.text,
-                            }}
-                        >
-                            Departamentlər
-                        </Typography>
-
-
-                        <Typography
-                            sx={{
-                                fontSize: 12.5,
-
-                                color: colors.muted,
-
-                                mt: 0.5,
-                            }}
-                        >
-                            Hər departament üçün şöbə
-                            müdirini aktiv/deaktiv edə
-                            və deaktiv olduqda
-                            əvəzləyici şəxs seçə bilərsiniz.
-                        </Typography>
-
-                    </Box>
-
-
-                    {/* =================================================
-                        DESKTOP HEADER
-                    ================================================== */}
-
-                    <Box
-                        sx={{
-                            display: {
-                                xs: "none", md: "grid",
-                            },
-
-                            gridTemplateColumns: "1.4fr 1.3fr 1.5fr 125px",
-
-                            gap: 2,
-
-                            px: 3,
-
-                            py: 1.5,
-
-                            backgroundColor: "#FAF9F5",
-
-                            borderBottom: `1px solid ${colors.border}`,
-                        }}
-                    >
-
-                        <Typography
-                            sx={tableHeaderStyle}
-                        >
-                            Departament
-                        </Typography>
-
-
-                        <Typography
-                            sx={tableHeaderStyle}
-                        >
-                            Şöbə müdiri
-                        </Typography>
-
-
-                        <Typography
-                            sx={tableHeaderStyle}
-                        >
-                            Əvəzləyici
-                        </Typography>
-
-
-                        <Typography
-                            sx={tableHeaderStyle}
-                        >
-                            Əməliyyat
-                        </Typography>
-
-                    </Box>
-
-
-                    {/* =================================================
-                        DEPARTAMENT ROWS
-                    ================================================== */}
-
-                    {departments.length === 0 ? (
-
-                        <Box
-                            sx={{
-                                p: 4,
-
-                                textAlign: "center",
-                            }}
-                        >
-
-                            <Typography
-                                sx={{
-                                    fontSize: 13,
-
-                                    color: colors.muted,
-                                }}
-                            >
-                                Departament tapılmadı.
-                            </Typography>
-
-                        </Box>
-
-                    ) : (
-
-                        departments.map((department) => {
-
-                            const isSaving = savingDepartment === department.department;
-
-
-                            const managerDisabled = !department.manager_enabled;
-
-
-                            /*
-                             * Həmin departamentin
-                             * istifadəçiləri.
-                             */
-
-                            const departmentUsers = activeUsers.filter((user) => user.department === department.department);
-
-
-                            return (
-
-                                <Box
-                                    key={department.department}
-
-                                    sx={{
-                                        px: {
-                                            xs: 2, md: 3,
-                                        },
-
-                                        py: 2,
-
-                                        borderBottom: `1px solid ${colors.border}`,
-
-                                        display: "grid",
-
-                                        gridTemplateColumns: {
-                                            xs: "1fr", md: "1.4fr 1.3fr 1.5fr 125px",
-                                        },
-
-                                        gap: {
-                                            xs: 1.5, md: 2,
-                                        },
-
-                                        alignItems: "center",
-                                    }}
-                                >
-
-                                    {/* =================================
+                                {/* =================================
                                             DEPARTAMENT
                                         ================================== */}
 
-                                    <Box>
+                                <Box>
 
-                                        <Typography
-                                            sx={{
-                                                fontSize: 13.5,
+                                    <Typography
+                                        sx={{
+                                            fontSize: 13.5,
 
-                                                fontWeight: 500,
+                                            fontWeight: 500,
 
-                                                color: colors.text,
-                                            }}
-                                        >
-                                            {department.department_name}
-                                        </Typography>
+                                            color: colors.text,
+                                        }}
+                                    >
+                                        {department.department_name}
+                                    </Typography>
 
-                                    </Box>
+                                </Box>
 
 
-                                    {/* =================================
+                                {/* =================================
                                             MÜDİR
                                         ================================== */}
 
-                                    <Box>
+                                <Box>
 
-                                        <FormControlLabel
-                                            sx={{
-                                                m: 0,
+                                    <FormControlLabel
+                                        sx={{
+                                            m: 0,
 
-                                                "& .MuiFormControlLabel-label": {
-                                                    fontSize: 12.5,
+                                            "& .MuiFormControlLabel-label": {
+                                                fontSize: 12.5,
 
-                                                    color: colors.text,
-                                                },
-                                            }}
+                                                color: colors.text,
+                                            },
+                                        }}
 
-                                            control={<Switch
-                                                size="small"
+                                        control={<Switch
+                                            size="small"
 
-                                                checked={!!department.manager_enabled}
+                                            checked={!!department.manager_enabled}
 
-                                                onChange={(event) => handleDepartmentManagerChange(department.department, event.target.checked)}
-                                            />}
+                                            onChange={(event) => handleDepartmentManagerChange(department.department, event.target.checked)}
+                                        />}
 
-                                            label={department.manager_enabled ? (department.manager_name || "Müdir təyin edilməyib") : "Söndürülüb"}
-                                        />
+                                        label={department.manager_enabled ? (department.manager_name || "Müdir təyin edilməyib") : "Söndürülüb"}
+                                    />
 
-                                    </Box>
+                                </Box>
 
 
-                                    {/* =================================
+                                {/* =================================
                                             ƏVƏZLƏYİCİ
                                         ================================== */}
 
-                                    <Box>
+                                <Box>
 
-                                        {managerDisabled ? (
+                                    {managerDisabled ? (
 
-                                            <FormControl
-                                                fullWidth
-                                                size="small"
-                                            >
-
-                                                <Select
-                                                    value={department.replacement_user ? String(department.replacement_user) : ""}
-
-                                                    displayEmpty
-
-                                                    onChange={(event) => handleReplacementChange(department.department, event.target.value)}
-
-                                                    sx={{
-                                                        fontSize: 12.5,
-
-                                                        borderRadius: "8px",
-                                                    }}
-                                                >
-
-                                                    <MenuItem
-                                                        value=""
-                                                    >
-                                                        Əvəzləyici seçin
-                                                    </MenuItem>
-
-
-                                                    {departmentUsers.map((user) => (
-
-                                                        <MenuItem
-                                                            key={user.id}
-
-                                                            value={String(user.id)}
-                                                        >
-
-                                                            {user.name}
-
-                                                            {user.role_name ? ` — ${user.role_name}` : ""}
-
-                                                        </MenuItem>
-
-                                                    ))}
-
-                                                </Select>
-
-                                            </FormControl>
-
-                                        ) : (
-
-                                            <Typography
-                                                sx={{
-                                                    fontSize: 12,
-
-                                                    color: colors.lightText,
-                                                }}
-                                            >
-                                                Əvəzləyici
-                                                tələb olunmur
-                                            </Typography>
-
-                                        )}
-
-                                    </Box>
-
-
-                                    {/* =================================
-                                            SAVE
-                                        ================================== */}
-
-                                    <Button
-                                        variant="outlined"
-
-                                        size="small"
-
-                                        disabled={isSaving}
-
-                                        onClick={() => saveDepartment(department)}
-
-                                        startIcon={isSaving ? (<CircularProgress
-                                                size={14}
-                                            />) : (<SaveOutlinedIcon
-                                                sx={{
-                                                    fontSize: 16,
-                                                }}
-                                            />)}
-
-                                        sx={{
-                                            height: 36,
-
-                                            borderColor: colors.borderDark,
-
-                                            color: colors.text,
-
-                                            borderRadius: "8px",
-
-                                            textTransform: "none",
-
-                                            fontSize: 12,
-
-                                            whiteSpace: "nowrap",
-
-                                            "&:hover": {
-                                                borderColor: colors.gold,
-
-                                                color: colors.gold,
-
-                                                backgroundColor: "transparent",
-                                            },
-                                        }}
-                                    >
-                                        {isSaving ? "Saxlanılır..." : "Yadda saxla"}
-                                    </Button>
-
-
-                                    {/* =================================
-                                            WARNING
-                                        ================================== */}
-
-                                    {managerDisabled && (
-
-                                        <Box
-                                            sx={{
-                                                gridColumn: {
-                                                    xs: "1", md: "2 / 4",
-                                                },
-
-                                                mt: -0.5,
-                                            }}
+                                        <FormControl
+                                            fullWidth
+                                            size="small"
                                         >
 
-                                            <Typography
-                                                sx={{
-                                                    fontSize: 11.5,
+                                            <Select
+                                                value={department.replacement_user ? String(department.replacement_user) : ""}
 
-                                                    color: "#9A762A",
+                                                displayEmpty
+
+                                                onChange={(event) => handleReplacementChange(department.department, event.target.value)}
+
+                                                sx={{
+                                                    fontSize: 12.5,
+
+                                                    borderRadius: "8px",
                                                 }}
                                             >
-                                                Şöbə müdiri
-                                                söndürülüb.
-                                                Əvəzləyici şəxs
-                                                seçilməlidir.
-                                            </Typography>
 
-                                        </Box>
+                                                <MenuItem
+                                                    value=""
+                                                >
+                                                    Əvəzləyici seçin
+                                                </MenuItem>
+
+
+                                                {departmentUsers.map((user) => (
+
+                                                    <MenuItem
+                                                        key={user.id}
+
+                                                        value={String(user.id)}
+                                                    >
+
+                                                        {user.name}
+
+                                                        {user.role_name ? ` — ${user.role_name}` : ""}
+
+                                                    </MenuItem>
+
+                                                ))}
+
+                                            </Select>
+
+                                        </FormControl>
+
+                                    ) : (
+
+                                        <Typography
+                                            sx={{
+                                                fontSize: 12,
+
+                                                color: colors.lightText,
+                                            }}
+                                        >
+                                            Əvəzləyici
+                                            tələb olunmur
+                                        </Typography>
 
                                     )}
 
                                 </Box>
 
-                            );
 
-                        })
+                                {/* =================================
+                                            SAVE
+                                        ================================== */}
 
-                    )}
+                                <Button
+                                    variant="outlined"
 
-                </Paper>
+                                    size="small"
 
-            </Box>
+                                    disabled={isSaving}
+
+                                    onClick={() => saveDepartment(department)}
+
+                                    startIcon={isSaving ? (<CircularProgress
+                                        size={14}
+                                    />) : (<SaveOutlinedIcon
+                                        sx={{
+                                            fontSize: 16,
+                                        }}
+                                    />)}
+
+                                    sx={{
+                                        height: 36,
+
+                                        borderColor: colors.borderDark,
+
+                                        color: colors.text,
+
+                                        borderRadius: "8px",
+
+                                        textTransform: "none",
+
+                                        fontSize: 12,
+
+                                        whiteSpace: "nowrap",
+
+                                        "&:hover": {
+                                            borderColor: colors.gold,
+
+                                            color: colors.gold,
+
+                                            backgroundColor: "transparent",
+                                        },
+                                    }}
+                                >
+                                    {isSaving ? "Saxlanılır..." : "Yadda saxla"}
+                                </Button>
 
 
-            {/* =========================================================
+                                {/* =================================
+                                            WARNING
+                                        ================================== */}
+
+                                {managerDisabled && (
+
+                                    <Box
+                                        sx={{
+                                            gridColumn: {
+                                                xs: "1", md: "2 / 4",
+                                            },
+
+                                            mt: -0.5,
+                                        }}
+                                    >
+
+                                        <Typography
+                                            sx={{
+                                                fontSize: 11.5,
+
+                                                color: "#9A762A",
+                                            }}
+                                        >
+                                            Şöbə müdiri
+                                            söndürülüb.
+                                            Əvəzləyici şəxs
+                                            seçilməlidir.
+                                        </Typography>
+
+                                    </Box>
+
+                                )}
+
+                            </Box>
+
+                        );
+
+                    })
+
+                )}
+
+            </Paper>
+
+        </Box>
+
+
+        {/* =========================================================
                 ERROR SNACKBAR
             ========================================================== */}
 
-            <Snackbar
-                open={!!error}
+        <Snackbar
+            open={!!error}
 
-                autoHideDuration={5000}
+            autoHideDuration={5000}
+
+            onClose={() => setError("")}
+
+            anchorOrigin={{
+                vertical: "bottom", horizontal: "right",
+            }}
+        >
+
+            <Alert
+                severity="error"
+                variant="filled"
 
                 onClose={() => setError("")}
-
-                anchorOrigin={{
-                    vertical: "bottom", horizontal: "right",
-                }}
             >
+                {error}
+            </Alert>
 
-                <Alert
-                    severity="error"
-                    variant="filled"
-
-                    onClose={() => setError("")}
-                >
-                    {error}
-                </Alert>
-
-            </Snackbar>
+        </Snackbar>
 
 
-            {/* =========================================================
+        {/* =========================================================
                 SUCCESS SNACKBAR
             ========================================================== */}
 
-            <Snackbar
-                open={!!success}
+        <Snackbar
+            open={!!success}
 
-                autoHideDuration={3000}
+            autoHideDuration={3000}
+
+            onClose={() => setSuccess("")}
+
+            anchorOrigin={{
+                vertical: "bottom", horizontal: "right",
+            }}
+        >
+
+            <Alert
+                severity="success"
+                variant="filled"
 
                 onClose={() => setSuccess("")}
-
-                anchorOrigin={{
-                    vertical: "bottom", horizontal: "right",
-                }}
             >
+                {success}
+            </Alert>
 
-                <Alert
-                    severity="success"
-                    variant="filled"
+        </Snackbar>
 
-                    onClose={() => setSuccess("")}
-                >
-                    {success}
-                </Alert>
-
-            </Snackbar>
-
-        </Box>);
+    </Box>);
 }
 
 

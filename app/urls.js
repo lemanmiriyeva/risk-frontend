@@ -66,6 +66,15 @@ export const DJANGO_API_ENDPOINTS = {
         REVIEW: API_URL + "/api/operations/",
     },
 
+    BULLETIN: {
+        DASHBOARD: API_URL + "/api/bulletin/dashboard/",
+        BIRTHDAYS: API_URL + "/api/bulletin/birthdays/",
+        CIRCULARS: API_URL + "/api/bulletin/circulars/",
+        CIRCULAR_DETAIL: (id) => API_URL + `/api/bulletin/circulars/${id}/`,
+        NEWS: API_URL + "/api/bulletin/news/",
+        NEWS_DETAIL: (id) => API_URL + `/api/bulletin/news/${id}/`,
+    },
+
 }
 
 export const NEXT_API_ENDPOINTS = {
@@ -133,6 +142,15 @@ export const NEXT_API_ENDPOINTS = {
         LIST: "operations/",
         DETAIL: "operations/",
         REVIEW: "operations/",
+    },
+
+    BULLETIN: {
+        DASHBOARD: "bulletin/dashboard/",
+        BIRTHDAYS: "bulletin/birthdays/",
+        CIRCULARS: "bulletin/circulars/",
+        CIRCULAR_DETAIL: (id) => `bulletin/circulars/${id}/`,
+        NEWS: "bulletin/news/",
+        NEWS_DETAIL: (id) => `bulletin/news/${id}/`,
     },
 
 }

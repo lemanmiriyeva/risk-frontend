@@ -69,6 +69,9 @@ export const DJANGO_API_ENDPOINTS = {
     BULLETIN: {
         DASHBOARD: API_URL + "/api/bulletin/dashboard/",
         BIRTHDAYS: API_URL + "/api/bulletin/birthdays/",
+        PERMISSIONS: API_URL + "/api/bulletin/permissions/",
+        CATEGORIES: API_URL + "/api/bulletin/categories/",
+        CATEGORY_DETAIL: (id) => API_URL + `/api/bulletin/categories/${id}/`,
         CIRCULARS: API_URL + "/api/bulletin/circulars/",
         CIRCULAR_DETAIL: (id) => API_URL + `/api/bulletin/circulars/${id}/`,
         NEWS: API_URL + "/api/bulletin/news/",
@@ -147,6 +150,9 @@ export const NEXT_API_ENDPOINTS = {
     BULLETIN: {
         DASHBOARD: "bulletin/dashboard/",
         BIRTHDAYS: "bulletin/birthdays/",
+        PERMISSIONS: "bulletin/permissions/",
+        CATEGORIES: "bulletin/categories/",
+        CATEGORY_DETAIL: (id) => `bulletin/categories/${id}/`,
         CIRCULARS: "bulletin/circulars/",
         CIRCULAR_DETAIL: (id) => `bulletin/circulars/${id}/`,
         NEWS: "bulletin/news/",

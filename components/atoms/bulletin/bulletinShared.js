@@ -1,5 +1,5 @@
 "use client"
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
@@ -14,7 +14,15 @@ import ImageOutlinedIcon from '@mui/icons-material/ImageOutlined';
 import GavelOutlinedIcon from '@mui/icons-material/GavelOutlined';
 import AssignmentOutlinedIcon from '@mui/icons-material/AssignmentOutlined';
 import RuleOutlinedIcon from '@mui/icons-material/RuleOutlined';
+import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined';
+import ArticleOutlinedIcon from '@mui/icons-material/ArticleOutlined';
+import PolicyOutlinedIcon from '@mui/icons-material/PolicyOutlined';
+import CampaignOutlinedIcon from '@mui/icons-material/CampaignOutlined';
+import EventNoteOutlinedIcon from '@mui/icons-material/EventNoteOutlined';
+import ShieldOutlinedIcon from '@mui/icons-material/ShieldOutlined';
+import FolderOutlinedIcon from '@mui/icons-material/FolderOutlined';
 import {useSnackbar} from "notistack";
+import {useAppSelector} from "@/lib/hooks";
 import {handleError} from "@/app/utils";
 import {NEXT_API_ENDPOINTS} from "@/app/urls";
 import {service_api} from "@/app/service";
@@ -39,34 +47,59 @@ export const C = {
     dangerTint: 'rgba(162,59,59,0.08)',
 };
 
-export const CATEGORIES = [
-    {
-        value: 'ferman',
-        label: 'Fərman',
-        plural: 'Fərmanlar',
-        icon: <GavelOutlinedIcon sx={{fontSize: 18}}/>,
-        hint: 'Prezident fərmanları və onlara əsaslanan sənədlər',
-    },
-    {
-        value: 'serencam',
-        label: 'Sərəncam',
-        plural: 'Sərəncamlar',
-        icon: <AssignmentOutlinedIcon sx={{fontSize: 18}}/>,
-        hint: 'Rəhbərliyin sərəncam və göstərişləri',
-    },
-    {
-        value: 'daxili_qayda',
-        label: 'Daxili qayda',
-        plural: 'Daxili qaydalar',
-        icon: <RuleOutlinedIcon sx={{fontSize: 18}}/>,
-        hint: 'Qurumdaxili qayda və təlimatlar',
-    },
-];
+/**
+ * Kateqoriyalar (Fərman/Sərəncam/Daxili qayda/...) artıq sabit siyahı deyil -
+ * backend-də `bulletin.BulletinCategory` cədvəlindən idarə olunur (bax:
+ * useBulletinCategories aşağıda). Burada yalnız backend-in `icon` sahəsini
+ * (bax: BulletinCategory.ICON_CHOICES) MUI ikonuna çevirən sabit lüğət qalır -
+ * yeni ikon əlavə etmək üçün hər iki tərəfdə (burada və modeldə) əlavə edin.
+ */
+export const ICON_MAP = {
+    gavel: GavelOutlinedIcon,
+    assignment: AssignmentOutlinedIcon,
+    rule: RuleOutlinedIcon,
+    description: DescriptionOutlinedIcon,
+    article: ArticleOutlinedIcon,
+    policy: PolicyOutlinedIcon,
+    campaign: CampaignOutlinedIcon,
+    event_note: EventNoteOutlinedIcon,
+    shield: ShieldOutlinedIcon,
+    folder: FolderOutlinedIcon,
+};
 
-export const CATEGORY_MAP = CATEGORIES.reduce((acc, c) => {
-    acc[c.value] = c;
-    return acc;
-}, {});
+export function CategoryIcon({icon, sx}) {
+    const Cmp = ICON_MAP[icon] || DescriptionOutlinedIcon;
+    return <Cmp sx={{fontSize: 18, ...sx}}/>;
+}
+
+/**
+ * Bütün bulletin kateqoriyalarını (aktiv + admin görürsə deaktivlər də)
+ * backend-dən çəkir. Bir neçə komponent (lövhə, sənəd arxivi, sənəd forması)
+ * bu hook-u paralel çağıra bilər - hər biri öz nüsxəsini saxlayır, əlavə
+ * keşləmə lazım deyil, çünki siyahı kiçikdir və nadir dəyişir.
+ */
+export function useBulletinCategories() {
+    const {enqueueSnackbar} = useSnackbar();
+    const [categories, setCategories] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    const reload = useCallback(async () => {
+        setLoading(true);
+        try {
+            const res = await service_api.get(NEXT_API_ENDPOINTS.BULLETIN.CATEGORIES);
+            setCategories(normalizeList(res.data));
+        } catch (err) {
+            enqueueSnackbar(handleError(err), {variant: 'error'});
+        } finally {
+            setLoading(false);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    useEffect(() => { reload(); }, [reload]);
+
+    return {categories, loading, reload};
+}
 
 /* --------------------------------------------------------------------- */
 /*  Ümumi sx-lər                                                          */
@@ -238,24 +271,26 @@ export function EmptyState({title, hint, icon}) {
 /*  Sənəd forması (əlavə / redaktə)                                       */
 /* --------------------------------------------------------------------- */
 
-export function CircularFormDialog({open, onClose, onSaved, defaultCategory, isRoot, organizations, initial}) {
+export function CircularFormDialog({open, onClose, onSaved, categories, defaultCategoryId, isRoot, organizations, initial}) {
     const {enqueueSnackbar} = useSnackbar();
     const isEdit = !!initial?.id;
-    const [form, setForm] = useState({category: defaultCategory || 'ferman', title: '', number: '', document_date: '', organization: ''});
+    const fallbackCategoryId = defaultCategoryId || categories?.[0]?.id || '';
+    const [form, setForm] = useState({category: fallbackCategoryId, title: '', number: '', document_date: '', organization: ''});
     const [file, setFile] = useState(null);
     const [saving, setSaving] = useState(false);
 
     useEffect(() => {
         if (!open) return;
         setForm({
-            category: initial?.category || defaultCategory || 'ferman',
+            category: initial?.category || defaultCategoryId || categories?.[0]?.id || '',
             title: initial?.title || '',
             number: initial?.number || '',
             document_date: initial?.document_date ? String(initial.document_date).slice(0, 10) : '',
             organization: initial?.organization || '',
         });
         setFile(null);
-    }, [open, defaultCategory, initial]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [open, defaultCategoryId, initial]);
 
     function set(field, value) {
         setForm((f) => ({...f, [field]: value}));
@@ -319,8 +354,9 @@ export function CircularFormDialog({open, onClose, onSaved, defaultCategory, isR
             </Box>
             <Box sx={{px: 3, py: 2.5, display: 'flex', flexDirection: 'column', gap: 2}}>
                 <TextField select label="Növ" size="small" fullWidth sx={fieldSx}
-                           value={form.category} onChange={(e) => set('category', e.target.value)}>
-                    {CATEGORIES.map((c) => <MenuItem key={c.value} value={c.value}>{c.label}</MenuItem>)}
+                           value={form.category} onChange={(e) => set('category', e.target.value)}
+                           helperText={!categories?.length ? 'Əvvəlcə "Kateqoriyalar" bölməsindən növ əlavə edin.' : ' '}>
+                    {(categories || []).map((c) => <MenuItem key={c.id} value={c.id}>{c.label}</MenuItem>)}
                 </TextField>
                 <TextField label="Başlıq" required size="small" fullWidth sx={fieldSx}
                            value={form.title} onChange={(e) => set('title', e.target.value)}/>
@@ -456,9 +492,45 @@ export function NewsFormDialog({open, onClose, onSaved, initial}) {
 /*  İdarəetmə icazəsi                                                     */
 /* --------------------------------------------------------------------- */
 
-export function canManageBulletin(user) {
-    // Modulun konkret adminliyi backend-də (bulletin/permissions.py) yoxlanılır.
-    // Frontend yalnız superuser / qurum admini üçün düymələri göstərir;
-    // başqası cəhd etsə, backend 403 qaytaracaq.
-    return !!user?.is_superuser || !!user?.is_org_admin;
+/**
+ * Superuser və qurum admini həmişə idarə edə bilir - bunu dərhal (sorğu
+ * gözləmədən) bilirik, çünki bu məlumat artıq `user` obyektindədir.
+ * Amma modulun KONKRET admini (Module.admin_users - məsələn, kimsə yalnız
+ * "Elanlar" modulunun admini təyin edilib, superuser/qurum admini deyil) bu
+ * məlumatı frontend-in əlində olmayıb - bunun üçün backend-dən soruşuruq
+ * (bax: GET /bulletin/permissions/ -> BulletinPermissionsView).
+ */
+export function useCanManageBulletin() {
+    const user = useAppSelector((state) => state.user);
+    const knownManager = !!user?.is_superuser || !!user?.is_org_admin;
+
+    const [moduleAdmin, setModuleAdmin] = useState(false);
+    const [checked, setChecked] = useState(false);
+
+    useEffect(() => {
+        let cancelled = false;
+        // Artıq bildiyimiz halda (superuser/qurum admini) əlavə sorğuya
+        // ehtiyac yoxdur - amma yenə də arxa planda yoxlayırıq ki, nəticə
+        // hər zaman backend ilə üst-üstə düşsün.
+        (async () => {
+            try {
+                const res = await service_api.get(NEXT_API_ENDPOINTS.BULLETIN.PERMISSIONS);
+                if (!cancelled) setModuleAdmin(!!res.data?.can_manage);
+            } catch (err) {
+                // Sorğu uğursuz olsa, ən azı bildiyimiz (superuser/qurum admini)
+                // vəziyyətdə qalırıq - istifadəçini kor-koranə əlavə funksiyalara
+                // buraxmırıq, amma tamamilə kilidləmirik.
+            } finally {
+                if (!cancelled) setChecked(true);
+            }
+        })();
+        return () => { cancelled = true; };
+    }, [user?.id]);
+
+    return {
+        canManage: knownManager || moduleAdmin,
+        // Yalnız superuser/qurum admini olmayan, amma modul admini ola bilən
+        // istifadəçilər üçün faydalıdır - lazım olarsa skeleton göstərmək üçün.
+        checking: !knownManager && !checked,
+    };
 }

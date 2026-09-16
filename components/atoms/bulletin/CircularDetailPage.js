@@ -22,7 +22,7 @@ import {handleError} from "@/app/utils";
 import {NEXT_API_ENDPOINTS} from "@/app/urls";
 import {service_api} from "@/app/service";
 import {
-    C, CATEGORY_MAP, CircularFormDialog, EmptyState, canManageBulletin, dialogPaperSx,
+    C, CategoryIcon, CircularFormDialog, EmptyState, useBulletinCategories, useCanManageBulletin, dialogPaperSx,
     formatFull, normalizeList, pageWrapSx, panelSx, primaryButtonSx, softButtonSx,
 } from "./bulletinShared";
 
@@ -40,7 +40,8 @@ export default function CircularDetailPage({id}) {
     const router = useRouter();
     const user = useAppSelector((state) => state.user);
     const isRoot = !!user?.is_superuser;
-    const canManage = canManageBulletin(user);
+    const {canManage} = useCanManageBulletin();
+    const {categories} = useBulletinCategories();
 
     const [item, setItem] = useState(null);
     const [related, setRelated] = useState([]);
@@ -99,7 +100,7 @@ export default function CircularDetailPage({id}) {
     }, [isRoot]);
 
     const sameCategory = useMemo(() => related
-        .filter((c) => String(c.id) !== String(id) && c.category === item?.category)
+        .filter((c) => String(c.id) !== String(id) && c.category_key === item?.category_key)
         .slice(0, 6), [related, id, item]);
 
     const isPdf = useMemo(() => {
@@ -158,14 +159,12 @@ export default function CircularDetailPage({id}) {
         );
     }
 
-    const cat = CATEGORY_MAP[item.category];
-
     return (
         <Box sx={pageWrapSx}>
-            <Button component={Link} href={`/elanlar/senedler?category=${item.category || ''}`}
+            <Button component={Link} href={`/elanlar/senedler?category=${item.category_key || ''}`}
                     startIcon={<ArrowBackIcon sx={{fontSize: 13}}/>}
                     sx={{textTransform: 'none', color: C.inkMuted, mb: 2, fontSize: 13}}>
-                {cat ? cat.plural : 'Sənədlər'}
+                {item.category_label ? `${item.category_label} sənədləri` : 'Sənədlər'}
             </Button>
 
             <Grid container spacing={3}>
@@ -177,10 +176,10 @@ export default function CircularDetailPage({id}) {
                                 backgroundColor: C.goldTint, color: C.gold,
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                             }}>
-                                {cat ? cat.icon : <DescriptionOutlinedIcon sx={{fontSize: 18}}/>}
+                                <CategoryIcon icon={item.category_icon}/>
                             </Box>
                             <Typography sx={{fontSize: 12.5, fontWeight: 700, color: C.gold}}>
-                                {cat ? cat.label : 'Sənəd'}
+                                {item.category_label || 'Sənəd'}
                             </Typography>
                         </Box>
 
@@ -286,7 +285,8 @@ export default function CircularDetailPage({id}) {
 
             <CircularFormDialog
                 open={editOpen} onClose={() => setEditOpen(false)} onSaved={load}
-                defaultCategory={item.category} isRoot={isRoot} organizations={organizations} initial={item}
+                categories={categories} defaultCategoryId={item.category}
+                isRoot={isRoot} organizations={organizations} initial={item}
             />
 
             <Dialog open={confirmOpen} onClose={() => !deleting && setConfirmOpen(false)} maxWidth="xs" fullWidth

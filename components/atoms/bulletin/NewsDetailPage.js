@@ -18,20 +18,18 @@ import PrintOutlinedIcon from '@mui/icons-material/PrintOutlined';
 import NewspaperOutlinedIcon from '@mui/icons-material/NewspaperOutlined';
 import ScheduleOutlinedIcon from '@mui/icons-material/ScheduleOutlined';
 import {useSnackbar} from "notistack";
-import {useAppSelector} from "@/lib/hooks";
 import {handleError} from "@/app/utils";
 import {NEXT_API_ENDPOINTS} from "@/app/urls";
 import {service_api} from "@/app/service";
 import {
-    C, EmptyState, NewsFormDialog, canManageBulletin, dialogPaperSx, formatFull,
+    C, EmptyState, NewsFormDialog, useCanManageBulletin, dialogPaperSx, formatFull,
     normalizeList, pageWrapSx, panelSx, primaryButtonSx, readingTime, softButtonSx,
 } from "./bulletinShared";
 
 export default function NewsDetailPage({id}) {
     const {enqueueSnackbar} = useSnackbar();
     const router = useRouter();
-    const user = useAppSelector((state) => state.user);
-    const canManage = canManageBulletin(user);
+    const {canManage} = useCanManageBulletin();
 
     const [item, setItem] = useState(null);
     const [others, setOthers] = useState([]);

@@ -19,10 +19,12 @@ import {useAppSelector} from "@/lib/hooks";
 import {handleError} from "@/app/utils";
 import {NEXT_API_ENDPOINTS} from "@/app/urls";
 import {service_api} from "@/app/service";
+import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 import CardSlider from "./CardSlider";
+import CategoryManagerDialog from "./CategoryManagerDialog";
 import {
-    C, CATEGORIES, CircularFormDialog, EmptyState, NewsFormDialog,
-    canManageBulletin, formatDay, formatFull, initials,
+    C, CategoryIcon, CircularFormDialog, EmptyState, NewsFormDialog,
+    useBulletinCategories, useCanManageBulletin, formatDay, formatFull, initials,
     normalizeList, pageWrapSx, panelSx, softButtonSx,
 } from "./bulletinShared";
 
@@ -131,7 +133,7 @@ function NewsSlide({item}) {
     );
 }
 
-function CircularSlide({item, category}) {
+function CircularSlide({item}) {
     return (
         <Box sx={{
             display: 'flex', flexDirection: 'column', height: '100%',
@@ -217,32 +219,50 @@ function BirthdaySlide({person}) {
 /*  Sol sütun - Fərman / Sərəncam / Daxili qayda, alt-alta ayrıca slaydlar */
 /* ===================================================================== */
 
-function CircularsColumn({circulars, canManage, isRoot, organizations, onRefresh}) {
-    const [dialogCategory, setDialogCategory] = useState(null);
+function CircularsColumn({circulars, categories, categoriesLoading, canManage, isRoot, organizations, onRefresh, onCategoriesChanged}) {
+    const [dialogCategoryId, setDialogCategoryId] = useState(null);
+    const [managerOpen, setManagerOpen] = useState(false);
 
     return (
         <Box sx={{display: 'flex', flexDirection: 'column', gap: 2, height: '100%'}}>
-            {CATEGORIES.map((cat) => {
-                const list = circulars?.[cat.value] || [];
+            {canManage && (
+                <Button size="small" startIcon={<SettingsOutlinedIcon sx={{fontSize: 16}}/>}
+                        onClick={() => setManagerOpen(true)}
+                        sx={{...softButtonSx, alignSelf: 'flex-start', fontSize: 11.5, py: 0.5}}>
+                    Kateqoriyalar
+                </Button>
+            )}
+
+            {!categoriesLoading && categories.length === 0 && (
+                <Box sx={panelSx}>
+                    <EmptyState
+                        title="Hələ kateqoriya yaradılmayıb"
+                        hint={canManage ? '"Kateqoriyalar" düyməsi ilə ilk növü (məs. Fərman) əlavə edin.' : 'Kateqoriyalar tezliklə əlavə olunacaq.'}
+                    />
+                </Box>
+            )}
+
+            {categories.map((cat) => {
+                const list = circulars?.[cat.key] || [];
                 return (
-                    <Box key={cat.value} sx={{...panelSx, flex: 1}}>
+                    <Box key={cat.id} sx={{...panelSx, flex: 1}}>
                         <CardSlider
                             items={list}
                             height={DOC_SLIDE_H}
-                            emptyState={<EmptyState title="Bu bölmədə sənəd yoxdur" hint={cat.hint}/>}
+                            emptyState={<EmptyState title="Bu bölmədə sənəd yoxdur" hint={cat.description}/>}
                             headerSlot={(
                                 <PanelTitle
-                                    icon={cat.icon}
-                                    title={cat.plural}
+                                    icon={<CategoryIcon icon={cat.icon}/>}
+                                    title={cat.plural_label || cat.label}
                                     count={list.length}
-                                    onAdd={canManage ? () => setDialogCategory(cat.value) : null}
+                                    onAdd={canManage ? () => setDialogCategoryId(cat.id) : null}
                                     addLabel={`${cat.label} əlavə et`}
                                 />
                             )}
-                            renderItem={(item) => <CircularSlide item={item} category={cat}/>}
+                            renderItem={(item) => <CircularSlide item={item}/>}
                             footerSlot={(
                                 <Button fullWidth size="small" component={Link}
-                                        href={`/elanlar/senedler?category=${cat.value}`}
+                                        href={`/elanlar/senedler?category=${cat.key}`}
                                         sx={{...softButtonSx, fontSize: 11.5, py: 0.6}}>
                                     {list.length > 1 ? `Hamısına bax (${list.length})` : 'Bölməyə keç'}
                                 </Button>
@@ -253,12 +273,21 @@ function CircularsColumn({circulars, canManage, isRoot, organizations, onRefresh
             })}
 
             <CircularFormDialog
-                open={!!dialogCategory}
-                onClose={() => setDialogCategory(null)}
+                open={!!dialogCategoryId}
+                onClose={() => setDialogCategoryId(null)}
                 onSaved={onRefresh}
-                defaultCategory={dialogCategory || 'ferman'}
+                categories={categories}
+                defaultCategoryId={dialogCategoryId}
                 isRoot={isRoot}
                 organizations={organizations}
+            />
+
+            <CategoryManagerDialog
+                open={managerOpen}
+                onClose={() => setManagerOpen(false)}
+                categories={categories}
+                loading={categoriesLoading}
+                onChanged={() => { onCategoriesChanged(); onRefresh(); }}
             />
         </Box>
     );
@@ -272,7 +301,8 @@ export default function BulletinBoard() {
     const {enqueueSnackbar} = useSnackbar();
     const user = useAppSelector((state) => state.user);
     const isRoot = !!user?.is_superuser;
-    const canManage = canManageBulletin(user);
+    const {canManage} = useCanManageBulletin();
+    const {categories, loading: categoriesLoading, reload: reloadCategories} = useBulletinCategories();
 
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -337,8 +367,9 @@ export default function BulletinBoard() {
                 {/* Sol - normativ sənədlər, alt-alta üç panel */}
                 <Grid item xs={12} md={3}>
                     <CircularsColumn
-                        circulars={data?.circulars} canManage={canManage} isRoot={isRoot}
-                        organizations={organizations} onRefresh={load}
+                        circulars={data?.circulars} categories={categories} categoriesLoading={categoriesLoading}
+                        canManage={canManage} isRoot={isRoot} organizations={organizations}
+                        onRefresh={load} onCategoriesChanged={reloadCategories}
                     />
                 </Grid>
 

@@ -13,12 +13,11 @@ import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
 import NewspaperOutlinedIcon from '@mui/icons-material/NewspaperOutlined';
 import {useSnackbar} from "notistack";
-import {useAppSelector} from "@/lib/hooks";
 import {handleError} from "@/app/utils";
 import {NEXT_API_ENDPOINTS} from "@/app/urls";
 import {service_api} from "@/app/service";
 import {
-    C, EmptyState, NewsFormDialog, canManageBulletin, dayNumber, formatFull,
+    C, EmptyState, NewsFormDialog, useCanManageBulletin, dayNumber, formatFull,
     fieldSx, monthShort, normalizeList, pageWrapSx, panelSx, softButtonSx,
 } from "./bulletinShared";
 
@@ -82,8 +81,7 @@ function NewsCard({item}) {
 
 export default function NewsListPage() {
     const {enqueueSnackbar} = useSnackbar();
-    const user = useAppSelector((state) => state.user);
-    const canManage = canManageBulletin(user);
+    const {canManage} = useCanManageBulletin();
 
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(true);

@@ -18,18 +18,19 @@ import SearchIcon from '@mui/icons-material/Search';
 import DownloadOutlinedIcon from '@mui/icons-material/DownloadOutlined';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import FolderOutlinedIcon from '@mui/icons-material/FolderOutlined';
+import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 import {useSnackbar} from "notistack";
 import {useAppSelector} from "@/lib/hooks";
 import {handleError} from "@/app/utils";
 import {NEXT_API_ENDPOINTS} from "@/app/urls";
 import {service_api} from "@/app/service";
+import CategoryManagerDialog from "./CategoryManagerDialog";
 import {
-    C, CATEGORIES, CATEGORY_MAP, CircularFormDialog, EmptyState, canManageBulletin,
+    C, CategoryIcon, CircularFormDialog, EmptyState, useBulletinCategories, useCanManageBulletin,
     dayNumber, fieldSx, formatFull, monthShort, normalizeList, pageWrapSx, panelSx, softButtonSx,
 } from "./bulletinShared";
 
 function CircularRow({item, canManage, onDelete, deleting}) {
-    const cat = CATEGORY_MAP[item.category];
     return (
         <Box sx={{
             display: 'flex', alignItems: 'flex-start', gap: 1.75, p: 2,
@@ -58,8 +59,8 @@ function CircularRow({item, canManage, onDelete, deleting}) {
                     </Typography>
                 </Box>
                 <Box sx={{display: 'flex', alignItems: 'center', gap: 1.25, mt: 0.6, flexWrap: 'wrap'}}>
-                    {cat && (
-                        <Chip label={cat.label} size="small"
+                    {item.category_label && (
+                        <Chip label={item.category_label} size="small"
                               sx={{height: 19, fontSize: 10, fontWeight: 700, backgroundColor: C.goldTint, color: C.goldDeep}}/>
                     )}
                     {item.number && (
@@ -103,19 +104,29 @@ export default function CircularsListPage({initialCategory}) {
     const {enqueueSnackbar} = useSnackbar();
     const user = useAppSelector((state) => state.user);
     const isRoot = !!user?.is_superuser;
-    const canManage = canManageBulletin(user);
+    const {canManage} = useCanManageBulletin();
+    const {categories, loading: categoriesLoading, reload: reloadCategories} = useBulletinCategories();
 
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(true);
     const [organizations, setOrganizations] = useState([]);
-    const [category, setCategory] = useState(
-        CATEGORY_MAP[initialCategory] ? initialCategory : 'all'
-    );
+    const [category, setCategory] = useState(initialCategory || 'all');
     const [search, setSearch] = useState('');
     const [year, setYear] = useState('all');
     const [order, setOrder] = useState('new');
-    const [dialogCategory, setDialogCategory] = useState(null);
+    const [dialogCategoryId, setDialogCategoryId] = useState(null);
+    const [managerOpen, setManagerOpen] = useState(false);
     const [deletingId, setDeletingId] = useState(null);
+
+    // Kateqoriyalar yüklənəndən sonra URL-dəki `?category=` açarının həqiqətən
+    // mövcud olduğunu yoxlayırıq - olmayan/silinmiş açar "Hamısı"na düşür.
+    useEffect(() => {
+        if (categoriesLoading) return;
+        if (category !== 'all' && !categories.some((c) => c.key === category)) {
+            setCategory('all');
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [categoriesLoading, categories]);
 
     const load = useCallback(async () => {
         setLoading(true);
@@ -155,17 +166,17 @@ export default function CircularsListPage({initialCategory}) {
 
     const counts = useMemo(() => {
         const res = {all: items.length};
-        CATEGORIES.forEach((c) => {
-            res[c.value] = items.filter((i) => i.category === c.value).length;
+        categories.forEach((c) => {
+            res[c.key] = items.filter((i) => i.category_key === c.key).length;
         });
         return res;
-    }, [items]);
+    }, [items, categories]);
 
     const filtered = useMemo(() => {
         const q = search.trim().toLowerCase();
         return items
             .filter((c) => {
-                if (category !== 'all' && c.category !== category) return false;
+                if (category !== 'all' && c.category_key !== category) return false;
                 if (q && !((c.title || '').toLowerCase().includes(q) || String(c.number || '').toLowerCase().includes(q))) return false;
                 if (year === 'all') return true;
                 const d = c.document_date ? new Date(c.document_date) : null;
@@ -191,7 +202,15 @@ export default function CircularsListPage({initialCategory}) {
         }
     }
 
-    const chips = [{value: 'all', label: 'Hamısı'}, ...CATEGORIES.map((c) => ({value: c.value, label: c.plural}))];
+    const chips = [
+        {value: 'all', label: 'Hamısı'},
+        ...categories.map((c) => ({value: c.key, label: c.plural_label || c.label})),
+    ];
+
+    function openCreateDialog() {
+        const target = category !== 'all' ? categories.find((c) => c.key === category) : null;
+        setDialogCategoryId((target || categories[0])?.id || null);
+    }
 
     return (
         <Box sx={pageWrapSx}>
@@ -242,10 +261,14 @@ export default function CircularsListPage({initialCategory}) {
                     <MenuItem value="old">Əvvəlcə köhnələr</MenuItem>
                 </TextField>
                 {canManage && (
-                    <Button startIcon={<AddIcon/>}
-                            onClick={() => setDialogCategory(category === 'all' ? 'ferman' : category)}
-                            sx={{...softButtonSx, py: 1}}>
+                    <Button startIcon={<AddIcon/>} onClick={openCreateDialog} sx={{...softButtonSx, py: 1}}>
                         Yeni sənəd
+                    </Button>
+                )}
+                {canManage && (
+                    <Button startIcon={<SettingsOutlinedIcon sx={{fontSize: 16}}/>} onClick={() => setManagerOpen(true)}
+                            sx={{...softButtonSx, py: 1, backgroundColor: 'transparent', border: `1px solid ${C.line}`, color: C.ink}}>
+                        Kateqoriyalar
                     </Button>
                 )}
             </Box>
@@ -255,7 +278,11 @@ export default function CircularsListPage({initialCategory}) {
                     <Box sx={panelSx}>
                         <Box sx={{px: 2, py: 1.75, display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}>
                             <Typography sx={{fontSize: 14.5, fontWeight: 700, color: C.ink}}>
-                                {category === 'all' ? 'Bütün sənədlər' : CATEGORY_MAP[category].plural}
+                                {category === 'all'
+                                    ? 'Bütün sənədlər'
+                                    : (categories.find((c) => c.key === category)?.plural_label
+                                        || categories.find((c) => c.key === category)?.label
+                                        || 'Sənədlər')}
                             </Typography>
                             <Typography sx={{fontSize: 12, color: C.inkFaint}}>
                                 {loading ? 'Yüklənir...' : `${filtered.length} nəticə`}
@@ -284,8 +311,12 @@ export default function CircularsListPage({initialCategory}) {
                         <Typography sx={{fontSize: 14.5, fontWeight: 700, color: C.ink, mb: 1.5}}>
                             Bölmələr
                         </Typography>
-                        {CATEGORIES.map((c, idx) => (
-                            <Box key={c.value} onClick={() => setCategory(c.value)}
+                        {categoriesLoading ? (
+                            <Typography sx={{fontSize: 12.5, color: C.inkFaint, py: 2}}>Yüklənir...</Typography>
+                        ) : categories.length === 0 ? (
+                            <Typography sx={{fontSize: 12.5, color: C.inkFaint, py: 2}}>Hələ kateqoriya yoxdur.</Typography>
+                        ) : categories.map((c, idx) => (
+                            <Box key={c.id} onClick={() => setCategory(c.key)}
                                  sx={{
                                      display: 'flex', gap: 1.25, alignItems: 'flex-start', py: 1.5, cursor: 'pointer',
                                      borderTop: idx === 0 ? 'none' : `1px solid ${C.line}`,
@@ -295,14 +326,14 @@ export default function CircularsListPage({initialCategory}) {
                                     backgroundColor: C.goldTint, color: C.gold,
                                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                                 }}>
-                                    {c.icon}
+                                    <CategoryIcon icon={c.icon}/>
                                 </Box>
                                 <Box sx={{minWidth: 0, flex: 1}}>
                                     <Typography sx={{fontSize: 13.5, fontWeight: 600, color: C.ink}}>
-                                        {c.plural} · {counts[c.value] ?? 0}
+                                        {c.plural_label || c.label} · {counts[c.key] ?? 0}
                                     </Typography>
                                     <Typography sx={{fontSize: 11.5, color: C.inkFaint, lineHeight: 1.4, mt: 0.2}}>
-                                        {c.hint}
+                                        {c.description}
                                     </Typography>
                                 </Box>
                             </Box>
@@ -315,12 +346,21 @@ export default function CircularsListPage({initialCategory}) {
             </Grid>
 
             <CircularFormDialog
-                open={!!dialogCategory}
-                onClose={() => setDialogCategory(null)}
+                open={!!dialogCategoryId}
+                onClose={() => setDialogCategoryId(null)}
                 onSaved={load}
-                defaultCategory={dialogCategory || 'ferman'}
+                categories={categories}
+                defaultCategoryId={dialogCategoryId}
                 isRoot={isRoot}
                 organizations={organizations}
+            />
+
+            <CategoryManagerDialog
+                open={managerOpen}
+                onClose={() => setManagerOpen(false)}
+                categories={categories}
+                loading={categoriesLoading}
+                onChanged={() => { reloadCategories(); load(); }}
             />
         </Box>
     );

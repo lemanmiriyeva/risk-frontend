@@ -5,24 +5,14 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="82004209-f401-44a9-ba85-a455e4c04d94" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/app/api/bulletin/birthdays/route.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/api/bulletin/circulars/[id]/route.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/api/bulletin/circulars/route.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/api/bulletin/dashboard/route.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/api/bulletin/news/[id]/route.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/api/bulletin/news/route.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/elanlar/page.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/components/atoms/bulletin/BirthdaysPage.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/components/atoms/bulletin/BulletinBoard.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/components/atoms/bulletin/CardSlider.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/components/atoms/bulletin/CircularDetailPage.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/components/atoms/bulletin/CircularsListPage.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/components/atoms/bulletin/NewsDetailPage.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/components/atoms/bulletin/NewsListPage.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/components/atoms/bulletin/bulletinShared.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/components/atoms/bulletin/CategoryManagerDialog.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/api/utils.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/api/utils.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/page.js" beforeDir="false" afterPath="$PROJECT_DIR$/app/page.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/atoms/bulletin/BulletinBoard.js" beforeDir="false" afterPath="$PROJECT_DIR$/components/atoms/bulletin/BulletinBoard.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/atoms/bulletin/CircularDetailPage.js" beforeDir="false" afterPath="$PROJECT_DIR$/components/atoms/bulletin/CircularDetailPage.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/atoms/bulletin/CircularsListPage.js" beforeDir="false" afterPath="$PROJECT_DIR$/components/atoms/bulletin/CircularsListPage.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/atoms/bulletin/NewsDetailPage.js" beforeDir="false" afterPath="$PROJECT_DIR$/components/atoms/bulletin/NewsDetailPage.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/atoms/bulletin/NewsListPage.js" beforeDir="false" afterPath="$PROJECT_DIR$/components/atoms/bulletin/NewsListPage.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/atoms/bulletin/bulletinShared.js" beforeDir="false" afterPath="$PROJECT_DIR$/components/atoms/bulletin/bulletinShared.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -116,6 +106,7 @@
       <workItem from="1787742938227" duration="748000" />
       <workItem from="1787807707142" duration="6079000" />
       <workItem from="1789451396559" duration="12776000" />
+      <workItem from="1789537642173" duration="1073000" />
     </task>
     <servers />
   </component>

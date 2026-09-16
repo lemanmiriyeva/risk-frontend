@@ -286,6 +286,35 @@ export default function AttendancePermissionConfigPage() {
 
     /*
     |--------------------------------------------------------------------------
+    | ŞÖBƏ MÜDİRİ YOXDURSA - REJİM (ƏVƏZLƏYİCİ / BİRBAŞA APARAT RƏHBƏRİ)
+    |--------------------------------------------------------------------------
+    */
+
+    const handleNoManagerFallbackChange = (departmentId, value) => {
+
+        setDepartments((current) => {
+
+            return current.map((item) => {
+
+                if (item.department !== departmentId) {
+                    return item;
+                }
+
+                return {
+                    ...item,
+
+                    no_manager_fallback: value,
+                };
+
+            });
+
+        });
+
+    };
+
+
+    /*
+    |--------------------------------------------------------------------------
     | ƏVƏZLƏYİCİ SEÇ
     |--------------------------------------------------------------------------
     */
@@ -335,9 +364,17 @@ export default function AttendancePermissionConfigPage() {
          * əvəzləyici mütləq olmalıdır.
          */
 
-        if (!department.manager_enabled && !department.replacement_user) {
+        const noManagerFallback = department.no_manager_fallback || "replacement";
 
-            setError(`${department.department_name} üçün şöbə müdiri deaktivdir. Əvəzləyici şəxs seçilməlidir.`);
+        /*
+         * Əvəzləyici YALNIZ "replacement" rejimində məcburidir.
+         * "apparatus" rejimində 1-ci mərhələ tamamilə söndürülür,
+         * sorğu birbaşa Aparat rəhbərinə gedir.
+         */
+
+        if (!department.manager_enabled && noManagerFallback === "replacement" && !department.replacement_user) {
+
+            setError(`${department.department_name} üçün şöbə müdiri deaktivdir. Əvəzləyici şəxs seçin və ya "Birbaşa Aparat rəhbəri" rejimini təyin edin.`);
 
             return;
         }
@@ -354,6 +391,8 @@ export default function AttendancePermissionConfigPage() {
                 manager_enabled: department.manager_enabled,
 
                 replacement_user: department.replacement_user,
+
+                no_manager_fallback: noManagerFallback,
             });
 
 
@@ -1025,6 +1064,49 @@ export default function AttendancePermissionConfigPage() {
 
                                     {managerDisabled ? (
 
+                                      <Box sx={{display: "flex", flexDirection: "column", gap: 0.75}}>
+
+                                        {/* Şöbə müdiri söndürülüb - sorğu kimə getsin? */}
+                                        <FormControl fullWidth size="small">
+
+                                            <Select
+                                                value={department.no_manager_fallback || "replacement"}
+
+                                                onChange={(event) => handleNoManagerFallbackChange(department.department, event.target.value)}
+
+                                                sx={{
+                                                    fontSize: 12.5,
+
+                                                    borderRadius: "8px",
+                                                }}
+                                            >
+
+                                                <MenuItem value="replacement">
+                                                    Əvəzləyici şəxs (1-ci mərhələ)
+                                                </MenuItem>
+
+                                                <MenuItem value="apparatus">
+                                                    Birbaşa Aparat rəhbəri
+                                                </MenuItem>
+
+                                            </Select>
+
+                                        </FormControl>
+
+                                        {(department.no_manager_fallback || "replacement") === "apparatus" ? (
+
+                                            <Typography
+                                                sx={{
+                                                    fontSize: 11.5,
+
+                                                    color: colors.lightText,
+                                                }}
+                                            >
+                                                1-ci mərhələ söndürülüb - sorğu birbaşa Aparat rəhbərinə gedir.
+                                            </Typography>
+
+                                        ) : (
+
                                         <FormControl
                                             fullWidth
                                             size="small"
@@ -1070,6 +1152,10 @@ export default function AttendancePermissionConfigPage() {
                                             </Select>
 
                                         </FormControl>
+
+                                        )}
+
+                                      </Box>
 
                                     ) : (
 

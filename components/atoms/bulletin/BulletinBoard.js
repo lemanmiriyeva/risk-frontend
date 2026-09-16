@@ -219,13 +219,15 @@ function BirthdaySlide({person}) {
 /*  Sol sütun - Fərman / Sərəncam / Daxili qayda, alt-alta ayrıca slaydlar */
 /* ===================================================================== */
 
-function CircularsColumn({circulars, categories, categoriesLoading, canManage, isRoot, organizations, onRefresh, onCategoriesChanged}) {
+function CircularsColumn({circulars, categories, categoriesLoading, canManage, canManageCategories, isRoot, organizations, onRefresh, onCategoriesChanged}) {
     const [dialogCategoryId, setDialogCategoryId] = useState(null);
     const [managerOpen, setManagerOpen] = useState(false);
 
     return (
         <Box sx={{display: 'flex', flexDirection: 'column', gap: 2, height: '100%'}}>
-            {canManage && (
+            {/* Kateqoriya idarəetməsi yalnız modulun öz admini üçündür -
+                qurum admini sənəd əlavə edə bilir, amma kateqoriya yarada bilmir. */}
+            {canManageCategories && (
                 <Button size="small" startIcon={<SettingsOutlinedIcon sx={{fontSize: 16}}/>}
                         onClick={() => setManagerOpen(true)}
                         sx={{...softButtonSx, alignSelf: 'flex-start', fontSize: 11.5, py: 0.5}}>
@@ -237,7 +239,7 @@ function CircularsColumn({circulars, categories, categoriesLoading, canManage, i
                 <Box sx={panelSx}>
                     <EmptyState
                         title="Hələ kateqoriya yaradılmayıb"
-                        hint={canManage ? '"Kateqoriyalar" düyməsi ilə ilk növü (məs. Fərman) əlavə edin.' : 'Kateqoriyalar tezliklə əlavə olunacaq.'}
+                        hint={canManageCategories ? '"Kateqoriyalar" düyməsi ilə ilk növü (məs. Fərman) əlavə edin.' : 'Kateqoriyalar tezliklə əlavə olunacaq.'}
                     />
                 </Box>
             )}
@@ -301,7 +303,7 @@ export default function BulletinBoard() {
     const {enqueueSnackbar} = useSnackbar();
     const user = useAppSelector((state) => state.user);
     const isRoot = !!user?.is_superuser;
-    const {canManage} = useCanManageBulletin();
+    const {canManage, canManageCategories} = useCanManageBulletin();
     const {categories, loading: categoriesLoading, reload: reloadCategories} = useBulletinCategories();
 
     const [data, setData] = useState(null);
@@ -368,7 +370,8 @@ export default function BulletinBoard() {
                 <Grid item xs={12} md={3}>
                     <CircularsColumn
                         circulars={data?.circulars} categories={categories} categoriesLoading={categoriesLoading}
-                        canManage={canManage} isRoot={isRoot} organizations={organizations}
+                        canManage={canManage} canManageCategories={canManageCategories}
+                        isRoot={isRoot} organizations={organizations}
                         onRefresh={load} onCategoriesChanged={reloadCategories}
                     />
                 </Grid>

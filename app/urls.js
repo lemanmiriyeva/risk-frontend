@@ -51,8 +51,11 @@ export const DJANGO_API_ENDPOINTS = {
         REVIEW: API_URL + "/api/attendance-permissions/",
         CONFIG: API_URL + "/api/attendance-permissions/config/",
         CONFIG_USERS: API_URL + "/api/attendance-permissions/config/users/",
-        CONFIG_DEPARTMENT: (id) =>API_URL + `/api/attendance-permissions/config/departments/${id}/`
+        CONFIG_DEPARTMENT: (id) =>API_URL + `/api/attendance-permissions/config/departments/${id}/`,
 
+        LEAVE_PERIODS: API_URL + "/api/attendance-permissions/my-leave-periods/",
+        LEAVE_PERIOD_DETAIL: (id) => API_URL + `/api/attendance-permissions/my-leave-periods/${id}/`,
+        LEAVE_ELIGIBILITY: API_URL + "/api/attendance-permissions/my-leave-periods/eligibility/",
     },
     NOTIFICATIONS: {
         LIST: API_URL + "/api/notifications/",
@@ -134,6 +137,10 @@ export const NEXT_API_ENDPOINTS = {
         CONFIG_USERS: "attendance-permissions/config/users/",
         CONFIG_DEPARTMENT: (id) =>
             `/attendance-permissions/config/departments/${id}/`,
+
+        LEAVE_PERIODS: "attendance-permissions/leave-periods/",
+        LEAVE_PERIOD_DETAIL: (id) => `attendance-permissions/leave-periods/${id}/`,
+        LEAVE_ELIGIBILITY: "attendance-permissions/leave-periods/eligibility/",
     },
     NOTIFICATIONS: {
         LIST: "notifications/",

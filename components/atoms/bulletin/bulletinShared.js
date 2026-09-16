@@ -505,6 +505,10 @@ export function useCanManageBulletin() {
     const knownManager = !!user?.is_superuser || !!user?.is_org_admin;
 
     const [moduleAdmin, setModuleAdmin] = useState(false);
+    // Kateqoriya idarəetməsi daha dar səlahiyyətdir: yalnız modulun öz admini
+    // (və superuser). Qurum admini sənəd/xəbər yarada bilir, amma kateqoriya
+    // siyahısına toxuna bilmir - ona görə ayrıca bayraq saxlanılır.
+    const [categoryManager, setCategoryManager] = useState(false);
     const [checked, setChecked] = useState(false);
 
     useEffect(() => {
@@ -515,7 +519,10 @@ export function useCanManageBulletin() {
         (async () => {
             try {
                 const res = await service_api.get(NEXT_API_ENDPOINTS.BULLETIN.PERMISSIONS);
-                if (!cancelled) setModuleAdmin(!!res.data?.can_manage);
+                if (!cancelled) {
+                    setModuleAdmin(!!res.data?.can_manage);
+                    setCategoryManager(!!res.data?.can_manage_categories);
+                }
             } catch (err) {
                 // Sorğu uğursuz olsa, ən azı bildiyimiz (superuser/qurum admini)
                 // vəziyyətdə qalırıq - istifadəçini kor-koranə əlavə funksiyalara
@@ -529,6 +536,9 @@ export function useCanManageBulletin() {
 
     return {
         canManage: knownManager || moduleAdmin,
+        // Kateqoriya əlavə/redaktə - YALNIZ modul admini və superuser.
+        // Qurum admini bura daxil DEYİL (bax: BulletinCategoryPermission).
+        canManageCategories: !!user?.is_superuser || categoryManager,
         // Yalnız superuser/qurum admini olmayan, amma modul admini ola bilən
         // istifadəçilər üçün faydalıdır - lazım olarsa skeleton göstərmək üçün.
         checking: !knownManager && !checked,

@@ -104,7 +104,7 @@ export default function CircularsListPage({initialCategory}) {
     const {enqueueSnackbar} = useSnackbar();
     const user = useAppSelector((state) => state.user);
     const isRoot = !!user?.is_superuser;
-    const {canManage} = useCanManageBulletin();
+    const {canManage, canManageCategories} = useCanManageBulletin();
     const {categories, loading: categoriesLoading, reload: reloadCategories} = useBulletinCategories();
 
     const [items, setItems] = useState([]);
@@ -265,7 +265,8 @@ export default function CircularsListPage({initialCategory}) {
                         Yeni sənəd
                     </Button>
                 )}
-                {canManage && (
+                {/* Kateqoriya idarəetməsi yalnız modul admini üçün */}
+                {canManageCategories && (
                     <Button startIcon={<SettingsOutlinedIcon sx={{fontSize: 16}}/>} onClick={() => setManagerOpen(true)}
                             sx={{...softButtonSx, py: 1, backgroundColor: 'transparent', border: `1px solid ${C.line}`, color: C.ink}}>
                         Kateqoriyalar

@@ -8,8 +8,10 @@ import Button from '@mui/material/Button';
 import CircularProgress from "@mui/material/CircularProgress";
 import Avatar from "@mui/material/Avatar";
 import Chip from "@mui/material/Chip";
-import Grid from "@mui/material/Grid";
 import Tooltip from "@mui/material/Tooltip";
+import Tabs from "@mui/material/Tabs";
+import Tab from "@mui/material/Tab";
+import useMediaQuery from "@mui/material/useMediaQuery";
 import {useSnackbar} from "notistack";
 
 import CameraAltOutlinedIcon from '@mui/icons-material/CameraAltOutlined';
@@ -25,6 +27,9 @@ import SaveOutlinedIcon from '@mui/icons-material/SaveOutlined';
 import VerifiedUserOutlinedIcon from '@mui/icons-material/VerifiedUserOutlined';
 import AccountTreeOutlinedIcon from '@mui/icons-material/AccountTreeOutlined';
 import WorkOutlineIcon from '@mui/icons-material/WorkOutline';
+import BeachAccessOutlinedIcon from '@mui/icons-material/BeachAccessOutlined';
+
+import LeavePeriodPanel from "@/components/atoms/LeavePeriodPanel";
 
 import {service_api} from "@/app/service";
 import {NEXT_API_ENDPOINTS} from "@/app/urls";
@@ -74,6 +79,9 @@ export default function Page() {
     const dispatch = useAppDispatch();
     const {enqueueSnackbar} = useSnackbar();
 
+    const [tab, setTab] = useState(0);
+    const isNarrow = useMediaQuery('(max-width:899px)');
+
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [errors, setErrors] = useState({});
@@ -96,6 +104,7 @@ export default function Page() {
     const [firstname, setFirstname] = useState('');
     const [lastname, setLastname] = useState('');
     const [phoneNumber, setPhoneNumber] = useState('');
+    const [workPhoneNumber, setWorkPhoneNumber] = useState('');
     const [birthDate, setBirthDate] = useState('');
     const [gender, setGender] = useState('');
 
@@ -114,6 +123,7 @@ export default function Page() {
         setFirstname(data.firstname || '');
         setLastname(data.lastname || '');
         setPhoneNumber(stripPhonePrefix(data.phone_number));
+        setWorkPhoneNumber(data.work_phone_number || '');
         setBirthDate(data.birth_date || '');
         setGender(data.gender || '');
         setDirty(false);
@@ -137,6 +147,9 @@ export default function Page() {
         const errs = {};
         if (!firstname.trim()) errs.firstname = 'Ad tələb olunur';
         if (!lastname.trim()) errs.lastname = 'Soyad tələb olunur';
+        if (workPhoneNumber && !/^\d{4}$/.test(workPhoneNumber)) {
+            errs.work_phone_number = 'Daxili nömrə düz 4 rəqəmdən ibarət olmalıdır';
+        }
         setErrors(errs);
         return Object.keys(errs).length === 0;
     }
@@ -181,6 +194,7 @@ export default function Page() {
                 firstname,
                 lastname,
                 phone_number: phoneNumber ? `${PHONE_PREFIX}${phoneNumber}` : null,
+                work_phone_number: workPhoneNumber || null,
                 birth_date: birthDate || null,
                 gender: gender || null,
             };
@@ -293,75 +307,98 @@ export default function Page() {
 
             {/* CONTENT */}
             <Box sx={{px: {xs: 2, md: 8}, mt: {xs: -6, md: -7}, position: 'relative', zIndex: 2}}>
-                <Grid container spacing={3} sx={{maxWidth: 1040, mx: 'auto'}}>
+                <Box sx={{
+                    maxWidth: 1100,
+                    mx: 'auto',
+                    backgroundColor: '#fff',
+                    borderRadius: 3,
+                    boxShadow: '0 20px 45px rgba(15, 23, 55, 0.08)',
+                    overflow: 'hidden',
+                    display: 'flex',
+                    flexDirection: {xs: 'column', md: 'row'},
+                    minHeight: 520,
+                }}>
 
-                    {/* Read-only account info */}
-                    <Grid item xs={12} md={5}>
-                        <Box sx={{
-                            backgroundColor: '#fff',
-                            borderRadius: 3,
-                            p: {xs: 3, sm: 4},
-                            boxShadow: '0 20px 45px rgba(15, 23, 55, 0.08)',
-                            height: '100%',
-                        }}>
-                            <Box sx={{display: 'flex', alignItems: 'center', gap: 1, mb: 0.5}}>
-                                <VerifiedUserOutlinedIcon sx={{fontSize: 18, color: '#9CA3AF'}}/>
+                    {/* VERTICAL TAB RAIL */}
+                    <Box sx={{
+                        borderRight: {md: '1px solid #E9ECF2'},
+                        borderBottom: {xs: '1px solid #E9ECF2', md: 'none'},
+                        backgroundColor: '#FAFBFD',
+                        width: {xs: '100%', md: 250},
+                        flexShrink: 0,
+                        py: {xs: 0, md: 2},
+                    }}>
+                        <Tabs
+                            orientation={isNarrow ? 'horizontal' : 'vertical'}
+                            variant={isNarrow ? 'scrollable' : 'standard'}
+                            scrollButtons={isNarrow ? 'auto' : false}
+                            value={tab}
+                            onChange={(e, v) => setTab(v)}
+                            TabIndicatorProps={{
+                                sx: {
+                                    backgroundColor: GOLD,
+                                    width: {md: 3},
+                                    height: {xs: 3, md: 'auto'},
+                                    left: {md: 0},
+                                },
+                            }}
+                            sx={{
+                                '& .MuiTab-root': {
+                                    textTransform: 'none',
+                                    alignItems: {md: 'flex-start'},
+                                    justifyContent: 'flex-start',
+                                    minHeight: 52,
+                                    fontSize: 13.5,
+                                    fontWeight: 600,
+                                    color: '#6B7280',
+                                    px: 2.5,
+                                    gap: 1.25,
+                                },
+                                '& .MuiTab-root.Mui-selected': {color: NAVY, backgroundColor: '#fff'},
+                            }}
+                        >
+                            <Tab
+                                iconPosition="start"
+                                icon={<PersonOutlineIcon sx={{fontSize: 19}}/>}
+                                label="Şəxsi məlumatlar"
+                            />
+                            <Tab
+                                iconPosition="start"
+                                icon={<VerifiedUserOutlinedIcon sx={{fontSize: 19}}/>}
+                                label="Hesab məlumatları"
+                            />
+                            <Tab
+                                iconPosition="start"
+                                icon={<WorkOutlineIcon sx={{fontSize: 19}}/>}
+                                label="İş məlumatları"
+                            />
+                            <Tab
+                                iconPosition="start"
+                                icon={<BeachAccessOutlinedIcon sx={{fontSize: 19}}/>}
+                                label="Məzuniyyət"
+                            />
+                        </Tabs>
+                    </Box>
+
+                    {/* TAB PANELS */}
+                    <Box sx={{flexGrow: 1, p: {xs: 3, sm: 4}, minWidth: 0}}>
+
+                        {/* --- TAB 1: editable personal / contact info --- */}
+                        <Box hidden={tab !== 0}>
+                            <Box component="form" onSubmit={handleSubmit}>
                                 <Typography sx={{
                                     fontSize: 12.5,
                                     fontWeight: 700,
-                                    color: '#9CA3AF',
+                                    color: NAVY,
                                     textTransform: 'uppercase',
-                                    letterSpacing: 0.5
+                                    letterSpacing: 0.5,
+                                    mb: 0.5
                                 }}>
-                                    Hesab məlumatları
+                                    Şəxsi və əlaqə məlumatları
                                 </Typography>
-                            </Box>
-                            <Typography sx={{fontSize: 12.5, color: '#B0B5BF', mb: 1}}>
-                                Bu sahələr yalnız sistem administratoru tərəfindən dəyişdirilə bilər.
-                            </Typography>
-
-                            <LockedField label="İstifadəçi adı" value={readOnly.username}
-                                         icon={<PersonOutlineIcon fontSize="small"/>}/>
-                            <LockedField label="Email" value={readOnly.email}
-                                         icon={<MailOutlineIcon fontSize="small"/>}/>
-                            <LockedField label="FIN kod" value={readOnly.fin_kod}
-                                         icon={<BadgeOutlinedIcon fontSize="small"/>}/>
-                            {readOnly.organization && (<LockedField label="Qurum" value={readOnly.organization.title}
-                                                                    icon={<ApartmentOutlinedIcon fontSize="small"/>}/>)}
-                            {readOnly.mainDepartment && (
-                                <LockedField label="Əsas departament" value={readOnly.mainDepartment}
-                                             icon={<AccountTreeOutlinedIcon fontSize="small"/>}/>)}
-                            {readOnly.department && (<LockedField label="Şöbə" value={readOnly.department}
-                                                                  icon={<AccountTreeOutlinedIcon fontSize="small"/>}/>)}
-                            {readOnly.role && (<LockedField label="Vəzifə" value={readOnly.role}
-                                                            icon={<WorkOutlineIcon fontSize="small"/>}/>)}
-                        </Box>
-                    </Grid>
-
-                    {/* Editable personal / contact info */}
-                    <Grid item xs={12} md={7}>
-                        <Box
-                            component="form" onSubmit={handleSubmit}
-                            sx={{
-                                backgroundColor: '#fff',
-                                borderRadius: 3,
-                                p: {xs: 3, sm: 4},
-                                boxShadow: '0 20px 45px rgba(15, 23, 55, 0.08)',
-                            }}
-                        >
-                            <Typography sx={{
-                                fontSize: 12.5,
-                                fontWeight: 700,
-                                color: NAVY,
-                                textTransform: 'uppercase',
-                                letterSpacing: 0.5,
-                                mb: 0.5
-                            }}>
-                                Şəxsi və əlaqə məlumatları
-                            </Typography>
-                            <Typography sx={{fontSize: 12.5, color: '#9CA3AF', mb: 1}}>
-                                Bu bölmədəki məlumatları özünüz yeniləyə bilərsiniz.
-                            </Typography>
+                                <Typography sx={{fontSize: 12.5, color: '#9CA3AF', mb: 1}}>
+                                    Bu bölmədəki məlumatları özünüz yeniləyə bilərsiniz.
+                                </Typography>
 
                             <TextField
                                 fullWidth margin="normal" label="Ad" disabled={saving}
@@ -468,9 +505,108 @@ export default function Page() {
                             >
                                 {saving ? <CircularProgress size={20} sx={{color: '#fff'}}/> : 'Yadda saxla'}
                             </Button>
+                            </Box>
                         </Box>
-                    </Grid>
-                </Grid>
+
+                        {/* --- TAB 2: read-only account info --- */}
+                        <Box hidden={tab !== 1}>
+                            <Typography sx={{
+                                fontSize: 12.5,
+                                fontWeight: 700,
+                                color: NAVY,
+                                textTransform: 'uppercase',
+                                letterSpacing: 0.5,
+                                mb: 0.5
+                            }}>
+                                Hesab məlumatları
+                            </Typography>
+                            <Typography sx={{fontSize: 12.5, color: '#9CA3AF', mb: 1}}>
+                                Bu sahələr yalnız sistem administratoru tərəfindən dəyişdirilə bilər.
+                            </Typography>
+
+                            <LockedField label="İstifadəçi adı" value={readOnly.username}
+                                         icon={<PersonOutlineIcon fontSize="small"/>}/>
+                            <LockedField label="Email" value={readOnly.email}
+                                         icon={<MailOutlineIcon fontSize="small"/>}/>
+                            <LockedField label="FIN kod" value={readOnly.fin_kod}
+                                         icon={<BadgeOutlinedIcon fontSize="small"/>}/>
+                        </Box>
+
+                        {/* --- TAB 3: work info (department, position, work phone, birthday) --- */}
+                        <Box hidden={tab !== 2}>
+                            <Typography sx={{
+                                fontSize: 12.5,
+                                fontWeight: 700,
+                                color: NAVY,
+                                textTransform: 'uppercase',
+                                letterSpacing: 0.5,
+                                mb: 0.5
+                            }}>
+                                İş məlumatları
+                            </Typography>
+                            <Typography sx={{fontSize: 12.5, color: '#9CA3AF', mb: 1}}>
+                                Departament və vəzifə sistem administratoru tərəfindən təyin olunur.
+                                Daxili telefon nömrəsini özünüz yeniləyə bilərsiniz.
+                            </Typography>
+
+                            <LockedField label="Qurum" value={readOnly.organization?.title || '—'}
+                                         icon={<ApartmentOutlinedIcon fontSize="small"/>}/>
+                            <LockedField label="Əsas departament" value={readOnly.mainDepartment || '—'}
+                                         icon={<AccountTreeOutlinedIcon fontSize="small"/>}/>
+                            <LockedField label="Şöbə" value={readOnly.department || '—'}
+                                         icon={<AccountTreeOutlinedIcon fontSize="small"/>}/>
+                            <LockedField label="Vəzifə" value={readOnly.role || '—'}
+                                         icon={<WorkOutlineIcon fontSize="small"/>}/>
+
+                            <Box component="form" onSubmit={handleSubmit}>
+                                <TextField
+                                    fullWidth margin="normal" label="İş telefonu (daxili)" disabled={saving}
+                                    value={workPhoneNumber}
+                                    onChange={(e) => {
+                                        const digits = e.target.value.replace(/\D/g, '').slice(0, 4);
+                                        setWorkPhoneNumber(digits);
+                                        setDirty(true);
+                                    }}
+                                    placeholder="1234"
+                                    error={!!errors.work_phone_number}
+                                    helperText={errors.work_phone_number || '4 rəqəmli ofis daxili nömrəsi'}
+                                    sx={fieldSx(false)}
+                                    InputProps={{
+                                        startAdornment: <Box
+                                            sx={{display: 'flex', mr: 1, color: '#9CA3AF'}}><LocalPhoneOutlinedIcon
+                                            fontSize="small"/></Box>
+                                    }}
+                                />
+
+                                <Button
+                                    type="submit" variant="contained" disabled={saving || !dirty}
+                                    startIcon={saving ? null : <SaveOutlinedIcon/>}
+                                    sx={{
+                                        mt: 1,
+                                        backgroundColor: NAVY,
+                                        textTransform: 'none',
+                                        fontWeight: 700,
+                                        py: 1.1,
+                                        px: 3,
+                                        borderRadius: 1.5,
+                                        letterSpacing: 0.3,
+                                        '&:hover': {backgroundColor: '#0B1024'},
+                                        '&.Mui-disabled': {backgroundColor: '#D9DCE3', color: '#9CA3AF'},
+                                    }}
+                                >
+                                    {saving ? <CircularProgress size={20} sx={{color: '#fff'}}/> : 'Yadda saxla'}
+                                </Button>
+                            </Box>
+                        </Box>
+
+                        {/* --- TAB 4: leave period + delegate --- */}
+                        <Box hidden={tab !== 3}>
+                            {/* Yalnız tab açılanda yüklənsin deyə şərti render */}
+                            {tab === 3 && <LeavePeriodPanel/>}
+                        </Box>
+
+                    </Box>
+                </Box>
             </Box>
         </Box>);
 }

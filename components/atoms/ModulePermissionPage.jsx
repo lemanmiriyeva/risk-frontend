@@ -269,12 +269,16 @@ function UserAccessPanel({organizationId, showOrgPicker, organizations, onOrgCha
                             // geri alınanda giriş (permitted_users) dəyişmir, yalnız admin statusu düşür.
                             return {...u, is_module_admin: grant, has_access: grant ? true : u.has_access};
                         }
+                        if (target === 'sub_module_admin') {
+                            // Alt modul admini yalnız BU alt modulu idarə edir (məs. Təlim statistikası).
+                            return {...u, is_sub_module_admin: grant, has_access: grant ? true : u.has_access};
+                        }
                         return {...u, has_access: grant};
                     });
                 };
                 for (const m of next.modules) {
                     if ((target === 'module' || target === 'module_admin') && m.id === id) applyToggle(m);
-                    if (target === 'sub_module') {
+                    if (target === 'sub_module' || target === 'sub_module_admin') {
                         const sub = m.sub_modules.find(s => s.id === id);
                         if (sub) applyToggle(sub);
                     }
@@ -343,6 +347,10 @@ function UserAccessPanel({organizationId, showOrgPicker, organizations, onOrgCha
                                             savingKey={savingKey}
                                             targetKey={(u) => `sub_module:${sub.id}:${u.id}`}
                                             onToggle={(u, grant) => toggle('sub_module', sub.id, u.id, grant)}
+                                            allowAdmin
+                                            isSubModule
+                                            adminTargetKey={(u) => `sub_module_admin:${sub.id}:${u.id}`}
+                                            onToggleAdmin={(u, grant) => toggle('sub_module_admin', sub.id, u.id, grant)}
                                         />
                                     </Box>
                                 ))}
@@ -355,7 +363,7 @@ function UserAccessPanel({organizationId, showOrgPicker, organizations, onOrgCha
     );
 }
 
-function UserGrantList({users, savingKey, targetKey, onToggle, allowAdmin, adminTargetKey, onToggleAdmin}) {
+function UserGrantList({users, savingKey, targetKey, onToggle, allowAdmin, isSubModule, adminTargetKey, onToggleAdmin}) {
     if (!users?.length) {
         return <Typography sx={{fontSize: 12.5, color: C.inkFaint}}>Bu qurumda aktiv işçi yoxdur.</Typography>;
     }
@@ -373,20 +381,26 @@ function UserGrantList({users, savingKey, targetKey, onToggle, allowAdmin, admin
                 // dəyişmədiyini anlasın - əks halda "söndürə bilmirəm" kimi qarışıqlıq yaranır.
                 const implicit = !!u.implicit_access;
                 const isModuleAdmin = !!u.is_module_admin;
-                const accessLocked = implicit || isModuleAdmin;
+                // Alt modul səviyyəsində: əsas modulun admini burada avtomatik admindir
+                // (dəyişdirilə bilməz), alt modulun öz admini isə ayrıca işarələnir.
+                const isSubAdmin = !!u.is_sub_module_admin;
+                const accessLocked = implicit || isModuleAdmin || (isSubModule && isSubAdmin);
                 // Admin checkbox-u YALNIZ superuser/qurum admini üçün kilidlidir (onların
                 // admin statusu artıq mənasızdır - onsuz da tam girişləri var). Adi
                 // istifadəçinin admin statusu HƏMİŞƏ dəyişdirilə bilməlidir - əks halda
                 // təyin edilmiş modul adminini heç vaxt geri ala bilməzsiniz.
-                const adminLocked = implicit;
+                const adminLocked = implicit || (isSubModule && isModuleAdmin);
+                const adminChecked = isSubModule ? (isSubAdmin || isModuleAdmin) : isModuleAdmin;
                 const adminKey = allowAdmin ? adminTargetKey(u) : null;
                 const isSavingAdmin = allowAdmin && savingKey === adminKey;
 
                 let accessTooltip = '';
                 if (implicit) {
                     accessTooltip = 'Avtomatik giriş (superuser / qurum admini) - dəyişdirilə bilməz';
-                } else if (isModuleAdmin) {
-                    accessTooltip = 'Bu şəxs modul admini olduğu üçün girişi avtomatikdir. Girişi söndürmək üçün əvvəlcə "Admin" statusunu ləğv edin.';
+                } else if (isSubModule && isModuleAdmin) {
+                    accessTooltip = 'Bu şəxs əsas modulun admini olduğu üçün bütün alt modullarda avtomatik admindir.';
+                } else if (isModuleAdmin || (isSubModule && isSubAdmin)) {
+                    accessTooltip = 'Bu şəxs admin olduğu üçün girişi avtomatikdir. Girişi söndürmək üçün əvvəlcə "Admin" statusunu ləğv edin.';
                 }
 
                 return (
@@ -418,7 +432,9 @@ function UserGrantList({users, savingKey, targetKey, onToggle, allowAdmin, admin
                                 />
                             )}
                             {allowAdmin && (
-                                <Tooltip title="İş modulu admini - bu modul daxilində məzmun əlavə/redaktə səlahiyyəti">
+                                <Tooltip title={isSubModule
+                                    ? 'Alt modul admini - yalnız bu alt modul daxilində idarəetmə səlahiyyəti'
+                                    : 'İş modulu admini - bu modul daxilində məzmun əlavə/redaktə səlahiyyəti'}>
                                     <Box sx={{display: 'flex', alignItems: 'center', borderLeft: `1px solid ${C.line}`, pl: 0.5, ml: 0.25}}>
                                         <Typography sx={{fontSize: 10, color: C.inkFaint, mr: 0.25}}>Admin</Typography>
                                         {isSavingAdmin ? (
@@ -426,7 +442,7 @@ function UserGrantList({users, savingKey, targetKey, onToggle, allowAdmin, admin
                                         ) : (
                                             <Checkbox
                                                 size="small"
-                                                checked={isModuleAdmin}
+                                                checked={adminChecked}
                                                 disabled={adminLocked}
                                                 onChange={(e) => onToggleAdmin(u, e.target.checked)}
                                                 sx={{p: 0.25, color: C.lineStrong, '&.Mui-checked': {color: C.gold}}}

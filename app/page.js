@@ -11,6 +11,7 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import AccountBalanceOutlinedIcon from '@mui/icons-material/AccountBalanceOutlined';
 import CampaignOutlinedIcon from '@mui/icons-material/CampaignOutlined';
+import SchoolOutlinedIcon from '@mui/icons-material/SchoolOutlined';
 import { service_api } from "@/app/service";
 import { NEXT_API_ENDPOINTS } from "@/app/urls";
 import { GOV } from "@/components/theme/govColors";
@@ -21,6 +22,7 @@ const ICON_MAP = {
     "logs": <HistoryIcon sx={{ fontSize: 26 }} />,
     "emeliyyatlar": <FactCheckOutlinedIcon sx={{ fontSize: 26 }} />,
     "elanlar": <CampaignOutlinedIcon sx={{ fontSize: 26 }} />,
+    "telimler": <SchoolOutlinedIcon sx={{ fontSize: 26 }} />,
 };
 const DEFAULT_ICON = <ViewModuleIcon sx={{ fontSize: 26 }} />;
 

@@ -81,6 +81,12 @@ export const DJANGO_API_ENDPOINTS = {
         NEWS_DETAIL: (id) => API_URL + `/api/bulletin/news/${id}/`,
     },
 
+    // Təlimlər modulu - bütün sorğular app/api/trainings/[...path] proxy-si
+    // vasitəsilə bu prefiksə ötürülür.
+    TRAININGS: {
+        BASE: API_URL + "/api/trainings/",
+    },
+
 }
 
 export const NEXT_API_ENDPOINTS = {
@@ -164,6 +170,28 @@ export const NEXT_API_ENDPOINTS = {
         CIRCULAR_DETAIL: (id) => `bulletin/circulars/${id}/`,
         NEWS: "bulletin/news/",
         NEWS_DETAIL: (id) => `bulletin/news/${id}/`,
+    },
+
+    TRAININGS: {
+        PERMISSIONS: "trainings/permissions/",
+        MATERIALS: "trainings/materials/",
+        MATERIAL_DETAIL: (id) => `trainings/materials/${id}/`,
+        START: (id) => `trainings/materials/${id}/start/`,
+        PROGRESS: (id) => `trainings/materials/${id}/progress/`,
+        COMPLETE: (id) => `trainings/materials/${id}/complete/`,
+        QUIZ: (id) => `trainings/materials/${id}/quiz/`,
+        QUIZ_SUBMIT: (id) => `trainings/materials/${id}/quiz/submit/`,
+        FEEDBACK: (id) => `trainings/materials/${id}/feedback/`,
+
+        STATS_SUMMARY: "trainings/statistics/summary/",
+        STATS_VIEWS: "trainings/statistics/views/",
+        STATS_VIEW_DETAIL: (id) => `trainings/statistics/views/${id}/`,
+        STATS_NOT_STARTED: "trainings/statistics/views/not-started/",
+        STATS_QUIZ: "trainings/statistics/quiz-results/",
+        STATS_QUIZ_DETAIL: (id) => `trainings/statistics/quiz-results/${id}/`,
+        STATS_FEEDBACK: "trainings/statistics/feedback/",
+        STATS_FEEDBACK_DETAIL: (id) => `trainings/statistics/feedback/${id}/`,
+        STATS_EXPORT: "trainings/statistics/export/",
     },
 
 }

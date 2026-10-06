@@ -9,21 +9,13 @@ import CloseIcon from '@mui/icons-material/Close';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty';
+import {C} from "@/components/theme/tokens";
 
-const C = {
-    surface: '#FFFFFF',
-    surfaceRaised: '#FBFAF6',
-    line: '#E4E1D8',
-    ink: '#1D1B16',
-    inkMuted: '#6B6558',
-    inkFaint: '#948D7C',
-    gold: '#9C7A2E',
-};
 
 const STEP_ICON = {
-    approved: <CheckCircleOutlineIcon sx={{fontSize: 20, color: '#2F6B4F'}}/>,
-    rejected: <HighlightOffIcon sx={{fontSize: 20, color: '#A23B3B'}}/>,
-    pending: <HourglassEmptyIcon sx={{fontSize: 20, color: '#8A7A2E'}}/>,
+    approved: <CheckCircleOutlineIcon sx={{fontSize: 20, color: '#1F7A4D'}}/>,
+    rejected: <HighlightOffIcon sx={{fontSize: 20, color: '#C42F3D'}}/>,
+    pending: <HourglassEmptyIcon sx={{fontSize: 20, color: '#08559A'}}/>,
     skipped: <HourglassEmptyIcon sx={{fontSize: 20, color: C.inkFaint}}/>,
 };
 

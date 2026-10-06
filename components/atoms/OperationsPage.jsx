@@ -19,34 +19,24 @@ import {service_api} from "@/app/service";
 import {DATA_GRID_LOCALE_AZ} from "@/lib/dataGridLocaleAz";
 import OperationReviewDialog from "./OperationReviewDialog";
 import OperationDetailDialog from "./OperationDetailDialog";
+import {C} from "@/components/theme/tokens";
 
-const C = {
-    bg: '#fff',
-    surface: '#FFFFFF',
-    surfaceRaised: '#FBFAF6',
-    line: '#E4E1D8',
-    lineStrong: '#D0CCC0',
-    ink: '#1D1B16',
-    inkMuted: '#6B6558',
-    inkFaint: '#948D7C',
-    gold: '#9C7A2E',
-};
 
 const STATUS_META = {
     completed: {label: 'Tamamlandı', fg: '#2B5E8C', bg: 'rgba(43,94,140,0.1)'},
-    pending: {label: 'Gözləmədə', fg: '#8A7A2E', bg: 'rgba(138,122,46,0.1)'},
+    pending: {label: 'Gözləmədə', fg: '#08559A', bg: 'rgba(138,122,46,0.1)'},
     in_progress: {label: 'Baxılır', fg: '#8A5A2E', bg: 'rgba(138,90,46,0.1)'},
-    approved: {label: 'Təsdiqləndi', fg: '#2F6B4F', bg: 'rgba(47,107,79,0.1)'},
-    rejected: {label: 'Rədd edildi', fg: '#A23B3B', bg: 'rgba(162,59,59,0.1)'},
+    approved: {label: 'Təsdiqləndi', fg: '#1F7A4D', bg: 'rgba(47,107,79,0.1)'},
+    rejected: {label: 'Rədd edildi', fg: '#C42F3D', bg: 'rgba(162,59,59,0.1)'},
     canceled: {label: 'Ləğv edildi', fg: C.inkMuted, bg: C.surfaceRaised},
 };
 
 const ACTION_META = {
-    created: {label: 'Yaratdı', fg: '#2F6B4F', bg: 'rgba(47,107,79,0.08)'},
+    created: {label: 'Yaratdı', fg: '#1F7A4D', bg: 'rgba(47,107,79,0.08)'},
     updated: {label: 'Redaktə etdi', fg: '#2B5E8C', bg: 'rgba(43,94,140,0.08)'},
-    deleted: {label: 'Sildi', fg: '#A23B3B', bg: 'rgba(162,59,59,0.08)'},
+    deleted: {label: 'Sildi', fg: '#C42F3D', bg: 'rgba(162,59,59,0.08)'},
     exported: {label: 'İxrac etdi', fg: '#6B4E8C', bg: 'rgba(107,78,140,0.08)'},
-    requested: {label: 'Sorğu göndərdi', fg: '#8A7A2E', bg: 'rgba(138,122,46,0.08)'},
+    requested: {label: 'Sorğu göndərdi', fg: '#08559A', bg: 'rgba(138,122,46,0.08)'},
     reviewed: {label: 'Baxdı', fg: '#8A5A2E', bg: 'rgba(138,90,46,0.08)'},
 };
 

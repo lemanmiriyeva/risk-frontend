@@ -24,27 +24,15 @@ import {NEXT_API_ENDPOINTS} from "@/app/urls";
 import {service_api} from "@/app/service";
 import {DATA_GRID_LOCALE_AZ} from "@/lib/dataGridLocaleAz";
 import RiskFormDialog, {TREATMENT_OPTIONS, RISK_LEVEL_META} from "./RiskFormDialog";
+import {C} from "@/components/theme/tokens";
 
 
-const C = {
-    bg: '#fff',
-    surface: '#FFFFFF',
-    surfaceRaised: '#FBFAF6',
-    line: '#E4E1D8',
-    lineStrong: '#D0CCC0',
-    ink: '#1D1B16',
-    inkMuted: '#6B6558',
-    inkFaint: '#948D7C',
-    gold: '#9C7A2E',
-    goldMuted: 'rgba(156,122,46,0.35)',
-    goldWash: 'rgba(156,122,46,0.08)',
-};
 
 const LEVEL_COLORS = {
-    critical: {fg: '#A23B3B', bg: 'rgba(162,59,59,0.08)', ring: 'rgba(162,59,59,0.3)'},
+    critical: {fg: '#C42F3D', bg: 'rgba(162,59,59,0.08)', ring: 'rgba(162,59,59,0.3)'},
     high: {fg: '#B0741F', bg: 'rgba(176,116,31,0.08)', ring: 'rgba(176,116,31,0.3)'},
-    medium: {fg: '#8A7A2E', bg: 'rgba(138,122,46,0.08)', ring: 'rgba(138,122,46,0.3)'},
-    low: {fg: '#2F6B4F', bg: 'rgba(47,107,79,0.08)', ring: 'rgba(47,107,79,0.3)'},
+    medium: {fg: '#08559A', bg: 'rgba(138,122,46,0.08)', ring: 'rgba(138,122,46,0.3)'},
+    low: {fg: '#1F7A4D', bg: 'rgba(47,107,79,0.08)', ring: 'rgba(47,107,79,0.3)'},
 };
 
 const RISK_LEVEL_FILTERS = [
@@ -462,7 +450,7 @@ export default function RiskRegistryPage() {
                             </IconButton>
                         </Tooltip>
                         <Tooltip title="Sil">
-                            <IconButton size="small" onClick={() => setDeleteTarget(params.row)} sx={{color: '#A23B3B'}}>
+                            <IconButton size="small" onClick={() => setDeleteTarget(params.row)} sx={{color: '#C42F3D'}}>
                                 <DeleteOutlineIcon sx={{fontSize: 17}}/>
                             </IconButton>
                         </Tooltip>
@@ -658,7 +646,7 @@ export default function RiskRegistryPage() {
                     <Button
                         onClick={handleDeleteConfirm} disabled={deleting}
                         sx={{
-                            backgroundColor: '#A23B3B', color: '#fff', px: 2.25, textTransform: 'none',
+                            backgroundColor: '#C42F3D', color: '#fff', px: 2.25, textTransform: 'none',
                             '&:hover': {backgroundColor: '#8A2F2F'},
                             '&.Mui-disabled': {backgroundColor: 'rgba(162,59,59,0.4)', color: '#fff'},
                         }}

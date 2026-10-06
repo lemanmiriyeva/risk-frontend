@@ -17,26 +17,13 @@ import {useAppSelector} from "@/lib/hooks";
 import {handleError} from "@/app/utils";
 import {NEXT_API_ENDPOINTS} from "@/app/urls";
 import {service_api} from "@/app/service";
+import {C} from "@/components/theme/tokens";
+export {C};
 
 /* --------------------------------------------------------------------- */
 /*  Palitra                                                               */
 /* --------------------------------------------------------------------- */
 
-export const C = {
-    surface: '#FFFFFF',
-    surfaceRaised: '#FBFAF6',
-    surfaceDeep: '#F4F2EB',
-    line: '#E4E1D8',
-    lineStrong: '#D0CCC0',
-    ink: '#1D1B16',
-    inkMuted: '#6B6558',
-    inkFaint: '#948D7C',
-    gold: '#9C7A2E',
-    goldDeep: '#7A5D1F',
-    goldTint: 'rgba(156,122,46,0.10)',
-    danger: '#A23B3B',
-    dangerTint: 'rgba(162,59,59,0.08)',
-};
 
 /**
  * Kateqoriyalar (Fərman/Sərəncam/Daxili qayda/...) artıq sabit siyahı deyil -
@@ -127,7 +114,7 @@ export const softButtonSx = {
     color: C.goldDeep,
     backgroundColor: C.goldTint,
     px: 1.5,
-    '&:hover': {backgroundColor: 'rgba(156,122,46,0.18)'},
+    '&:hover': {backgroundColor: 'rgba(10,108,194,0.18)'},
 };
 
 export const primaryButtonSx = {

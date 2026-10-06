@@ -26,24 +26,14 @@ import {DATA_GRID_LOCALE_AZ} from "@/lib/dataGridLocaleAz";
 import AttendancePermissionFormDialog from "./AttendancePermissionFormDialog";
 import AttendancePermissionReviewDialog from "./AttendancePermissionReviewDialog";
 import AttendancePermissionDetailDialog from "./AttendancePermissionDetailDialog";
+import {C} from "@/components/theme/tokens";
 
-const C = {
-    bg: '#fff',
-    surface: '#FFFFFF',
-    surfaceRaised: '#FBFAF6',
-    line: '#E4E1D8',
-    lineStrong: '#D0CCC0',
-    ink: '#1D1B16',
-    inkMuted: '#6B6558',
-    inkFaint: '#948D7C',
-    gold: '#9C7A2E',
-};
 
 const STATUS_META = {
-    pending: {label: 'Gözləmədə (Şöbə müdiri)', fg: '#8A7A2E', bg: 'rgba(138,122,46,0.1)'},
+    pending: {label: 'Gözləmədə (Şöbə müdiri)', fg: '#08559A', bg: 'rgba(138,122,46,0.1)'},
     awaiting_apparatus: {label: 'Aparat rəhbərini gözləyir', fg: '#8A5A2E', bg: 'rgba(138,90,46,0.1)'},
-    approved: {label: 'Təsdiqlənib', fg: '#2F6B4F', bg: 'rgba(47,107,79,0.1)'},
-    rejected: {label: 'Rədd edilib', fg: '#A23B3B', bg: 'rgba(162,59,59,0.1)'},
+    approved: {label: 'Təsdiqlənib', fg: '#1F7A4D', bg: 'rgba(47,107,79,0.1)'},
+    rejected: {label: 'Rədd edilib', fg: '#C42F3D', bg: 'rgba(162,59,59,0.1)'},
 };
 
 const STATUS_FILTERS = [
@@ -222,7 +212,7 @@ export default function AttendancePermissionsPage() {
                                         e.stopPropagation();
                                         setReviewTarget(params.row);
                                         setReviewAction('approve');
-                                    }} sx={{color: '#2F6B4F'}}>
+                                    }} sx={{color: '#1F7A4D'}}>
                                         <CheckCircleOutlineIcon fontSize="small"/>
                                     </IconButton>
                                 </Tooltip>
@@ -231,7 +221,7 @@ export default function AttendancePermissionsPage() {
                                         e.stopPropagation();
                                         setReviewTarget(params.row);
                                         setReviewAction('reject');
-                                    }} sx={{color: '#A23B3B'}}>
+                                    }} sx={{color: '#C42F3D'}}>
                                         <HighlightOffIcon fontSize="small"/>
                                     </IconButton>
                                 </Tooltip>
@@ -245,7 +235,7 @@ export default function AttendancePermissionsPage() {
     }, [showScopeColumns]);
 
     return (
-        <Box  sx={{maxWidth: 1440, mx: 'auto',mt:4}}>
+        <Box sx={{px: {xs: 2.5, sm: 4, md: 6}, py: {xs: 3, md: 4}, maxWidth: {xs: '100%', sm: '94%', lg: 1400}, mx: 'auto'}}>
             <Box sx={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', mb: 3, flexWrap: 'wrap', gap: 2}}>
                 <Typography sx={{fontSize: 14, color: C.inkMuted}}>
                     {user?.is_apparatus_head ? 'Qurumunuzun bütün icazə sorğuları.'

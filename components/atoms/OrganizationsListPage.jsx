@@ -27,18 +27,8 @@ import {handleError} from "@/app/utils";
 import {NEXT_API_ENDPOINTS} from "@/app/urls";
 import {service_api} from "@/app/service";
 import {DATA_GRID_LOCALE_AZ} from "@/lib/dataGridLocaleAz";
+import {C} from "@/components/theme/tokens";
 
-const C = {
-    surface: '#FFFFFF',
-    surfaceRaised: '#FBFAF6',
-    line: '#E4E1D8',
-    lineStrong: '#D0CCC0',
-    ink: '#1D1B16',
-    inkMuted: '#6B6558',
-    inkFaint: '#948D7C',
-    gold: '#9C7A2E',
-    goldTint: 'rgba(156,122,46,0.1)',
-};
 
 const gridSx = {
     border: `1px solid ${C.line}`,
@@ -357,8 +347,8 @@ export default function OrganizationsListPage() {
         {
             field: 'is_active', headerName: 'Status', width: 110, align: 'center', headerAlign: 'center',
             renderCell: (params) => params.value
-                ? <Chip label="Aktiv" size="small" sx={{backgroundColor: 'rgba(47,107,79,0.1)', color: '#2F6B4F'}}/>
-                : <Chip label="Deaktiv" size="small" sx={{backgroundColor: 'rgba(162,59,59,0.1)', color: '#A23B3B'}}/>,
+                ? <Chip label="Aktiv" size="small" sx={{backgroundColor: 'rgba(47,107,79,0.1)', color: '#1F7A4D'}}/>
+                : <Chip label="Deaktiv" size="small" sx={{backgroundColor: 'rgba(162,59,59,0.1)', color: '#C42F3D'}}/>,
         },
         {
             field: 'actions', headerName: '', width: 100, sortable: false, filterable: false, disableColumnMenu: true,

@@ -22,19 +22,8 @@ import {NEXT_API_ENDPOINTS} from "@/app/urls";
 import {service_api} from "@/app/service";
 import InventoryFormDialog from "./InventoryFormDialog";
 import {DATA_GRID_LOCALE_AZ} from "@/lib/dataGridLocaleAz";
+import {C} from "@/components/theme/tokens";
 
-const C = {
-    bg: '#fff',
-    surface: '#FFFFFF',
-    line: '#E4E1D8',
-    lineStrong: '#D0CCC0',
-    ink: '#1D1B16',
-    inkMuted: '#6B6558',
-    inkFaint: '#948D7C',
-    gold: '#9C7A2E',
-    goldWash: 'rgba(156,122,46,0.08)',
-    goldMuted: 'rgba(156,122,46,0.35)',
-};
 
 const OWNER_TYPE_FILTERS = [
     {value: '', label: 'Hamısı'},
@@ -146,7 +135,7 @@ export default function InventoryTable() {
                     <IconButton size="small" onClick={() => {setEditingRow(p.row); setFormOpen(true);}} sx={{color: C.inkFaint}}>
                         <EditOutlinedIcon sx={{fontSize: 17}}/>
                     </IconButton>
-                    <IconButton size="small" onClick={() => setDeleteRow(p.row)} sx={{color: '#A23B3B'}}>
+                    <IconButton size="small" onClick={() => setDeleteRow(p.row)} sx={{color: '#C42F3D'}}>
                         <DeleteOutlineIcon sx={{fontSize: 17}}/>
                     </IconButton>
                 </Box>
@@ -252,7 +241,7 @@ export default function InventoryTable() {
                         </DialogContent>
                         <DialogActions>
                             <Button onClick={() => setDeleteRow(null)}>Ləğv et</Button>
-                            <Button onClick={handleDeleteConfirm} sx={{color: '#A23B3B'}}>Sil</Button>
+                            <Button onClick={handleDeleteConfirm} sx={{color: '#C42F3D'}}>Sil</Button>
                         </DialogActions>
                     </>
                 )}

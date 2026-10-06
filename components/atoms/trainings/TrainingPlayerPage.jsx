@@ -259,7 +259,7 @@ export default function TrainingPlayerPage({id}) {
                          sx={{width: '100%', maxHeight: '68vh', display: 'block'}}/>
                 </Box>
                 <LinearProgress variant="determinate" value={pct}
-                                sx={{height: 4, backgroundColor: C.surfaceDeep, '& .MuiLinearProgress-bar': {backgroundColor: completed ? '#2E6B3F' : C.gold}}}/>
+                                sx={{height: 4, backgroundColor: C.surfaceDeep, '& .MuiLinearProgress-bar': {backgroundColor: completed ? '#1F7A4D' : C.gold}}}/>
                 <Box sx={{p: {xs: 2, sm: 3}}}>
                     <Box sx={{display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap', mb: 1}}>
                         <StatusPill status={completed ? 'completed' : (training.my_progress ? 'in_progress' : 'not_started')}/>
@@ -319,7 +319,7 @@ export default function TrainingPlayerPage({id}) {
                 <Grid item xs={12} md={hasQuiz ? 5 : 12} lg={hasQuiz ? 4 : 12}>
                     {completed && !hasQuiz && (
                         <Box sx={{...panelSx, p: 2, mb: 3, display: 'flex', gap: 1, alignItems: 'center'}}>
-                            <CheckCircleIcon sx={{color: '#2E6B3F'}}/>
+                            <CheckCircleIcon sx={{color: '#1F7A4D'}}/>
                             <Typography sx={{fontSize: 13.5, color: C.ink}}>Bu təlimi tamamlamısınız.</Typography>
                         </Box>
                     )}

@@ -58,10 +58,10 @@ export function formatDuration(seconds) {
 }
 
 const STATUS_STYLES = {
-    completed: {label: 'Tam baxılıb', color: '#2E6B3F', bg: 'rgba(46,107,63,0.10)'},
-    in_progress: {label: 'Yarımçıq', color: '#9C6B1E', bg: 'rgba(156,107,30,0.12)'},
+    completed: {label: 'Tam baxılıb', color: '#1F7A4D', bg: 'rgba(46,107,63,0.10)'},
+    in_progress: {label: 'Yarımçıq', color: '#B4690E', bg: 'rgba(156,107,30,0.12)'},
     not_started: {label: 'Baxılmayıb', color: C.inkMuted, bg: 'rgba(0,0,0,0.05)'},
-    passed: {label: 'Keçdi', color: '#2E6B3F', bg: 'rgba(46,107,63,0.10)'},
+    passed: {label: 'Keçdi', color: '#1F7A4D', bg: 'rgba(46,107,63,0.10)'},
     failed: {label: 'Keçmədi', color: C.danger, bg: C.dangerTint},
     archived: {label: 'Arxivdə', color: C.inkMuted, bg: 'rgba(0,0,0,0.06)'},
 };

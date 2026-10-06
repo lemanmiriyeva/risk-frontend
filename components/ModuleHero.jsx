@@ -1,139 +1,111 @@
 "use client"
+import React from "react";
 import Link from "next/link";
-import { Box, Typography, Breadcrumbs } from "@mui/material";
+import {usePathname} from "next/navigation";
+import {Box, Typography, Breadcrumbs} from "@mui/material";
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
-import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
-import { GOV } from "@/components/theme/govColors";
+import {BRAND, C, SERIF_STACK} from "@/components/theme/tokens";
+import {growX, reducedMotion, reveal} from "@/components/theme/motion";
+import AnimatedPattern from "@/components/shell/AnimatedPattern";
+import {moduleAccent, moduleKeyFromPath} from "@/components/shell/moduleMeta";
 
 /**
- * Modul səhifələri üçün rəsmi başlıq bloku (hero banner).
- * Rəng tonu naviqasiya panelindəki tünd-lacivərd fonla eynidir ki,
- * səhifələr arası keçid vizual olaraq kəsilməsin.
+ * Modul səhifələrinin rəsmi başlığı: serif başlıq, gerb qızılı ilə açılan xətt,
+ * fonda yavaş hərəkət edən səkkizguşəli ulduz naxışı.
+ *
+ * Çörək qırıntısı elementləri URL seqmentlərinə uyğun avtomatik keçidə
+ * çevrilir (sonuncu element - cari səhifə - keçidsiz qalır).
  */
-export default function ModuleHero({ eyebrow, title, subtitle, breadcrumb, icon }) {
-    return (
-        <Box
-            sx={{
-                position: "relative",
-                background: `linear-gradient(135deg, ${GOV.navy} 0%, ${GOV.navyMid} 55%, ${GOV.navySoft} 100%)`,
-                overflow: "hidden",
-                borderBottom: `3px solid ${GOV.gold}`,
-            }}
-        >
-            {/* Dekorativ rəsmi naxış */}
-            <Box
-                aria-hidden
-                sx={{
-                    position: "absolute",
-                    inset: 0,
-                    opacity: 0.5,
-                    backgroundImage: `radial-gradient(circle at 85% 20%, rgba(201,162,75,0.16) 0%, rgba(201,162,75,0) 45%),
-                                       radial-gradient(circle at 10% 100%, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 40%)`,
-                    pointerEvents: "none",
-                }}
-            />
-            <Box
-                aria-hidden
-                sx={{
-                    position: "absolute",
-                    top: 0,
-                    right: 0,
-                    bottom: 0,
-                    width: { xs: "60%", md: "40%" },
-                    opacity: 0.06,
-                    pointerEvents: "none",
-                    backgroundImage: "repeating-linear-gradient(135deg, #fff 0px, #fff 1px, transparent 1px, transparent 26px)",
-                }}
-            />
+export default function ModuleHero({eyebrow, title, subtitle, breadcrumb, icon, actions}) {
+    const pathname = usePathname() || '/';
+    const segments = pathname.split('/').filter(Boolean);
+    const accent = moduleAccent(moduleKeyFromPath(pathname));
 
-            <Box
-                sx={{
-                    position: "relative",
-                    zIndex: 1,
-                    px: { xs: 2.5, sm: 4, md: 6 },
-                    pt: { xs: 3.5, sm: 4.5, md: 5.5 },
-                    pb: { xs: 3.5, sm: 4.5, md: 5.5 },
-                    maxWidth: { xs: "100%", sm: "92%", lg: 1400 },
-                    mx: "auto",
-                }}
-            >
+    return (
+        <Box sx={{
+            position: 'relative', overflow: 'hidden',
+            background: `linear-gradient(180deg, #FFFFFF 0%, #F7F9FC 100%)`,
+            borderBottom: `1px solid ${C.line}`,
+        }}>
+            <AnimatedPattern color={BRAND.navy800} opacity={0.06} size={104} duration={80} sx={{
+                maskImage: 'linear-gradient(100deg, transparent 35%, #000 85%)',
+                WebkitMaskImage: 'linear-gradient(100deg, transparent 35%, #000 85%)',
+            }}/>
+            <Box aria-hidden sx={{
+                position: 'absolute', top: -160, right: '8%', width: 460, height: 360, borderRadius: '50%',
+                background: `radial-gradient(closest-side, ${accent}1F, transparent)`, pointerEvents: 'none',
+            }}/>
+
+            <Box sx={{
+                position: 'relative', zIndex: 1,
+                px: {xs: 2.5, sm: 4, md: 6}, pt: {xs: 2.5, sm: 3}, pb: {xs: 3.5, sm: 4.5},
+                maxWidth: {xs: '100%', sm: '94%', lg: 1400}, mx: 'auto',
+            }}>
                 {breadcrumb && breadcrumb.length > 0 && (
-                    <Breadcrumbs
-                        separator={<NavigateNextIcon sx={{ fontSize: 16, color: GOV.textOnNavyMuted }} />}
-                        sx={{ mb: 2 }}
-                    >
-                        <Link href="/" style={{ textDecoration: "none" }}>
-                            <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, color: GOV.textOnNavyMuted, "&:hover": { color: GOV.gold } }}>
-                                <HomeOutlinedIcon sx={{ fontSize: 16 }} />
-                                <Typography sx={{ fontSize: 13, fontWeight: 500 }}>Modullar</Typography>
-                            </Box>
-                        </Link>
-                        {breadcrumb.map((b, i) => (
-                            <Typography key={i} sx={{ fontSize: 13, fontWeight: 500, color: GOV.textOnNavy }}>
-                                {b}
-                            </Typography>
-                        ))}
+                    <Breadcrumbs separator={<NavigateNextIcon sx={{fontSize: 15, color: C.inkFaint}}/>} sx={{mb: 2.5, ...reveal(0, 0)}}>
+                        <Typography component={Link} href="/" sx={{fontSize: 12.5, fontWeight: 550, color: C.inkMuted, textDecoration: 'none', '&:hover': {color: BRAND.navy900}}}>
+                            Ana səhifə
+                        </Typography>
+                        {breadcrumb.map((b, i) => {
+                            const last = i === breadcrumb.length - 1;
+                            const href = '/' + segments.slice(0, i + 1).join('/');
+                            if (last || i >= segments.length) {
+                                return <Typography key={i} sx={{fontSize: 12.5, fontWeight: 650, color: C.ink}}>{b}</Typography>;
+                            }
+                            return (
+                                <Typography key={i} component={Link} href={href}
+                                            sx={{fontSize: 12.5, fontWeight: 550, color: C.inkMuted, textDecoration: 'none', '&:hover': {color: BRAND.navy900}}}>
+                                    {b}
+                                </Typography>
+                            );
+                        })}
                     </Breadcrumbs>
                 )}
 
-                <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                <Box sx={{display: 'flex', alignItems: 'center', gap: {xs: 2, sm: 2.75}, flexWrap: 'wrap'}}>
                     {icon && (
-                        <Box
-                            sx={{
-                                width: { xs: 44, sm: 52 },
-                                height: { xs: 44, sm: 52 },
-                                borderRadius: 2,
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                flexShrink: 0,
-                                backgroundColor: "rgba(201,162,75,0.14)",
-                                border: `1px solid rgba(201,162,75,0.35)`,
-                                color: GOV.gold,
-                            }}
-                        >
+                        <Box sx={{
+                            position: 'relative', flexShrink: 0,
+                            width: {xs: 56, sm: 68}, height: {xs: 56, sm: 68}, borderRadius: '50%',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            color: accent, backgroundColor: '#fff',
+                            border: `1px solid ${accent}40`,
+                            boxShadow: `0 0 0 6px ${accent}0D, 0 14px 30px rgba(6,18,38,0.10)`,
+                            '& svg': {fontSize: '28px !important'},
+                            ...reveal(1, 0),
+                        }}>
                             {icon}
                         </Box>
                     )}
-                    <Box>
+                    <Box sx={{minWidth: 0, flex: 1}}>
                         {eyebrow && (
-                            <Typography
-                                sx={{
-                                    color: GOV.gold,
-                                    letterSpacing: 3,
-                                    fontSize: { xs: 11, sm: 12 },
-                                    fontWeight: 700,
-                                    mb: 0.5,
-                                    textTransform: "uppercase",
-                                }}
-                            >
+                            <Typography sx={{
+                                color: accent, letterSpacing: '0.16em', fontSize: 11, fontWeight: 700,
+                                textTransform: 'uppercase', mb: 0.75, ...reveal(2, 0),
+                            }}>
                                 {eyebrow}
                             </Typography>
                         )}
-                        <Typography
-                            sx={{
-                                color: GOV.textOnNavy,
-                                fontWeight: 800,
-                                letterSpacing: "-0.5px",
-                                fontSize: { xs: 22, sm: 28, md: 34 },
-                                lineHeight: 1.15,
-                            }}
-                        >
+                        <Typography component="h1" className="serif" sx={{
+                            fontFamily: SERIF_STACK, color: BRAND.navy900, fontWeight: 600, letterSpacing: '-0.01em',
+                            fontSize: {xs: 26, sm: 32, md: 38}, lineHeight: 1.15, ...reveal(3, 0),
+                        }}>
                             {title}
                         </Typography>
+                        <Box aria-hidden sx={{
+                            mt: 1.5, width: 72, height: 3, borderRadius: 2,
+                            background: `linear-gradient(90deg, ${BRAND.crest}, ${BRAND.crest}00)`,
+                            transformOrigin: 'left', transform: 'scaleX(0)',
+                            animation: `${growX} .9s cubic-bezier(.2,.7,.2,1) .35s forwards`,
+                            [reducedMotion]: {animation: 'none', transform: 'none'},
+                        }}/>
                         {subtitle && (
-                            <Typography
-                                sx={{
-                                    color: GOV.textOnNavyMuted,
-                                    fontSize: { xs: 13.5, sm: 15 },
-                                    mt: 0.75,
-                                    maxWidth: 640,
-                                }}
-                            >
+                            <Typography sx={{color: C.inkMuted, fontSize: {xs: 14, sm: 15.5}, mt: 1.5, maxWidth: 760, lineHeight: 1.6, ...reveal(4, 0)}}>
                                 {subtitle}
                             </Typography>
                         )}
                     </Box>
+                    {actions && <Box sx={{display: 'flex', gap: 1, flexShrink: 0, ...reveal(5, 0)}}>{actions}</Box>}
                 </Box>
             </Box>
         </Box>

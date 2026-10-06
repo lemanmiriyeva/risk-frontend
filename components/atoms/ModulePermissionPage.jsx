@@ -20,17 +20,8 @@ import {useSnackbar} from "notistack";
 import {handleError} from "@/app/utils";
 import {NEXT_API_ENDPOINTS} from "@/app/urls";
 import {service_api} from "@/app/service";
+import {C} from "@/components/theme/tokens";
 
-const C = {
-    surface: '#FFFFFF',
-    line: '#E4E1D8',
-    lineStrong: '#D0CCC0',
-    ink: '#1D1B16',
-    inkMuted: '#6B6558',
-    inkFaint: '#948D7C',
-    gold: '#9C7A2E',
-    goldTint: 'rgba(156,122,46,0.1)',
-};
 
 const cardSx = {
     backgroundColor: C.surface,

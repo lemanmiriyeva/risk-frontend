@@ -48,15 +48,15 @@ const API = {
 */
 
 const colors = {
-    background: "#F7F6F2",
+    background: "#F8FAFD",
     white: "#FFFFFF",
-    border: "#E4E1D8",
-    borderDark: "#D2CEC3",
+    border: "#E3E8F0",
+    borderDark: "#CBD4E1",
     text: "#211F1A",
     muted: "#716C60",
     lightText: "#969083",
-    gold: "#9B782C",
-    danger: "#B54747",
+    gold: "#0A6CC2",
+    danger: "#C42F3D",
 };
 
 
@@ -896,7 +896,7 @@ export default function AttendancePermissionConfigPage() {
 
                         py: 1.5,
 
-                        backgroundColor: "#FAF9F5",
+                        backgroundColor: "#F8FAFD",
 
                         borderBottom: `1px solid ${colors.border}`,
                     }}
@@ -1244,7 +1244,7 @@ export default function AttendancePermissionConfigPage() {
                                             sx={{
                                                 fontSize: 11.5,
 
-                                                color: "#9A762A",
+                                                color: "#0A6CC2",
                                             }}
                                         >
                                             Şöbə müdiri

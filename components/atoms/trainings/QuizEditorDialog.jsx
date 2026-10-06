@@ -160,7 +160,7 @@ export default function QuizEditorDialog({open, onClose, training, onSaved}) {
                                 <Box key={o.key} sx={{display: 'flex', alignItems: 'center', gap: 0.5}}>
                                     <Tooltip title="Düzgün cavab">
                                         <Radio size="small" checked={o.is_correct} onChange={() => markCorrect(q.key, o.key)}
-                                               sx={{color: C.lineStrong, '&.Mui-checked': {color: '#2E6B3F'}}}/>
+                                               sx={{color: C.lineStrong, '&.Mui-checked': {color: '#1F7A4D'}}}/>
                                     </Tooltip>
                                     <TextField size="small" fullWidth placeholder={`Variant ${oi + 1}`} sx={fieldSx}
                                                value={o.text} onChange={(e) => updateOption(q.key, o.key, {text: e.target.value})}/>

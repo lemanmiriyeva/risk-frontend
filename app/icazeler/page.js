@@ -1,7 +1,7 @@
 import AttendancePermissionsPage from "../../components/atoms/AttendancePermissionsPage";
 
 import { Box } from "@mui/material";
-import TableChartOutlinedIcon from '@mui/icons-material/TableChartOutlined';
+import EventAvailableOutlinedIcon from '@mui/icons-material/EventAvailableOutlined';
 import ModuleHero from "@/components/ModuleHero";
 import { GOV } from "@/components/theme/govColors";
 
@@ -9,13 +9,13 @@ export default function Page() {
     return (
         <Box sx={{ backgroundColor: GOV.pageBg, minHeight: "100vh" }}>
             <ModuleHero
-                eyebrow="İcazə Sistemi"
+                eyebrow="Modul"
                 title="İcazə Sistemi"
-                subtitle="İcazələrin tam siyahısı,təsdiqi"
+                subtitle="İş saatı ərzində çıxış icazələri: sorğu, təsdiq və tarixçə."
                 breadcrumb={["İcazə Sistemi"]}
-                icon={<TableChartOutlinedIcon sx={{ fontSize: 26 }} />}
+                icon={<EventAvailableOutlinedIcon />}
             />
-             <AttendancePermissionsPage/>;
+            <AttendancePermissionsPage/>
         </Box>
     )
 }

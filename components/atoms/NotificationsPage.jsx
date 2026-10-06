@@ -13,18 +13,8 @@ import {useRouter} from 'next/navigation';
 import {service_api} from "@/app/service";
 import {NEXT_API_ENDPOINTS} from "@/app/urls";
 import {handleError} from "@/app/utils";
+import {C} from "@/components/theme/tokens";
 
-const C = {
-    surface: '#FFFFFF',
-    surfaceRaised: '#FBFAF6',
-    line: '#E4E1D8',
-    lineStrong: '#D0CCC0',
-    ink: '#1D1B16',
-    inkMuted: '#6B6558',
-    inkFaint: '#948D7C',
-    gold: '#9C7A2E',
-    unreadBg: 'rgba(156,122,46,0.06)',
-};
 
 const PERIOD_FILTERS = [
     {value: '', label: 'Hamısı'},

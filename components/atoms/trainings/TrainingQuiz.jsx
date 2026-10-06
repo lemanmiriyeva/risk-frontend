@@ -86,7 +86,7 @@ export default function TrainingQuiz({training, onSubmitted}) {
                             backgroundColor: result.passed ? 'rgba(46,107,63,0.08)' : C.dangerTint,
                         }}>
                             {result.passed
-                                ? <CheckCircleIcon sx={{fontSize: 36, color: '#2E6B3F'}}/>
+                                ? <CheckCircleIcon sx={{fontSize: 36, color: '#1F7A4D'}}/>
                                 : <CancelIcon sx={{fontSize: 36, color: C.danger}}/>}
                             <Box>
                                 <Typography sx={{fontSize: 20, fontWeight: 800, color: C.ink}}>
@@ -102,7 +102,7 @@ export default function TrainingQuiz({training, onSubmitted}) {
                         {questions.map((q, i) => (
                             <Box key={q.id} sx={{display: 'flex', gap: 1, alignItems: 'flex-start', py: 0.75}}>
                                 {resultByQuestion[q.id]
-                                    ? <CheckCircleIcon sx={{fontSize: 18, color: '#2E6B3F', mt: 0.25}}/>
+                                    ? <CheckCircleIcon sx={{fontSize: 18, color: '#1F7A4D', mt: 0.25}}/>
                                     : <CancelIcon sx={{fontSize: 18, color: C.danger, mt: 0.25}}/>}
                                 <Typography sx={{fontSize: 13.5, color: C.ink}}>{i + 1}. {q.text}</Typography>
                             </Box>

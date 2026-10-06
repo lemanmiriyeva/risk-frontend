@@ -107,7 +107,7 @@ export default function InventoryFormDialog({open, onClose, onSaved, editingRow}
 
     return (
         <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-            <Box sx={{px: 3, pt: 3, pb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #E4E1D8'}}>
+            <Box sx={{px: 3, pt: 3, pb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #E3E8F0'}}>
                 <Typography sx={{fontSize: 18, fontWeight: 600}}>
                     {isEdit ? 'İnventarı redaktə et' : 'Yeni inventar'}
                 </Typography>
@@ -180,7 +180,7 @@ export default function InventoryFormDialog({open, onClose, onSaved, editingRow}
                 )}
 
                 {ownerType === 'aparat' && (
-                    <Typography sx={{fontSize: 13, color: '#6B6558'}}>
+                    <Typography sx={{fontSize: 13, color: '#55657D'}}>
                         Bu inventar hamı üçün (Aparat) nəzərdə tutulacaq, əlavə seçim tələb olunmur.
                     </Typography>
                 )}
@@ -189,7 +189,7 @@ export default function InventoryFormDialog({open, onClose, onSaved, editingRow}
             <Box sx={{px: 3, pb: 3, display: 'flex', justifyContent: 'flex-end', gap: 1}}>
                 <Button onClick={onClose} disabled={saving}>Ləğv et</Button>
                 <Button variant="contained" onClick={handleSave} disabled={saving}
-                        sx={{backgroundColor: '#9C7A2E', '&:hover': {backgroundColor: '#7d631f'}}}>
+                        sx={{backgroundColor: '#0A6CC2', '&:hover': {backgroundColor: '#7d631f'}}}>
                     {saving ? <CircularProgress size={18} sx={{color: '#fff'}}/> : 'Yadda saxla'}
                 </Button>
             </Box>

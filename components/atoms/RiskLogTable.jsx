@@ -25,28 +25,16 @@ import {service_api} from "@/app/service";
 import {DATA_GRID_LOCALE_AZ} from "@/lib/dataGridLocaleAz";
 import ExcelJS from 'exceljs';
 import {saveAs} from 'file-saver';
+import {C} from "@/components/theme/tokens";
 
 
-const C = {
-    bg: '#fff',
-    surface: '#FFFFFF',
-    surfaceRaised: '#FBFAF6',
-    line: '#E4E1D8',
-    lineStrong: '#D0CCC0',
-    ink: '#1D1B16',
-    inkMuted: '#6B6558',
-    inkFaint: '#948D7C',
-    gold: '#9C7A2E',
-    goldMuted: 'rgba(156,122,46,0.35)',
-    goldWash: 'rgba(156,122,46,0.08)',
-};
 
 const ACTION_META = {
-    created: {label: 'Yaradıldı', fg: '#2F6B4F', bg: 'rgba(47,107,79,0.08)', ring: 'rgba(47,107,79,0.3)'},
+    created: {label: 'Yaradıldı', fg: '#1F7A4D', bg: 'rgba(47,107,79,0.08)', ring: 'rgba(47,107,79,0.3)'},
     updated: {label: 'Redaktə edildi', fg: '#2B5E8C', bg: 'rgba(43,94,140,0.08)', ring: 'rgba(43,94,140,0.3)'},
-    deleted: {label: 'Silindi', fg: '#A23B3B', bg: 'rgba(162,59,59,0.08)', ring: 'rgba(162,59,59,0.3)'},
+    deleted: {label: 'Silindi', fg: '#C42F3D', bg: 'rgba(162,59,59,0.08)', ring: 'rgba(162,59,59,0.3)'},
     exported: {label: 'İxrac edildi', fg: '#6B4E8C', bg: 'rgba(107,78,140,0.08)', ring: 'rgba(107,78,140,0.3)'},
-    viewed: {label: 'Baxıldı', fg: '#8A7A2E', bg: 'rgba(138,122,46,0.08)', ring: 'rgba(138,122,46,0.3)'},
+    viewed: {label: 'Baxıldı', fg: '#08559A', bg: 'rgba(138,122,46,0.08)', ring: 'rgba(138,122,46,0.3)'},
 };
 
 const ACTION_FILTERS = [
@@ -169,10 +157,10 @@ function DetailDialog({row, onClose}) {
                                 }}
                             >
                                 <Box sx={{gridColumn: '1 / -1', fontSize: 12, color: C.inkFaint, fontWeight: 500, mb: 0.5}}>{c.label}</Box>
-                                <Typography sx={{ fontSize: 13, color: '#A23B3B', wordBreak: 'break-word'}}>
+                                <Typography sx={{ fontSize: 13, color: '#C42F3D', wordBreak: 'break-word'}}>
                                     − {formatValue(c.old)}
                                 </Typography>
-                                <Typography sx={{ fontSize: 13, color: '#2F6B4F', wordBreak: 'break-word'}}>
+                                <Typography sx={{ fontSize: 13, color: '#1F7A4D', wordBreak: 'break-word'}}>
                                     + {formatValue(c.new)}
                                 </Typography>
                             </Box>

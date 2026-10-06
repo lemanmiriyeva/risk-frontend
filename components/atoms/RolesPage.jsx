@@ -24,19 +24,8 @@ import {handleError} from "@/app/utils";
 import {NEXT_API_ENDPOINTS} from "@/app/urls";
 import {service_api} from "@/app/service";
 import {DATA_GRID_LOCALE_AZ} from "@/lib/dataGridLocaleAz";
+import {C} from "@/components/theme/tokens";
 
-const C = {
-    bg: '#fff',
-    surface: '#FFFFFF',
-    surfaceRaised: '#FBFAF6',
-    line: '#E4E1D8',
-    lineStrong: '#D0CCC0',
-    ink: '#1D1B16',
-    inkMuted: '#6B6558',
-    inkFaint: '#948D7C',
-    gold: '#9C7A2E',
-    goldTint: 'rgba(156,122,46,0.1)',
-};
 
 const gridSx = {
     border: `1px solid ${C.line}`,
@@ -311,7 +300,7 @@ export default function RolesPage() {
             {
                 field: 'is_manager_role', headerName: 'Şöbə rəhbəri', width: 130, align: 'center', headerAlign: 'center',
                 renderCell: (params) => params.value
-                    ? <Chip label="Bəli" size="small" sx={{backgroundColor: 'rgba(47,107,79,0.1)', color: '#2F6B4F'}}/>
+                    ? <Chip label="Bəli" size="small" sx={{backgroundColor: 'rgba(47,107,79,0.1)', color: '#1F7A4D'}}/>
                     : <Chip label="Xeyr" size="small" sx={{backgroundColor: 'rgba(0,0,0,0.05)', color: C.inkMuted}}/>,
             },
             {field: 'order', headerName: 'Sıra', width: 80},
@@ -421,7 +410,7 @@ export default function RolesPage() {
                 <Box sx={{px: 3, pb: 3, display: 'flex', justifyContent: 'flex-end', gap: 1}}>
                     <Button onClick={() => setDeleteTarget(null)} disabled={deleting} sx={{color: C.inkMuted, textTransform: 'none'}}>İmtina</Button>
                     <Button onClick={handleDeleteConfirm} disabled={deleting} variant="contained"
-                            sx={{backgroundColor: '#A23B3B', color: '#fff', textTransform: 'none', boxShadow: 'none', borderRadius: '8px', '&:hover': {backgroundColor: '#8A3131'}}}>
+                            sx={{backgroundColor: '#C42F3D', color: '#fff', textTransform: 'none', boxShadow: 'none', borderRadius: '8px', '&:hover': {backgroundColor: '#8A3131'}}}>
                         {deleting ? <CircularProgress size={18} sx={{color: '#fff'}}/> : 'Sil'}
                     </Button>
                 </Box>

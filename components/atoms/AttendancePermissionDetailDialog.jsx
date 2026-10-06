@@ -11,20 +11,14 @@ import Chip from '@mui/material/Chip';
 import Divider from '@mui/material/Divider';
 import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
+import {C} from "@/components/theme/tokens";
 
-const C = {
-    ink: '#1D1B16',
-    inkMuted: '#6B6558',
-    inkFaint: '#948D7C',
-    line: '#E4E1D8',
-    gold: '#9C7A2E',
-};
 
 const STATUS_META = {
-    pending: {label: 'Gözləmədə (Şöbə müdiri)', fg: '#8A7A2E', bg: 'rgba(138,122,46,0.1)'},
+    pending: {label: 'Gözləmədə (Şöbə müdiri)', fg: '#08559A', bg: 'rgba(138,122,46,0.1)'},
     awaiting_apparatus: {label: 'Aparat rəhbərini gözləyir', fg: '#8A5A2E', bg: 'rgba(138,90,46,0.1)'},
-    approved: {label: 'Təsdiqlənib', fg: '#2F6B4F', bg: 'rgba(47,107,79,0.1)'},
-    rejected: {label: 'Rədd edilib', fg: '#A23B3B', bg: 'rgba(162,59,59,0.1)'},
+    approved: {label: 'Təsdiqlənib', fg: '#1F7A4D', bg: 'rgba(47,107,79,0.1)'},
+    rejected: {label: 'Rədd edilib', fg: '#C42F3D', bg: 'rgba(162,59,59,0.1)'},
 };
 
 // Bir sətir üçün "Label / Value" formatı - detail modalın əsas tikinti bloku
@@ -55,7 +49,7 @@ function ReviewStageCard({title, byName, at, comment, decided, decisionLabel}) {
         );
     }
     return (
-        <Box sx={{p: 1.5, border: `1px solid ${C.line}`, borderRadius: '6px', mb: 1.5, backgroundColor: '#FBFAF6'}}>
+        <Box sx={{p: 1.5, border: `1px solid ${C.line}`, borderRadius: '6px', mb: 1.5, backgroundColor: '#F8FAFD'}}>
             <Box sx={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
                 <Typography sx={{fontSize: 12, color: C.inkFaint, fontWeight: 500}}>{title}</Typography>
                 {decisionLabel}
@@ -142,7 +136,7 @@ export default function AttendancePermissionDetailDialog({open, target, onClose}
                                 sx={{
                                     height: 20, fontSize: 11,
                                     backgroundColor: deptRejected ? 'rgba(162,59,59,0.1)' : 'rgba(47,107,79,0.1)',
-                                    color: deptRejected ? '#A23B3B' : '#2F6B4F',
+                                    color: deptRejected ? '#C42F3D' : '#1F7A4D',
                                 }}
                             />
                         )
@@ -162,7 +156,7 @@ export default function AttendancePermissionDetailDialog({open, target, onClose}
                             sx={{
                                 height: 20, fontSize: 11,
                                 backgroundColor: target.status === 'rejected' ? 'rgba(162,59,59,0.1)' : 'rgba(47,107,79,0.1)',
-                                color: target.status === 'rejected' ? '#A23B3B' : '#2F6B4F',
+                                color: target.status === 'rejected' ? '#C42F3D' : '#1F7A4D',
                             }}
                         />
                     }

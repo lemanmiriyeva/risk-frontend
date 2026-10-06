@@ -164,13 +164,13 @@ function QuizAttemptDialog({attemptId, onClose}) {
                             <Box key={a.id} sx={{py: 1.25, borderTop: `1px solid ${C.line}`}}>
                                 <Box sx={{display: 'flex', gap: 1, alignItems: 'flex-start'}}>
                                     {a.is_correct
-                                        ? <CheckCircleIcon sx={{fontSize: 18, color: '#2E6B3F', mt: 0.25}}/>
+                                        ? <CheckCircleIcon sx={{fontSize: 18, color: '#1F7A4D', mt: 0.25}}/>
                                         : <CancelIcon sx={{fontSize: 18, color: C.danger, mt: 0.25}}/>}
                                     <Box>
                                         <Typography sx={{fontSize: 13.5, fontWeight: 600, color: C.ink}}>{i + 1}. {a.question_text}</Typography>
                                         <Typography sx={{fontSize: 12.5, color: C.inkMuted}}>Cavab: {a.selected_text || '—'}</Typography>
                                         {!a.is_correct && (
-                                            <Typography sx={{fontSize: 12.5, color: '#2E6B3F'}}>Düzgün cavab: {a.correct_text}</Typography>
+                                            <Typography sx={{fontSize: 12.5, color: '#1F7A4D'}}>Düzgün cavab: {a.correct_text}</Typography>
                                         )}
                                     </Box>
                                 </Box>

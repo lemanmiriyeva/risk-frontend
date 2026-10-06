@@ -20,6 +20,20 @@ import {APP_ROUTES} from "@/components/constants";
 const POLL_INTERVAL_MS = 30000;
 const GOLD = '#C9A24B';
 
+/* İki görünüş: köhnə tünd başlıq üçün "dark", yeni ağ üst panel üçün "light". */
+const TONES = {
+    dark: {
+        icon: '#E7EAF3', accent: GOLD, badgeBg: GOLD, badgeText: '#0E1730',
+        paper: '#0E1730', paperText: '#E7EAF3', border: 'rgba(255,255,255,0.08)', shadow: '0 20px 45px rgba(2,6,36,0.5)',
+        title: '#fff', muted: '#9AA5C7', faint: '#6E7896', unread: 'rgba(201,162,75,0.07)', hover: 'rgba(201,162,75,0.12)',
+    },
+    light: {
+        icon: '#334155', accent: '#0A6CC2', badgeBg: '#C42F3D', badgeText: '#fff',
+        paper: '#FFFFFF', paperText: '#0F1B2D', border: '#E3E8F0', shadow: '0 18px 40px rgba(6,18,38,0.14)',
+        title: '#0F1B2D', muted: '#55657D', faint: '#8693A7', unread: 'rgba(10,108,194,0.06)', hover: 'rgba(10,108,194,0.10)',
+    },
+};
+
 function timeAgo(dateStr) {
     if (!dateStr) return '';
     const diffMs = Date.now() - new Date(dateStr).getTime();
@@ -32,7 +46,8 @@ function timeAgo(dateStr) {
     return `${days} gün əvvəl`;
 }
 
-export default function NotificationBell() {
+export default function NotificationBell({tone = 'dark'}) {
+    const T = TONES[tone] || TONES.dark;
     const router = useRouter();
     const [anchorEl, setAnchorEl] = useState(null);
     const open = Boolean(anchorEl);
@@ -108,10 +123,10 @@ export default function NotificationBell() {
     return (
         <>
             <Tooltip title="Bildirişlər">
-                <IconButton onClick={handleOpen} sx={{color: '#E7EAF3'}}>
+                <IconButton onClick={handleOpen} sx={{color: T.icon}}>
                     <Badge
                         badgeContent={unreadCount} max={99}
-                        sx={{'& .MuiBadge-badge': {backgroundColor: GOLD, color: '#0E1730', fontWeight: 700}}}
+                        sx={{'& .MuiBadge-badge': {backgroundColor: T.badgeBg, color: T.badgeText, fontWeight: 700}}}
                     >
                         <NotificationsNoneOutlinedIcon/>
                     </Badge>
@@ -128,36 +143,36 @@ export default function NotificationBell() {
                     paper: {
                         sx: {
                             mt: 1, width: 360, maxWidth: '92vw', maxHeight: 460, borderRadius: 2.5,
-                            backgroundColor: '#0E1730', color: '#E7EAF3',
-                            border: '1px solid rgba(255,255,255,0.08)',
-                            boxShadow: '0 20px 45px rgba(2,6,36,0.5)',
+                            backgroundColor: T.paper, color: T.paperText,
+                            border: `1px solid ${T.border}`,
+                            boxShadow: T.shadow,
                         }
                     }
                 }}
             >
                 <Box sx={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 2, py: 1.5}}>
-                    <Typography sx={{fontSize: 14, fontWeight: 700, color: '#fff'}}>
+                    <Typography sx={{fontSize: 14, fontWeight: 700, color: T.title}}>
                         Bildirişlər
                     </Typography>
                     {unreadCount > 0 && (
                         <Tooltip title="Hamısını oxundu et">
-                            <IconButton size="small" onClick={handleMarkAllRead} sx={{color: GOLD}}>
+                            <IconButton size="small" onClick={handleMarkAllRead} sx={{color: T.accent}}>
                                 <DoneAllIcon fontSize="small"/>
                             </IconButton>
                         </Tooltip>
                     )}
                 </Box>
-                <Divider sx={{borderColor: 'rgba(255,255,255,0.08)'}}/>
+                <Divider sx={{borderColor: T.border}}/>
 
                 {loading && (
                     <Box sx={{display: 'flex', justifyContent: 'center', py: 3}}>
-                        <CircularProgress size={22} sx={{color: GOLD}}/>
+                        <CircularProgress size={22} sx={{color: T.accent}}/>
                     </Box>
                 )}
 
                 {!loading && notifications.length === 0 && (
                     <Box sx={{px: 2, py: 3, textAlign: 'center'}}>
-                        <Typography sx={{fontSize: 13, color: '#9AA5C7'}}>
+                        <Typography sx={{fontSize: 13, color: T.muted}}>
                             Hələ bildirişiniz yoxdur.
                         </Typography>
                     </Box>
@@ -169,28 +184,28 @@ export default function NotificationBell() {
                         onClick={() => handleItemClick(item)}
                         sx={{
                             alignItems: 'flex-start', gap: 1, py: 1.2, px: 2, whiteSpace: 'normal',
-                            backgroundColor: item.is_read ? 'transparent' : 'rgba(201,162,75,0.07)',
-                            borderLeft: item.is_read ? '2px solid transparent' : `2px solid ${GOLD}`,
-                            '&:hover': {backgroundColor: 'rgba(201,162,75,0.12)'},
+                            backgroundColor: item.is_read ? 'transparent' : T.unread,
+                            borderLeft: item.is_read ? '2px solid transparent' : `2px solid ${T.accent}`,
+                            '&:hover': {backgroundColor: T.hover},
                         }}
                     >
                         <Box sx={{flex: 1, minWidth: 0}}>
-                            <Typography sx={{fontSize: 13.5, fontWeight: item.is_read ? 500 : 700, color: '#fff'}}>
+                            <Typography sx={{fontSize: 13.5, fontWeight: item.is_read ? 500 : 700, color: T.title}}>
                                 {item.title}
                             </Typography>
                             {item.body && (
-                                <Typography sx={{fontSize: 12.5, color: '#9AA5C7', mt: 0.25, whiteSpace: 'normal'}}>
+                                <Typography sx={{fontSize: 12.5, color: T.muted, mt: 0.25, whiteSpace: 'normal'}}>
                                     {item.body}
                                 </Typography>
                             )}
-                            <Typography sx={{fontSize: 11, color: '#6E7896', mt: 0.5}}>
+                            <Typography sx={{fontSize: 11, color: T.faint, mt: 0.5}}>
                                 {timeAgo(item.created_at)}
                             </Typography>
                         </Box>
                     </MenuItem>
                 ))}
 
-                <Divider sx={{borderColor: 'rgba(255,255,255,0.08)'}}/>
+                <Divider sx={{borderColor: T.border}}/>
                 <Box sx={{textAlign: 'center', py: 1}}>
                     <Button
                         size="small"
@@ -198,7 +213,7 @@ export default function NotificationBell() {
                             handleClose();
                             router.push(APP_ROUTES.NOTIFICATIONS);
                         }}
-                        sx={{color: GOLD, textTransform: 'none', fontWeight: 600, fontSize: 13}}
+                        sx={{color: T.accent, textTransform: 'none', fontWeight: 600, fontSize: 13}}
                     >
                         Bütün bildirişlərə bax
                     </Button>

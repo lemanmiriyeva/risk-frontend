@@ -18,28 +18,16 @@ import {handleError} from "@/app/utils";
 import {NEXT_API_ENDPOINTS} from "@/app/urls";
 import {service_api} from "@/app/service";
 import {DATA_GRID_LOCALE_AZ} from "@/lib/dataGridLocaleAz";
+import {C} from "@/components/theme/tokens";
 
-const C = {
-    bg: '#fff',
-    surface: '#FFFFFF',
-    surfaceRaised: '#FBFAF6',
-    line: '#E4E1D8',
-    lineStrong: '#D0CCC0',
-    ink: '#1D1B16',
-    inkMuted: '#6B6558',
-    inkFaint: '#948D7C',
-    gold: '#9C7A2E',
-    goldMuted: 'rgba(156,122,46,0.35)',
-    goldWash: 'rgba(156,122,46,0.08)',
-};
 
 const ACTION_META = {
-    login: {label: 'Daxil oldu', fg: '#2F6B4F', bg: 'rgba(47,107,79,0.08)', ring: 'rgba(47,107,79,0.3)'},
+    login: {label: 'Daxil oldu', fg: '#1F7A4D', bg: 'rgba(47,107,79,0.08)', ring: 'rgba(47,107,79,0.3)'},
     logout: {label: 'Çıxış etdi', fg: '#6B4E8C', bg: 'rgba(107,78,140,0.08)', ring: 'rgba(107,78,140,0.3)'},
-    viewed: {label: 'Baxdı', fg: '#8A7A2E', bg: 'rgba(138,122,46,0.08)', ring: 'rgba(138,122,46,0.3)'},
-    created: {label: 'Yaratdı', fg: '#2F6B4F', bg: 'rgba(47,107,79,0.08)', ring: 'rgba(47,107,79,0.3)'},
+    viewed: {label: 'Baxdı', fg: '#08559A', bg: 'rgba(138,122,46,0.08)', ring: 'rgba(138,122,46,0.3)'},
+    created: {label: 'Yaratdı', fg: '#1F7A4D', bg: 'rgba(47,107,79,0.08)', ring: 'rgba(47,107,79,0.3)'},
     updated: {label: 'Dəyişiklik etdi', fg: '#2B5E8C', bg: 'rgba(43,94,140,0.08)', ring: 'rgba(43,94,140,0.3)'},
-    deleted: {label: 'Sildi', fg: '#A23B3B', bg: 'rgba(162,59,59,0.08)', ring: 'rgba(162,59,59,0.3)'},
+    deleted: {label: 'Sildi', fg: '#C42F3D', bg: 'rgba(162,59,59,0.08)', ring: 'rgba(162,59,59,0.3)'},
     exported: {label: 'İxrac etdi', fg: '#6B4E8C', bg: 'rgba(107,78,140,0.08)', ring: 'rgba(107,78,140,0.3)'},
     other: {label: 'Digər', fg: C.inkMuted, bg: C.surfaceRaised, ring: C.line},
 };

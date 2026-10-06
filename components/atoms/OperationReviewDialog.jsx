@@ -6,15 +6,8 @@ import Typography from '@mui/material/Typography';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
+import {C} from "@/components/theme/tokens";
 
-const C = {
-    surface: '#FFFFFF',
-    line: '#E4E1D8',
-    ink: '#1D1B16',
-    inkMuted: '#6B6558',
-    approve: '#2F6B4F',
-    reject: '#A23B3B',
-};
 
 /**
  * target: seçilmiş Operation sətri

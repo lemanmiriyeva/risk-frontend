@@ -168,12 +168,12 @@ export default function Home() {
                 background: `radial-gradient(90% 120% at 85% 10%, ${BRAND.navy600} 0%, ${BRAND.navy900} 55%, ${BRAND.navy950} 100%)`,
             }}>
                 <AnimatedPattern opacity={0.045} size={120} duration={90}/>
-                <Box aria-hidden sx={{
-                    position: 'absolute', right: {xs: -160, md: '6%'}, top: {xs: -40, md: -30},
-                    animation: `${float} 14s ease-in-out infinite`, [reducedMotion]: {animation: 'none'},
-                }}>
-                    <Star size={420} color="#E9C766" opacity={0.22}/>
-                </Box>
+                {/*<Box aria-hidden sx={{*/}
+                {/*    position: 'absolute', right: {xs: -160, md: '6%'}, top: {xs: -40, md: -30},*/}
+                {/*    animation: `${float} 14s ease-in-out infinite`, [reducedMotion]: {animation: 'none'},*/}
+                {/*}}>*/}
+                {/*    <Star size={420} color="#E9C766" opacity={0.22}/>*/}
+                {/*</Box>*/}
                 <Box aria-hidden sx={{position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none'}}>
                     <Box sx={{
                         position: 'absolute', top: 0, bottom: 0, width: '30%',

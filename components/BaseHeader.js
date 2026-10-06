@@ -30,7 +30,7 @@ import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import Alert from "@mui/material/Alert";
 import Image from "next/image";
-import logo from '../app/logo.svg'
+import logo from '../app/logo.png'
 import Theme from "@/components/main/Theme";
 import NotificationBell from "@/components/atoms/NotificationBell";
 

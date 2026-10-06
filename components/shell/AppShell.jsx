@@ -33,7 +33,7 @@ import {BRAND, C, FONT_STACK, SERIF_STACK, TRICOLOR, formatAzDate} from "@/compo
 import {fadeIn, reducedMotion} from "@/components/theme/motion";
 import {moduleAccent, moduleIcon, moduleKeyFromPath, useUserModules} from "./moduleMeta";
 import AnimatedPattern from "./AnimatedPattern";
-import logo from '@/app/logo.svg';
+import logo from '@/app/logo.png';
 
 const NAV_HEIGHT = 52;
 

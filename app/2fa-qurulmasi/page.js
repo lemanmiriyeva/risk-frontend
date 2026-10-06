@@ -13,7 +13,7 @@ import {APP_ROUTES} from "@/components/constants";
 import {handleError} from "@/app/utils";
 
 import bina from "@/app/msn_bina.png"
-import logo from "@/app/logo.svg"
+import logo from "@/app/logo.png"
 
 import Image from "next/image";
 import CssBaseline from "@mui/material/CssBaseline";

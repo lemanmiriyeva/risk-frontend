@@ -9,7 +9,7 @@ import Image from "next/image";
 import {useRouter} from "next/navigation";
 
 import bina from "@/app/msn_bina.png"
-import logo from "@/app/logo.svg"
+import logo from "@/app/logo.png"
 import {service_api} from "@/app/service";
 import {NEXT_API_ENDPOINTS} from "@/app/urls";
 import {APP_ROUTES} from "@/components/constants";

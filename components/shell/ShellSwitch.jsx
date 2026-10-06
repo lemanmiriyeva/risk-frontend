@@ -1,13 +1,12 @@
 "use client"
 import React from 'react';
 import {usePathname} from 'next/navigation';
-import BaseHeader from "@/components/BaseHeader";
 import {APP_ROUTES} from "@/components/constants";
 import AppShell from "./AppShell";
 
 /*
  * Giriş axınının səhifələri (giriş, şifrə bərpası, 2FA, təsdiq gözləmə, çıxış)
- * köhnə görünüşdə qalır - yeni karkas yalnız sistemin daxili səhifələrinə tətbiq olunur.
+ * öz karkasından (components/shell/AuthLayout) istifadə edir - üst menyu göstərilmir.
  */
 const AUTH_ROUTES = [
     APP_ROUTES.SIGNIN,
@@ -24,12 +23,7 @@ export function isAuthRoute(pathname) {
 export default function ShellSwitch({env, children}) {
     const pathname = usePathname() || '/';
     if (isAuthRoute(pathname)) {
-        return (
-            <>
-                <BaseHeader env={env}/>
-                {children}
-            </>
-        );
+        return children;
     }
     return <AppShell>{children}</AppShell>;
 }

@@ -27,7 +27,7 @@ const STATUS_META = {
     pending: {label: 'Gözləmədə', fg: '#08559A', bg: 'rgba(138,122,46,0.1)'},
     in_progress: {label: 'Baxılır', fg: '#8A5A2E', bg: 'rgba(138,90,46,0.1)'},
     approved: {label: 'Təsdiqləndi', fg: '#1F7A4D', bg: 'rgba(47,107,79,0.1)'},
-    rejected: {label: 'Rədd edildi', fg: '#C42F3D', bg: 'rgba(162,59,59,0.1)'},
+    rejected: {label: 'İmtina edildi', fg: '#C42F3D', bg: 'rgba(162,59,59,0.1)'},
     canceled: {label: 'Ləğv edildi', fg: C.inkMuted, bg: C.surfaceRaised},
 };
 
@@ -116,7 +116,7 @@ export default function OperationsPage() {
             await service_api.patch(`${NEXT_API_ENDPOINTS.OPERATIONS.REVIEW}${reviewTarget.id}/review/`, {
                 action, comment,
             });
-            enqueueSnackbar(action === 'approve' ? 'Əməliyyat təsdiqləndi.' : 'Əməliyyat rədd edildi.', {variant: 'success'});
+            enqueueSnackbar(action === 'approve' ? 'Əməliyyat təsdiqləndi.' : 'Əməliyyatdan imtina edildi.', {variant: 'success'});
             setReviewTarget(null);
             setReviewAction(null);
             fetchRows();

@@ -11,6 +11,8 @@ import Chip from '@mui/material/Chip';
 import Divider from '@mui/material/Divider';
 import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 import {C} from "@/components/theme/tokens";
 
 
@@ -18,7 +20,7 @@ const STATUS_META = {
     pending: {label: 'Gözləmədə (Şöbə müdiri)', fg: '#08559A', bg: 'rgba(138,122,46,0.1)'},
     awaiting_apparatus: {label: 'Aparat rəhbərini gözləyir', fg: '#8A5A2E', bg: 'rgba(138,90,46,0.1)'},
     approved: {label: 'Təsdiqlənib', fg: '#1F7A4D', bg: 'rgba(47,107,79,0.1)'},
-    rejected: {label: 'Rədd edilib', fg: '#C42F3D', bg: 'rgba(162,59,59,0.1)'},
+    rejected: {label: 'İmtina edilib', fg: '#C42F3D', bg: 'rgba(162,59,59,0.1)'},
 };
 
 // Bir sətir üçün "Label / Value" formatı - detail modalın əsas tikinti bloku
@@ -67,7 +69,7 @@ function ReviewStageCard({title, byName, at, comment, decided, decisionLabel}) {
     );
 }
 
-export default function AttendancePermissionDetailDialog({open, target, onClose}) {
+export default function AttendancePermissionDetailDialog({open, target, onClose, onReview}) {
     if (!target) return null;
 
     const statusMeta = STATUS_META[target.status] || STATUS_META.pending;
@@ -132,7 +134,7 @@ export default function AttendancePermissionDetailDialog({open, target, onClose}
                         target.status === 'pending' ? null : (
                             <Chip
                                 size="small"
-                                label={deptRejected ? 'Rədd edildi' : 'Təsdiqləndi'}
+                                label={deptRejected ? 'İmtina edildi' : 'Təsdiqləndi'}
                                 sx={{
                                     height: 20, fontSize: 11,
                                     backgroundColor: deptRejected ? 'rgba(162,59,59,0.1)' : 'rgba(47,107,79,0.1)',
@@ -152,7 +154,7 @@ export default function AttendancePermissionDetailDialog({open, target, onClose}
                     decisionLabel={
                         <Chip
                             size="small"
-                            label={target.status === 'rejected' ? 'Rədd edildi' : 'Təsdiqləndi'}
+                            label={target.status === 'rejected' ? 'İmtina edildi' : 'Təsdiqləndi'}
                             sx={{
                                 height: 20, fontSize: 11,
                                 backgroundColor: target.status === 'rejected' ? 'rgba(162,59,59,0.1)' : 'rgba(47,107,79,0.1)',
@@ -163,13 +165,40 @@ export default function AttendancePermissionDetailDialog({open, target, onClose}
                 />
             </DialogContent>
 
-            <DialogActions sx={{px: 3, py: 2}}>
+            <DialogActions sx={{px: 3, py: 2, gap: 1}}>
                 <Button
                     onClick={onClose}
-                    sx={{textTransform: 'none', color: C.inkMuted}}
+                    sx={{textTransform: 'none', color: C.inkMuted, mr: 'auto'}}
                 >
                     Bağla
                 </Button>
+                {target.can_review && onReview && (
+                    <>
+                        <Button
+                            variant="outlined"
+                            startIcon={<HighlightOffIcon/>}
+                            onClick={() => onReview('reject')}
+                            sx={{
+                                textTransform: 'none', fontWeight: 600, color: C.danger,
+                                borderColor: 'rgba(196,47,61,0.4)',
+                                '&:hover': {borderColor: C.danger, backgroundColor: C.dangerTint},
+                            }}
+                        >
+                            İmtina et
+                        </Button>
+                        <Button
+                            variant="contained"
+                            startIcon={<CheckCircleOutlineIcon/>}
+                            onClick={() => onReview('approve')}
+                            sx={{
+                                textTransform: 'none', fontWeight: 600, boxShadow: 'none',
+                                backgroundColor: C.success, '&:hover': {backgroundColor: '#17603C', boxShadow: 'none'},
+                            }}
+                        >
+                            Təsdiqlə
+                        </Button>
+                    </>
+                )}
             </DialogActions>
         </Dialog>
     );

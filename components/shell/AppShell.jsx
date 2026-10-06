@@ -29,7 +29,7 @@ import {useAppSelector} from "@/lib/hooks";
 import {APP_ROUTES} from "@/components/constants";
 import NotificationBell from "@/components/atoms/NotificationBell";
 import appTheme from "@/components/theme/appTheme";
-import {BRAND, C, FONT_STACK, SERIF_STACK, TRICOLOR, formatAzDate} from "@/components/theme/tokens";
+import {BRAND, C, FONT_STACK, SERIF_STACK, TRICOLOR, formatNumericDate} from "@/components/theme/tokens";
 import {fadeIn, reducedMotion} from "@/components/theme/motion";
 import {moduleAccent, moduleIcon, moduleKeyFromPath, useUserModules} from "./moduleMeta";
 import AnimatedPattern from "./AnimatedPattern";
@@ -264,7 +264,7 @@ function SiteHeader() {
     const [scrolled, setScrolled] = useState(false);
     const [today, setToday] = useState('');
 
-    useEffect(() => { setToday(formatAzDate(new Date())); }, []);
+    useEffect(() => { setToday(formatNumericDate(new Date())); }, []);
     useEffect(() => { setMobileOpen(false); }, [pathname]);
     useEffect(() => {
         const onScroll = () => setScrolled(window.scrollY > 24);

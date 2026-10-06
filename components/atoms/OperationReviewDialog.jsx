@@ -31,7 +31,7 @@ export default function OperationReviewDialog({target, action, onClose, onConfir
                 PaperProps={{sx: {backgroundColor: C.surface, borderRadius: '14px', border: `1px solid ${C.line}`}}}>
             <Box sx={{px: 3, pt: 3, pb: 1}}>
                 <Typography sx={{fontSize: 18, fontWeight: 600, color: C.ink, mb: 1}}>
-                    {isApprove ? 'Əməliyyat təsdiqlənsin?' : 'Əməliyyat rədd edilsin?'}
+                    {isApprove ? 'Əməliyyat təsdiqlənsin?' : 'Əməliyyatdan imtina edilsin?'}
                 </Typography>
                 <Typography sx={{fontSize: 13.5, color: C.inkMuted}}>
                     <b>{target.category_title}</b> — {target.object_repr || target.description}
@@ -55,7 +55,7 @@ export default function OperationReviewDialog({target, action, onClose, onConfir
             <Box sx={{px: 3, pb: 1}}>
                 <TextField
                     fullWidth multiline minRows={2} size="small"
-                    label={isApprove ? 'Qeyd (istəyə bağlı)' : 'Rədd səbəbi (istəyə bağlı)'}
+                    label={isApprove ? 'Qeyd (istəyə bağlı)' : 'İmtina səbəbi (istəyə bağlı)'}
                     value={comment} onChange={(e) => setComment(e.target.value)} disabled={loading}
                     sx={{mt: 1}}
                 />
@@ -74,7 +74,7 @@ export default function OperationReviewDialog({target, action, onClose, onConfir
                         '&:hover': {backgroundColor: isApprove ? C.approve : C.reject, opacity: 0.9},
                     }}
                 >
-                    {loading ? <CircularProgress size={18} sx={{color: '#fff'}}/> : (isApprove ? 'Təsdiqlə' : 'Rədd et')}
+                    {loading ? <CircularProgress size={18} sx={{color: '#fff'}}/> : (isApprove ? 'Təsdiqlə' : 'İmtina et')}
                 </Button>
             </Box>
         </Dialog>

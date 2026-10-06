@@ -28,7 +28,7 @@ export default function AttendancePermissionReviewDialog({target, action, onClos
                 PaperProps={{sx: {backgroundColor: C.surface, borderRadius: '14px', border: `1px solid ${C.line}`}}}>
             <Box sx={{px: 3, pt: 3, pb: 1}}>
                 <Typography sx={{fontSize: 18, fontWeight: 600, color: C.ink, mb: 1}}>
-                    {isApprove ? 'İcazə təsdiqlənsin?' : 'İcazə rədd edilsin?'}
+                    {isApprove ? 'İcazə təsdiqlənsin?' : 'İcazə sorğusundan imtina edilsin?'}
                 </Typography>
                 <Typography sx={{fontSize: 13.5, color: C.inkMuted}}>
                     <b>{target.user_name}</b> — {target.date} {target.start_time}–{target.end_time} — {target.location}
@@ -47,7 +47,7 @@ export default function AttendancePermissionReviewDialog({target, action, onClos
             <Box sx={{px: 3, pb: 1}}>
                 <TextField
                     fullWidth multiline minRows={2} size="small"
-                    label={isApprove ? 'Qeyd (istəyə bağlı)' : 'Rədd səbəbi (istəyə bağlı)'}
+                    label={isApprove ? 'Qeyd (istəyə bağlı)' : 'İmtina səbəbi (istəyə bağlı)'}
                     value={comment} onChange={(e) => setComment(e.target.value)} disabled={loading}
                     sx={{mt: 1}}
                 />
@@ -66,7 +66,7 @@ export default function AttendancePermissionReviewDialog({target, action, onClos
                         '&:hover': {backgroundColor: isApprove ? C.approve : C.reject, opacity: 0.9},
                     }}
                 >
-                    {loading ? <CircularProgress size={18} sx={{color: '#fff'}}/> : (isApprove ? 'Təsdiqlə' : 'Rədd et')}
+                    {loading ? <CircularProgress size={18} sx={{color: '#fff'}}/> : (isApprove ? 'Təsdiqlə' : 'İmtina et')}
                 </Button>
             </Box>
         </Dialog>

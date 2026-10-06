@@ -99,11 +99,7 @@ export default function ModuleHero({eyebrow, title, subtitle, breadcrumb, icon, 
                             animation: `${growX} .9s cubic-bezier(.2,.7,.2,1) .35s forwards`,
                             [reducedMotion]: {animation: 'none', transform: 'none'},
                         }}/>
-                        {subtitle && (
-                            <Typography sx={{color: C.inkMuted, fontSize: {xs: 14, sm: 15.5}, mt: 1.5, maxWidth: 760, lineHeight: 1.6, ...reveal(4, 0)}}>
-                                {subtitle}
-                            </Typography>
-                        )}
+                        {/* "subtitle" qəsdən göstərilmir - başlıqların altında izah mətni olmasın */}
                     </Box>
                     {actions && <Box sx={{display: 'flex', gap: 1, flexShrink: 0, ...reveal(5, 0)}}>{actions}</Box>}
                 </Box>

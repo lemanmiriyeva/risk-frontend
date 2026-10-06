@@ -127,6 +127,15 @@ export const FONT_STACK = '"Montserrat Variable", Montserrat, "Segoe UI", Arial,
 const AZ_MONTHS = ['yanvar', 'fevral', 'mart', 'aprel', 'may', 'iyun', 'iyul', 'avqust', 'sentyabr', 'oktyabr', 'noyabr', 'dekabr'];
 const AZ_DAYS = ['bazar', 'bazar ertəsi', 'çərşənbə axşamı', 'çərşənbə', 'cümə axşamı', 'cümə', 'şənbə'];
 
+/* Rəqəmlə tarix: 06.10.2026 */
+export function formatNumericDate(date) {
+    if (!date) return '';
+    const d = date instanceof Date ? date : new Date(date);
+    if (Number.isNaN(d.getTime())) return '';
+    const pad = (n) => String(n).padStart(2, '0');
+    return `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()}`;
+}
+
 export function formatAzDate(date, {weekday = true} = {}) {
     if (!date) return '';
     const d = date instanceof Date ? date : new Date(date);

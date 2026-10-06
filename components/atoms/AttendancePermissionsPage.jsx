@@ -12,8 +12,6 @@ import CircularProgress from '@mui/material/CircularProgress';
 import GlobalStyles from '@mui/material/GlobalStyles';
 import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
-import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
-import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 import AssignmentTurnedInOutlinedIcon from '@mui/icons-material/AssignmentTurnedInOutlined';
 import {DataGrid} from '@mui/x-data-grid';
@@ -33,7 +31,7 @@ const STATUS_META = {
     pending: {label: 'Gözləmədə (Şöbə müdiri)', fg: '#08559A', bg: 'rgba(138,122,46,0.1)'},
     awaiting_apparatus: {label: 'Aparat rəhbərini gözləyir', fg: '#8A5A2E', bg: 'rgba(138,90,46,0.1)'},
     approved: {label: 'Təsdiqlənib', fg: '#1F7A4D', bg: 'rgba(47,107,79,0.1)'},
-    rejected: {label: 'Rədd edilib', fg: '#C42F3D', bg: 'rgba(162,59,59,0.1)'},
+    rejected: {label: 'İmtina edilib', fg: '#C42F3D', bg: 'rgba(162,59,59,0.1)'},
 };
 
 const STATUS_FILTERS = [
@@ -41,7 +39,7 @@ const STATUS_FILTERS = [
     {value: 'pending', label: 'Gözləmədə (Şöbə müdiri)'},
     {value: 'awaiting_apparatus', label: 'Aparat rəhbərini gözləyir'},
     {value: 'approved', label: 'Təsdiqlənib'},
-    {value: 'rejected', label: 'Rədd edilib'},
+    {value: 'rejected', label: 'İmtina edilib'},
 ];
 
 const gridSx = {
@@ -138,7 +136,7 @@ export default function AttendancePermissionsPage() {
             const resultStatus = res?.data?.status;
             let message;
             if (action !== 'approve') {
-                message = 'İcazə rədd edildi.';
+                message = 'İcazə sorğusundan imtina edildi.';
             } else if (resultStatus === 'awaiting_apparatus') {
                 message = 'Təsdiqiniz qeydə alındı - sorğu Aparat rəhbərinin təsdiqini gözləyir.';
             } else {
@@ -190,43 +188,22 @@ export default function AttendancePermissionsPage() {
                 },
             },
             {
-                field: 'actions', headerName: '', width: 150, sortable: false, filterable: false, disableColumnMenu: true,
+                // Təsdiq / imtina düymələri "Ətraflı" modalının içindədir
+                field: 'actions', headerName: '', width: 70, sortable: false, filterable: false, disableColumnMenu: true,
                 renderCell: (params) => (
                     <Box sx={{display: 'flex', gap: 0.5}}>
-                        <Tooltip title="Ətraflı bax">
+                        <Tooltip title={params.row.can_review ? 'Bax və qərar ver' : 'Ətraflı bax'}>
                             <IconButton
                                 size="small"
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     setDetailTarget(params.row);
                                 }}
-                                sx={{color: C.inkMuted}}
+                                sx={{color: params.row.can_review ? C.gold : C.inkMuted}}
                             >
                                 <VisibilityOutlinedIcon fontSize="small"/>
                             </IconButton>
                         </Tooltip>
-                        {params.row.can_review && (
-                            <>
-                                <Tooltip title="Təsdiqlə">
-                                    <IconButton size="small" onClick={(e) => {
-                                        e.stopPropagation();
-                                        setReviewTarget(params.row);
-                                        setReviewAction('approve');
-                                    }} sx={{color: '#1F7A4D'}}>
-                                        <CheckCircleOutlineIcon fontSize="small"/>
-                                    </IconButton>
-                                </Tooltip>
-                                <Tooltip title="Rədd et">
-                                    <IconButton size="small" onClick={(e) => {
-                                        e.stopPropagation();
-                                        setReviewTarget(params.row);
-                                        setReviewAction('reject');
-                                    }} sx={{color: '#C42F3D'}}>
-                                        <HighlightOffIcon fontSize="small"/>
-                                    </IconButton>
-                                </Tooltip>
-                            </>
-                        )}
                     </Box>
                 ),
             },
@@ -304,6 +281,11 @@ export default function AttendancePermissionsPage() {
                 open={!!detailTarget}
                 target={detailTarget}
                 onClose={() => setDetailTarget(null)}
+                onReview={(action) => {
+                    setReviewTarget(detailTarget);
+                    setReviewAction(action);
+                    setDetailTarget(null);
+                }}
             />
         </Box>
     );

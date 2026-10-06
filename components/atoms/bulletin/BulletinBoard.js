@@ -29,18 +29,18 @@ import {
     normalizeList, pageWrapSx, panelSx, softButtonSx,
 } from "./bulletinShared";
 
-const DOC_SLIDE_H = 172;
+export const DOC_SLIDE_H = 172;
 const NEWS_CARD_H = 286;
 const NEWS_GAP = 12;
 const NEWS_PER_SLIDE = 2;
-const NEWS_SLIDE_H = NEWS_CARD_H * NEWS_PER_SLIDE + NEWS_GAP;
-const BDAY_SLIDE_H = 330;
+export const NEWS_SLIDE_H = NEWS_CARD_H * NEWS_PER_SLIDE + NEWS_GAP;
+export const BDAY_SLIDE_H = 330;
 
 /* ===================================================================== */
 /*  Panel başlığı                                                         */
 /* ===================================================================== */
 
-function PanelTitle({icon, title, count, onAdd, addLabel, size = 'md'}) {
+export function PanelTitle({icon, title, count, onAdd, addLabel, size = 'md'}) {
     const big = size === 'lg';
     return (
         <Box sx={{display: 'flex', alignItems: 'center', gap: 1, minWidth: 0}}>
@@ -137,8 +137,18 @@ function NewsSlide({item}) {
     );
 }
 
+/* Xəbərləri slaydlara bölür (hər slaydda NEWS_PER_SLIDE xəbər) */
+export function pairNews(news) {
+    const pairs = [];
+    for (let i = 0; i < news.length; i += NEWS_PER_SLIDE) {
+        const items = news.slice(i, i + NEWS_PER_SLIDE);
+        pairs.push({id: items.map((n) => n.id).join('-'), items});
+    }
+    return pairs;
+}
+
 /* Bir slaydda alt-alta iki xəbər */
-function NewsPairSlide({items}) {
+export function NewsPairSlide({items}) {
     return (
         <Box sx={{display: 'flex', flexDirection: 'column', gap: `${NEWS_GAP}px`, height: '100%'}}>
             {items.map((item) => (
@@ -150,7 +160,7 @@ function NewsPairSlide({items}) {
     );
 }
 
-function CircularSlide({item}) {
+export function CircularSlide({item}) {
     return (
         <Box sx={{
             display: 'flex', flexDirection: 'column', height: '100%',
@@ -202,7 +212,7 @@ function CircularSlide({item}) {
     );
 }
 
-function BirthdaySlide({person}) {
+export function BirthdaySlide({person}) {
     return (
         <Box sx={{
             display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',

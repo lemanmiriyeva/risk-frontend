@@ -56,12 +56,15 @@ export function CategoryIcon({icon, sx}) {
  * bu hook-u paralel çağıra bilər - hər biri öz nüsxəsini saxlayır, əlavə
  * keşləmə lazım deyil, çünki siyahı kiçikdir və nadir dəyişir.
  */
-export function useBulletinCategories() {
+export function useBulletinCategories(enabled = true) {
     const {enqueueSnackbar} = useSnackbar();
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
 
+    // enabled=false - istifadəçinin Elanlar lövhəsinə girişi yoxdur (məs. ana səhifədə),
+    // sorğu göndərilmir (403 cavabı giriş səhifəsinə yönləndirərdi).
     const reload = useCallback(async () => {
+        if (!enabled) { setCategories([]); setLoading(false); return; }
         setLoading(true);
         try {
             const res = await service_api.get(NEXT_API_ENDPOINTS.BULLETIN.CATEGORIES);
@@ -72,7 +75,7 @@ export function useBulletinCategories() {
             setLoading(false);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [enabled]);
 
     useEffect(() => { reload(); }, [reload]);
 

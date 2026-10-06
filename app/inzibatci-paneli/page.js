@@ -48,14 +48,14 @@ export default function Page() {
         },
         {
             href: '/inzibatci-paneli/departamentler',
-            title: 'Departamentlər',
-            description: 'Qurumların ana və alt departamentlərini idarə edin.',
+            title: 'Şöbə və struktur bölmələr',
+            description: 'Qurumların şöbə və struktur bölmələrini idarə edin.',
             Icon: AccountTreeOutlinedIcon,
         },
         {
             href: '/inzibatci-paneli/vezifeler',
             title: 'Vəzifələr',
-            description: 'Departamentlərə bağlı vəzifələri idarə edin.',
+            description: 'Şöbə və struktur bölmələrə bağlı vəzifələri idarə edin.',
             Icon: WorkOutlineIcon,
         },
         {

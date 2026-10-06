@@ -27,9 +27,9 @@ export default function Page() {
         <Box sx={{backgroundColor: GOV.pageBg, minHeight: '100vh'}}>
             <ModuleHero
                 eyebrow="İdarəetmə"
-                title="Departamentlər"
-                subtitle="Qurumların ana və alt departamentlərini idarə edin."
-                breadcrumb={["İnzibatçı paneli", 'Departamentlər']}
+                title="Şöbə və struktur bölmələr"
+                subtitle="Qurumların şöbə və struktur bölmələrini idarə edin."
+                breadcrumb={["İnzibatçı paneli", 'Şöbə və struktur bölmələr']}
                 icon={<AccountTreeOutlinedIcon sx={{fontSize: 26}}/>}
             />
             <Box sx={{p: {xs: 2.5, sm: 4, md: 6}, maxWidth: {xs: '100%', sm: '92%', lg: 1400}, mx: 'auto'}}>

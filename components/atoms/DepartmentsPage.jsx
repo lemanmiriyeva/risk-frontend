@@ -105,7 +105,7 @@ function DepartmentFormDialog({open, onClose, onSubmit, initialData, loading, is
                 PaperProps={{sx: dialogPaperSx, component: 'form', onSubmit: handleSubmit}}>
             <Box sx={{px: 3, pt: 3, pb: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: `linear-gradient(180deg, ${C.surfaceRaised}, ${C.surface})`, borderBottom: `1px solid ${C.line}`}}>
                 <Typography sx={{fontSize: 18, color: C.ink, fontWeight: 600}}>
-                    {isEdit ? 'Departamenti redaktə et' : 'Yeni departament'}
+                    {isEdit ? 'Şöbəni redaktə et' : 'Yeni şöbə / struktur bölmə'}
                 </Typography>
                 <IconButton size="small" onClick={onClose} sx={{color: C.inkMuted}}>
                     <CloseIcon fontSize="small"/>
@@ -113,7 +113,7 @@ function DepartmentFormDialog({open, onClose, onSubmit, initialData, loading, is
             </Box>
 
             <Box sx={{px: 3, py: 2.5, display: 'flex', flexDirection: 'column', gap: 2, maxHeight: '65vh', overflowY: 'auto'}}>
-                <TextField label="Departamentin adı" required fullWidth size="small" sx={fieldSx}
+                <TextField label="Şöbənin / struktur bölmənin adı" required fullWidth size="small" sx={fieldSx}
                            value={form.title} onChange={(e) => set('title', e.target.value)}/>
                 <TextField label="Qısaltma" fullWidth size="small" sx={fieldSx}
                            value={form.shortname} onChange={(e) => set('shortname', e.target.value)}/>
@@ -128,10 +128,10 @@ function DepartmentFormDialog({open, onClose, onSubmit, initialData, loading, is
                     </TextField>
                 )}
 
-                <TextField select label="Valideyn departament (ana)" fullWidth size="small" sx={fieldSx}
+                <TextField select label="Üst şöbə (ana)" fullWidth size="small" sx={fieldSx}
                            value={form.parent} onChange={(e) => set('parent', e.target.value)}
-                           helperText="Boş buraxsanız - bu, ana (kök) departament olacaq.">
-                    <MenuItem value="">— Ana departament —</MenuItem>
+                           helperText="Boş buraxsanız - bu, ana (kök) şöbə olacaq.">
+                    <MenuItem value="">— Ana şöbə —</MenuItem>
                     {parentOptions.map((d) => (
                         <MenuItem key={d.id} value={d.id}>{d.label}</MenuItem>
                     ))}
@@ -189,7 +189,7 @@ function DepartmentNode({dep, depth, onEdit, onDelete, onAddChild}) {
                 <Chip icon={<WorkOutlineIcon sx={{fontSize: 14}}/>} label={(dep.roles || []).length} size="small"
                       sx={{backgroundColor: C.goldTint, color: C.gold, height: 22}}/>
 
-                <Tooltip title="Alt departament əlavə et">
+                <Tooltip title="Alt struktur bölmə əlavə et">
                     <IconButton size="small" onClick={() => onAddChild(dep)} sx={{color: C.inkMuted}}>
                         <AddCircleOutlineIcon fontSize="small"/>
                     </IconButton>
@@ -300,10 +300,10 @@ export default function DepartmentsPage() {
 
             if (editingRow) {
                 await service_api.patch(`${NEXT_API_ENDPOINTS.ORGANIZATION.DEPARTMENTS}${editingRow.id}/`, payload);
-                enqueueSnackbar('Departament yeniləndi.', {variant: 'success'});
+                enqueueSnackbar('Şöbə yeniləndi.', {variant: 'success'});
             } else {
                 await service_api.post(NEXT_API_ENDPOINTS.ORGANIZATION.DEPARTMENTS, payload);
-                enqueueSnackbar('Departament yaradıldı.', {variant: 'success'});
+                enqueueSnackbar('Şöbə yaradıldı.', {variant: 'success'});
             }
             setFormOpen(false);
             fetchDepartments();
@@ -319,7 +319,7 @@ export default function DepartmentsPage() {
         setDeleting(true);
         try {
             await service_api.delete(`${NEXT_API_ENDPOINTS.ORGANIZATION.DEPARTMENTS}${deleteTarget.id}/`);
-            enqueueSnackbar('Departament silindi.', {variant: 'success'});
+            enqueueSnackbar('Şöbə silindi.', {variant: 'success'});
             setDeleteTarget(null);
             fetchDepartments();
         } catch (e) {
@@ -341,12 +341,12 @@ export default function DepartmentsPage() {
         <Box>
             <Box sx={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', mb: 3, flexWrap: 'wrap', gap: 2}}>
                 <Typography sx={{fontSize: 14, color: C.inkMuted}}>
-                    {isRoot ? 'Qurumların ana və alt departamentləri.' : 'Qurumunuzun ana və alt departamentləri.'}
+                    {isRoot ? 'Qurumların şöbə və struktur bölmələri.' : 'Qurumunuzun şöbə və struktur bölmələri.'}
                 </Typography>
                 <Button variant="contained" startIcon={<AddIcon/>} onClick={openCreate}
                         disabled={isRoot && !selectedOrg}
                         sx={{backgroundColor: C.ink, color: C.bg, textTransform: 'none', boxShadow: 'none', borderRadius: '8px', px: 2.5, py: 1, '&:hover': {backgroundColor: C.gold}}}>
-                    Yeni departament
+                    Yeni şöbə / struktur bölmə
                 </Button>
             </Box>
 
@@ -372,7 +372,7 @@ export default function DepartmentsPage() {
                 ) : departments.length === 0 ? (
                     <Box sx={{p: 5, textAlign: 'center'}}>
                         <Typography sx={{color: C.inkFaint, fontSize: 14}}>
-                            {isRoot && !selectedOrg ? 'Departamentləri görmək üçün əvvəlcə qurum seçin.' : 'Heç bir departament tapılmadı.'}
+                            {isRoot && !selectedOrg ? 'Şöbə və struktur bölmələri görmək üçün əvvəlcə qurum seçin.' : 'Heç bir şöbə tapılmadı.'}
                         </Typography>
                     </Box>
                 ) : (
@@ -398,10 +398,10 @@ export default function DepartmentsPage() {
 
             <Dialog open={!!deleteTarget} onClose={() => setDeleteTarget(null)} PaperProps={{sx: {...dialogPaperSx, maxWidth: 440}}}>
                 <Box sx={{px: 3, pt: 3, pb: 2}}>
-                    <Typography sx={{fontSize: 18, color: C.ink, fontWeight: 500, mb: 1}}>Departament silinsin?</Typography>
+                    <Typography sx={{fontSize: 18, color: C.ink, fontWeight: 500, mb: 1}}>Şöbə silinsin?</Typography>
                     <Typography sx={{fontSize: 13.5, color: C.inkMuted}}>
-                        "{deleteTarget?.title}" departamentini silmək istədiyinizə əminsiniz? Alt departamenti, vəzifəsi
-                        və ya işçisi olan departamentlər silinə bilməz.
+                        "{deleteTarget?.title}" şöbəsini silmək istədiyinizə əminsiniz? Alt struktur bölməsi, vəzifəsi
+                        və ya işçisi olan şöbə və struktur bölmələr silinə bilməz.
                     </Typography>
                 </Box>
                 <Box sx={{px: 3, pb: 3, display: 'flex', justifyContent: 'flex-end', gap: 1}}>

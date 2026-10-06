@@ -133,7 +133,7 @@ function UserDetailDialog({open, onClose, data}) {
                 <InfoRow icon={<MailOutlineIcon fontSize="small"/>} label="Email" value={data.email}/>
                 <InfoRow icon={<ApartmentOutlinedIcon fontSize="small"/>} label="Qurum" value={data.organization?.title}/>
                 <InfoRow icon={<WorkOutlineIcon fontSize="small"/>} label="Vəzifə" value={data.role_name}/>
-                <InfoRow icon={<AccountTreeOutlinedIcon fontSize="small"/>} label="Departament" value={data.department_name}/>
+                <InfoRow icon={<AccountTreeOutlinedIcon fontSize="small"/>} label="Şöbə" value={data.department_name}/>
                 <InfoRow icon={<PhoneOutlinedIcon fontSize="small"/>} label="Telefon nömrəsi" value={data.phone_number}/>
                 <InfoRow icon={<CreditCardOutlinedIcon fontSize="small"/>} label="FIN kod" value={data.fin_kod}/>
             </Box>
@@ -170,7 +170,7 @@ function UserFormDialog({open, onClose, onSubmit, initialData, loading, isRoot, 
 
     const isEdit = !!initialData;
     // Redaktədə qurum sabitdir (dəyişdirilə bilmir); yaratmada isə seçilən (və ya root
-    // olmayan halda öz) qurum əsas götürülür - departament/vəzifə seçimləri bu quruma görə gəlir.
+    // olmayan halda öz) qurum əsas götürülür - şöbə/vəzifə seçimləri bu quruma görə gəlir.
     const effectiveOrgId = isEdit ? initialData.organization?.id : (isRoot ? form.organization : currentUserOrgId);
 
     useEffect(() => {
@@ -203,7 +203,7 @@ function UserFormDialog({open, onClose, onSubmit, initialData, loading, isRoot, 
 
     const flatDepartments = useMemo(() => flattenDepartments(orgDepartments), [orgDepartments]);
 
-    // Departament dəyişəndə, əgər əvvəl seçilmiş vəzifə yeni departamentə aid deyilsə, təmizlənir.
+    // Şöbə dəyişəndə, əgər əvvəl seçilmiş vəzifə yeni şöbəyə aid deyilsə, təmizlənir.
     function setDepartment(depId) {
         setForm((f) => {
             const roleStillValid = orgRoles.some((r) => r.id === f.role && r.department === Number(depId));
@@ -283,7 +283,7 @@ function UserFormDialog({open, onClose, onSubmit, initialData, loading, isRoot, 
                 )}
 
                 <Box sx={{display: 'flex', gap: 2}}>
-                    <TextField select label="Departament/Şöbə" fullWidth size="small" sx={fieldSx}
+                    <TextField select label="Şöbə / struktur bölmə" fullWidth size="small" sx={fieldSx}
                                disabled={!effectiveOrgId}
                                value={form.department} onChange={(e) => setDepartment(e.target.value)}
                                helperText={!effectiveOrgId && isRoot ? 'Əvvəlcə qurum seçin' : ' '}>
@@ -295,7 +295,7 @@ function UserFormDialog({open, onClose, onSubmit, initialData, loading, isRoot, 
                     <TextField select label="Vəzifə" fullWidth size="small" sx={fieldSx}
                                disabled={!form.department}
                                value={form.role} onChange={(e) => set('role', e.target.value)}
-                               helperText={!form.department ? 'Əvvəlcə departament seçin' : ' '}>
+                               helperText={!form.department ? 'Əvvəlcə şöbə seçin' : ' '}>
                         <MenuItem value="">—</MenuItem>
                         {rolesForSelectedDepartment.map((r) => (
                             <MenuItem key={r.id} value={r.id}>{r.title}</MenuItem>
@@ -305,7 +305,7 @@ function UserFormDialog({open, onClose, onSubmit, initialData, loading, isRoot, 
                 {loadingOptions && (
                     <Box sx={{display: 'flex', alignItems: 'center', gap: 1, mt: -1}}>
                         <CircularProgress size={13}/>
-                        <Typography sx={{fontSize: 12, color: C.inkFaint}}>Departament/vəzifə siyahısı yüklənir...</Typography>
+                        <Typography sx={{fontSize: 12, color: C.inkFaint}}>Şöbə/vəzifə siyahısı yüklənir...</Typography>
                     </Box>
                 )}
 

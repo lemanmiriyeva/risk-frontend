@@ -17,7 +17,7 @@ import {service_api} from "@/app/service";
 
 const OWNER_TYPES = [
     {value: 'person', label: 'Şəxs'},
-    {value: 'department', label: 'Departament'},
+    {value: 'department', label: 'Şöbə'},
     {value: 'aparat', label: 'Aparat (hamı üçün)'},
 ];
 
@@ -76,7 +76,7 @@ export default function InventoryFormDialog({open, onClose, onSaved, editingRow}
             return;
         }
         if (ownerType === 'department' && !departmentValue?.name) {
-            enqueueSnackbar('Departament seçilməlidir', {variant: 'warning'});
+            enqueueSnackbar('Şöbə seçilməlidir', {variant: 'warning'});
             return;
         }
 
@@ -173,7 +173,7 @@ export default function InventoryFormDialog({open, onClose, onSaved, editingRow}
                             }
                         }}
                         renderInput={(params) => (
-                            <TextField {...params} label="Departament" size="small"
+                            <TextField {...params} label="Şöbə" size="small"
                                        helperText="Siyahıdan seçin, yoxdursa yazın — avtomatik əlavə olunacaq"/>
                         )}
                     />

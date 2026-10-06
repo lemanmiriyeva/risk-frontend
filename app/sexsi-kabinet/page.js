@@ -545,13 +545,13 @@ export default function Page() {
                                 İş məlumatları
                             </Typography>
                             <Typography sx={{fontSize: 12.5, color: '#9CA3AF', mb: 1}}>
-                                Departament və vəzifə sistem administratoru tərəfindən təyin olunur.
+                                Şöbə və vəzifə sistem administratoru tərəfindən təyin olunur.
                                 Daxili telefon nömrəsini özünüz yeniləyə bilərsiniz.
                             </Typography>
 
                             <LockedField label="Qurum" value={readOnly.organization?.title || '—'}
                                          icon={<ApartmentOutlinedIcon fontSize="small"/>}/>
-                            <LockedField label="Əsas departament" value={readOnly.mainDepartment || '—'}
+                            <LockedField label="Əsas şöbə" value={readOnly.mainDepartment || '—'}
                                          icon={<AccountTreeOutlinedIcon fontSize="small"/>}/>
                             <LockedField label="Şöbə" value={readOnly.department || '—'}
                                          icon={<AccountTreeOutlinedIcon fontSize="small"/>}/>

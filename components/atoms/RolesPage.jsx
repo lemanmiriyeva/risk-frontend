@@ -113,7 +113,7 @@ function RoleFormDialog({open, onClose, onSubmit, initialData, loading, flatDepa
                 <TextField label="Vəzifənin adı" required fullWidth size="small" sx={fieldSx}
                            value={form.title} onChange={(e) => set('title', e.target.value)}/>
 
-                <TextField select label="Departament" required fullWidth size="small" sx={fieldSx}
+                <TextField select label="Şöbə" required fullWidth size="small" sx={fieldSx}
                            value={form.department} onChange={(e) => set('department', e.target.value)}>
                     <MenuItem value="">—</MenuItem>
                     {flatDepartments.map((d) => (
@@ -124,7 +124,7 @@ function RoleFormDialog({open, onClose, onSubmit, initialData, loading, flatDepa
                 <TextField select label="Valideyn vəzifə" fullWidth size="small" sx={fieldSx}
                            value={form.parent} onChange={(e) => set('parent', e.target.value)}
                            disabled={!form.department}
-                           helperText="Yalnız eyni departamentdəki vəzifələr göstərilir.">
+                           helperText="Yalnız eyni şöbədəki vəzifələr göstərilir.">
                     <MenuItem value="">—</MenuItem>
                     {parentOptions.map((r) => (
                         <MenuItem key={r.id} value={r.id}>{r.title}</MenuItem>
@@ -286,7 +286,7 @@ export default function RolesPage() {
         const cols = [
             {field: 'title', headerName: 'Vəzifə', flex: 1.2, minWidth: 160},
             {
-                field: 'department_title', headerName: 'Departament', flex: 1.2, minWidth: 180,
+                field: 'department_title', headerName: 'Şöbə', flex: 1.2, minWidth: 180,
                 valueGetter: (value, row) => row?.department_title || '—',
             },
         ];
@@ -337,7 +337,7 @@ export default function RolesPage() {
         <Box>
             <Box sx={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', mb: 3, flexWrap: 'wrap', gap: 2}}>
                 <Typography sx={{fontSize: 14, color: C.inkMuted}}>
-                    {isRoot ? 'Qurumların departamentlərinə bağlı vəzifələr.' : 'Qurumunuzun departamentlərinə bağlı vəzifələr.'}
+                    {isRoot ? 'Qurumların şöbə və struktur bölmələrinə bağlı vəzifələr.' : 'Qurumunuzun şöbə və struktur bölmələrinə bağlı vəzifələr.'}
                 </Typography>
                 <Button variant="contained" startIcon={<AddIcon/>} onClick={openCreate}
                         disabled={isRoot && !selectedOrg}
@@ -359,12 +359,12 @@ export default function RolesPage() {
                     </TextField>
                 )}
                 <TextField
-                    select size="small" label="Departament" value={selectedDepartment}
+                    select size="small" label="Şöbə" value={selectedDepartment}
                     onChange={(e) => setSelectedDepartment(e.target.value)}
                     disabled={isRoot && !selectedOrg}
                     sx={{minWidth: 240, ...fieldSx}}
                 >
-                    <MenuItem value="">Bütün departamentlər</MenuItem>
+                    <MenuItem value="">Bütün şöbə və struktur bölmələr</MenuItem>
                     {flatDepartments.map((d) => (
                         <MenuItem key={d.id} value={d.id}>{d.label}</MenuItem>
                     ))}

@@ -28,7 +28,7 @@ export default function Page() {
             <ModuleHero
                 eyebrow="İdarəetmə"
                 title="Vəzifələr"
-                subtitle="Departamentlərə bağlı vəzifələri idarə edin."
+                subtitle="Şöbə və struktur bölmələrə bağlı vəzifələri idarə edin."
                 breadcrumb={["İnzibatçı paneli", 'Vəzifələr']}
                 icon={<WorkOutlineIcon sx={{fontSize: 26}}/>}
             />

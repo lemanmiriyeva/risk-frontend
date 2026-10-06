@@ -339,7 +339,7 @@ export default function AttendancePermissionConfigPage() {
 
     /*
     |--------------------------------------------------------------------------
-    | DEPARTAMENT MÜDİRİ ON/OFF
+    | ŞÖBƏ MÜDİRİ ON/OFF
     |--------------------------------------------------------------------------
     */
 
@@ -463,7 +463,7 @@ export default function AttendancePermissionConfigPage() {
 
     /*
     |--------------------------------------------------------------------------
-    | DEPARTAMENT SAVE
+    | ŞÖBƏ SAVE
     |--------------------------------------------------------------------------
     */
 
@@ -733,7 +733,7 @@ export default function AttendancePermissionConfigPage() {
                             }}
                         >
                             Aparat rəhbəri və
-                            departamentlər üzrə
+                            şöbə və struktur bölmələr üzrə
                             icazə təsdiqçilərinin
                             idarə edilməsi
                         </Typography>
@@ -1055,7 +1055,7 @@ export default function AttendancePermissionConfigPage() {
 
 
                 {/* =====================================================
-                    DEPARTAMENTLƏR
+                    ŞÖBƏ VƏ STRUKTUR BÖLMƏLƏR
                 ====================================================== */}
 
                 <Paper
@@ -1101,7 +1101,7 @@ export default function AttendancePermissionConfigPage() {
                                 colors.text,
                             }}
                         >
-                            Departamentlər
+                            Şöbə və struktur bölmələr
                         </Typography>
 
 
@@ -1115,7 +1115,7 @@ export default function AttendancePermissionConfigPage() {
                                 mt: 0.5,
                             }}
                         >
-                            Hər departament üçün şöbə
+                            Hər şöbə üçün şöbə
                             müdirini aktiv/deaktiv edə
                             və deaktiv olduqda
                             əvəzləyici şəxs seçə bilərsiniz.
@@ -1155,7 +1155,7 @@ export default function AttendancePermissionConfigPage() {
                         <Typography
                             sx={tableHeaderStyle}
                         >
-                            Departament
+                            Şöbə
                         </Typography>
 
 
@@ -1183,7 +1183,7 @@ export default function AttendancePermissionConfigPage() {
 
 
                     {/* =================================================
-                        DEPARTAMENT ROWS
+                        ŞÖBƏ ROWS
                     ================================================== */}
 
                     {departments.length === 0 ? (
@@ -1205,7 +1205,7 @@ export default function AttendancePermissionConfigPage() {
                                     colors.muted,
                                 }}
                             >
-                                Departament tapılmadı.
+                                Şöbə tapılmadı.
                             </Typography>
 
                         </Box>
@@ -1225,7 +1225,7 @@ export default function AttendancePermissionConfigPage() {
 
 
                                 /*
-                                 * Həmin departamentin
+                                 * Həmin şöbənin
                                  * istifadəçiləri.
                                  */
 
@@ -1274,7 +1274,7 @@ export default function AttendancePermissionConfigPage() {
                                     >
 
                                         {/* =================================
-                                            DEPARTAMENT
+                                            ŞÖBƏ
                                         ================================== */}
 
                                         <Box>

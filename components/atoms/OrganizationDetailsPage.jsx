@@ -111,7 +111,7 @@ export default function OrganizationDetailsPage() {
             valueGetter: (value, row) => row?.role_name || '—',
         },
         {
-            field: 'department_name', headerName: 'Departament', flex: 1, minWidth: 130,
+            field: 'department_name', headerName: 'Şöbə', flex: 1, minWidth: 130,
             valueGetter: (value, row) => row?.department_name || '—',
         },
     ], []);

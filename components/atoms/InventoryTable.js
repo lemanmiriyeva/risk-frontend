@@ -28,7 +28,7 @@ import {C} from "@/components/theme/tokens";
 const OWNER_TYPE_FILTERS = [
     {value: '', label: 'Hamısı'},
     {value: 'person', label: 'Şəxs'},
-    {value: 'department', label: 'Departament'},
+    {value: 'department', label: 'Şöbə'},
     {value: 'aparat', label: 'Aparat'},
 ];
 

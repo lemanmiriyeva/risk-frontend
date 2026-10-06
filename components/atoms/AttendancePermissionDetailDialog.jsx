@@ -111,7 +111,7 @@ export default function AttendancePermissionDetailDialog({open, target, onClose}
                     />
                     <InfoRow label="Yer" value={target.location}/>
                     {target.user_name && <InfoRow label="İstifadəçi" value={target.user_name}/>}
-                    {target.department_name && <InfoRow label="Departament" value={target.department_name}/>}
+                    {target.department_name && <InfoRow label="Şöbə" value={target.department_name}/>}
                     <InfoRow label="Səbəb" value={target.reason}/>
                     {target.created_at && <InfoRow label="Göndərilmə tarixi" value={target.created_at}/>}
                 </Box>

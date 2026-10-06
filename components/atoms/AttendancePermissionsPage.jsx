@@ -64,7 +64,7 @@ export default function AttendancePermissionsPage() {
 
     // Aparat rəhbəri (və ya superuser) sorğu yarada bilmir - yalnız təsdiq/rədd edir.
     const canCreate = !(user?.is_apparatus_head && !user?.is_superuser);
-    // Şöbə müdiri / aparat rəhbəri / superuser üçün "kim" və "hansı departament" sütunları mənalıdır.
+    // Şöbə müdiri / aparat rəhbəri / superuser üçün "kim" və "hansı şöbə" sütunları mənalıdır.
     const showScopeColumns = !!(user?.is_department_manager || user?.is_apparatus_head || user?.is_superuser);
 
     const [rows, setRows] = useState([]);
@@ -168,7 +168,7 @@ export default function AttendancePermissionsPage() {
         if (showScopeColumns) {
             cols.push(
                 {field: 'user_name', headerName: 'İstifadəçi', flex: 1, minWidth: 160},
-                {field: 'department_name', headerName: 'Departament', flex: 1, minWidth: 160},
+                {field: 'department_name', headerName: 'Şöbə', flex: 1, minWidth: 160},
             );
         }
 
@@ -239,7 +239,7 @@ export default function AttendancePermissionsPage() {
             <Box sx={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', mb: 3, flexWrap: 'wrap', gap: 2}}>
                 <Typography sx={{fontSize: 14, color: C.inkMuted}}>
                     {user?.is_apparatus_head ? 'Qurumunuzun bütün icazə sorğuları.'
-                        : user?.is_department_manager ? 'Departamentinizin icazə sorğuları.'
+                        : user?.is_department_manager ? 'Şöbənizin icazə sorğuları.'
                             : 'Sizin icazə sorğularınız.'}
                 </Typography>
                 {canCreate && (

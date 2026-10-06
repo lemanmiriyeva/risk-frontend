@@ -115,22 +115,25 @@ export default function CardSlider({
                     onTouchStart={handleTouchStart}
                     onTouchEnd={handleTouchEnd}
                     sx={{
-                        overflow: 'hidden', px: 2, outline: 'none',
-                        '&:focus-visible': {boxShadow: `inset 0 0 0 2px ${C.gold}`, borderRadius: '10px'},
+                        px: 2, outline: 'none',
+                        '&:focus-visible > div': {boxShadow: `0 0 0 2px ${C.gold}`},
                     }}
                 >
-                    <Box sx={{
-                        display: 'flex',
-                        transform: `translateX(-${index * 100}%)`,
-                        transition: reduceMotion ? 'none' : 'transform .35s cubic-bezier(.4,0,.2,1)',
-                    }}>
-                        {items.map((item, i) => (
-                            <Box key={item?.id ?? i}
-                                 aria-hidden={i !== index}
-                                 sx={{flex: '0 0 100%', minWidth: 0, height, pr: 0}}>
-                                {renderItem(item, i)}
-                            </Box>
-                        ))}
+                    {/* overflow yalnız slayd eni qədər kəsilir - qonşu slaydın kənarı görünməsin */}
+                    <Box sx={{overflow: 'hidden', borderRadius: '10px'}}>
+                        <Box sx={{
+                            display: 'flex',
+                            transform: `translateX(-${index * 100}%)`,
+                            transition: reduceMotion ? 'none' : 'transform .35s cubic-bezier(.4,0,.2,1)',
+                        }}>
+                            {items.map((item, i) => (
+                                <Box key={item?.id ?? i}
+                                     aria-hidden={i !== index}
+                                     sx={{flex: '0 0 100%', minWidth: 0, height}}>
+                                    {renderItem(item, i)}
+                                </Box>
+                            ))}
+                        </Box>
                     </Box>
                 </Box>
             )}

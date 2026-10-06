@@ -30,8 +30,11 @@ import {
 } from "./bulletinShared";
 
 const DOC_SLIDE_H = 172;
-const NEWS_SLIDE_H = 460;
-const BDAY_SLIDE_H = 460;
+const NEWS_CARD_H = 286;
+const NEWS_GAP = 12;
+const NEWS_PER_SLIDE = 2;
+const NEWS_SLIDE_H = NEWS_CARD_H * NEWS_PER_SLIDE + NEWS_GAP;
+const BDAY_SLIDE_H = 330;
 
 /* ===================================================================== */
 /*  Panel başlığı                                                         */
@@ -88,7 +91,7 @@ function NewsSlide({item}) {
                  '&:hover': {borderColor: C.gold},
                  '&:hover .slide-title': {color: C.goldDeep},
              }}>
-            <Box sx={{height: {xs: 180, md: 240}, flexShrink: 0, position: 'relative', backgroundColor: C.surfaceDeep}}>
+            <Box sx={{height: 150, flexShrink: 0, position: 'relative', backgroundColor: C.surfaceDeep}}>
                 {item.image_url ? (
                     <Box component="img" src={item.image_url} alt={item.title}
                          sx={{width: '100%', height: '100%', objectFit: 'cover', display: 'block'}}/>
@@ -110,26 +113,39 @@ function NewsSlide({item}) {
                     </Typography>
                 </Box>
             </Box>
-            <Box sx={{p: 2.25, display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0}}>
+            <Box sx={{px: 2, pt: 1.5, pb: 1.5, display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0}}>
                 <Typography className="slide-title" sx={{
-                    fontSize: 18, fontWeight: 700, color: C.ink, lineHeight: 1.32, transition: 'color .15s ease',
+                    fontSize: 15.5, fontWeight: 700, color: C.ink, lineHeight: 1.32, transition: 'color .15s ease',
                     display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
                 }}>
                     {item.title}
                 </Typography>
                 {item.summary && (
                     <Typography sx={{
-                        fontSize: 13, color: C.inkMuted, mt: 0.9, lineHeight: 1.55,
-                        display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+                        fontSize: 12.5, color: C.inkMuted, mt: 0.6, lineHeight: 1.5,
+                        display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
                     }}>
                         {item.summary}
                     </Typography>
                 )}
                 <Box sx={{flexGrow: 1}}/>
-                <Typography sx={{fontSize: 12, fontWeight: 600, color: C.gold, mt: 1.25}}>
+                <Typography sx={{fontSize: 12, fontWeight: 600, color: C.gold, mt: 0.75}}>
                     Xəbəri oxu →
                 </Typography>
             </Box>
+        </Box>
+    );
+}
+
+/* Bir slaydda alt-alta iki xəbər */
+function NewsPairSlide({items}) {
+    return (
+        <Box sx={{display: 'flex', flexDirection: 'column', gap: `${NEWS_GAP}px`, height: '100%'}}>
+            {items.map((item) => (
+                <Box key={item.id} sx={{height: NEWS_CARD_H, flexShrink: 0}}>
+                    <NewsSlide item={item}/>
+                </Box>
+            ))}
         </Box>
     );
 }
@@ -317,6 +333,14 @@ export default function BulletinBoard() {
 
 
     const news = data?.news || [];
+    const newsPairs = useMemo(() => {
+        const pairs = [];
+        for (let i = 0; i < news.length; i += NEWS_PER_SLIDE) {
+            const items = news.slice(i, i + NEWS_PER_SLIDE);
+            pairs.push({id: items.map((n) => n.id).join('-'), items});
+        }
+        return pairs;
+    }, [news]);
     const birthdays = useMemo(
         () => [...(data?.birthdays || [])].sort((a, b) => (b.is_today ? 1 : 0) - (a.is_today ? 1 : 0)),
         [data]
@@ -342,7 +366,8 @@ export default function BulletinBoard() {
 
     return (
         <Box sx={pageWrapSx}>
-            <Grid container spacing={2.5} alignItems="stretch">
+            {/* Xəbərlər və ad günləri öz məzmunu qədər hündürdür - sol sütuna qədər uzanmır */}
+            <Grid container spacing={2.5} alignItems="flex-start">
                 {/* Sol - normativ sənədlər, alt-alta üç panel */}
                 <Grid item xs={12} md={3}>
                     <CircularsColumn
@@ -354,9 +379,9 @@ export default function BulletinBoard() {
 
                 {/* Orta - böyük xəbər bloku */}
                 <Grid item xs={12} md={6}>
-                    <Box sx={{...panelSx, height: '100%'}}>
+                    <Box sx={panelSx}>
                         <CardSlider
-                            items={news}
+                            items={newsPairs}
                             height={NEWS_SLIDE_H}
                             emptyState={(
                                 <EmptyState
@@ -375,7 +400,7 @@ export default function BulletinBoard() {
                                     addLabel="Yeni xəbər"
                                 />
                             )}
-                            renderItem={(item) => <NewsSlide item={item}/>}
+                            renderItem={(pair) => <NewsPairSlide items={pair.items}/>}
                             footerSlot={(
                                 <Button fullWidth size="small" component={Link} href="/elanlar/xeberler" sx={softButtonSx}>
                                     Bütün xəbərlər
@@ -387,7 +412,7 @@ export default function BulletinBoard() {
 
                 {/* Sağ - ad günləri */}
                 <Grid item xs={12} md={3}>
-                    <Box sx={{...panelSx, height: '100%'}}>
+                    <Box sx={panelSx}>
                         <CardSlider
                             items={birthdays}
                             height={BDAY_SLIDE_H}

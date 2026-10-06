@@ -6,19 +6,20 @@ import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
-import Switch from '@mui/material/Switch';
 import Checkbox from '@mui/material/Checkbox';
 import CircularProgress from '@mui/material/CircularProgress';
 import Tooltip from '@mui/material/Tooltip';
-import Tabs from '@mui/material/Tabs';
-import Tab from '@mui/material/Tab';
 import TextField from '@mui/material/TextField';
 import InputAdornment from '@mui/material/InputAdornment';
 import SearchIcon from '@mui/icons-material/Search';
 import AccountTreeOutlinedIcon from '@mui/icons-material/AccountTreeOutlined';
 import ExtensionOutlinedIcon from '@mui/icons-material/ExtensionOutlined';
 import DomainOutlinedIcon from '@mui/icons-material/DomainOutlined';
-import GroupOutlinedIcon from '@mui/icons-material/GroupOutlined';
+import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
+import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
+import PublicOutlinedIcon from '@mui/icons-material/PublicOutlined';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import SubdirectoryArrowRightIcon from '@mui/icons-material/SubdirectoryArrowRight';
 import {useSnackbar} from "notistack";
 import {handleError} from "@/app/utils";
@@ -224,157 +225,258 @@ function OrgAccessMatrix() {
     );
 }
 
-/* ---------------------------------------------------------------------- */
-/* Seçilmiş qurumun (superuser üçün seçilə bilən, org admin üçün öz       */
-/* qurumu) istifadəçilərinə modul/alt-modul girişi vermə paneli.          */
+/* ====================================================================== */
+/* Sadələşdirilmiş giriş idarəsi                                          */
 /*                                                                        */
-/* Solda modul / alt modul siyahısı, sağda seçilmiş modul üzrə işçilər -  */
-/* şöbələrə görə qruplaşdırılmış, axtarış və filtr ilə.                   */
-/* ---------------------------------------------------------------------- */
-const FILTERS = [
-    {key: 'all', label: 'Hamısı'},
-    {key: 'granted', label: 'Girişi olanlar'},
-    {key: 'denied', label: 'Girişi olmayanlar'},
-    {key: 'admins', label: 'Adminlər'},
+/* Hər əməkdaşın hər modul üzrə 3 səviyyəsi var:                          */
+/*   Giriş yoxdur · İstifadəçi · Admin                                    */
+/* "Hamıya açıq" modulda hamı avtomatik İstifadəçidir - yalnız adminlər   */
+/* seçilir.                                                               */
+/* ====================================================================== */
+
+const LEVELS = [
+    {key: 'none', label: 'Giriş yoxdur'},
+    {key: 'user', label: 'İstifadəçi'},
+    {key: 'admin', label: 'Admin'},
+];
+
+const LEVEL_HELP = [
+    {key: 'none', color: C.inkFaint, title: 'Giriş yoxdur', text: 'modul menyuda görünmür'},
+    {key: 'user', color: C.gold, title: 'İstifadəçi', text: 'modula daxil olub işləyə bilər'},
+    {key: 'admin', color: C.success, title: 'Admin', text: 'məzmunu əlavə edir və idarə edir'},
 ];
 
 function initials(name) {
     return (name || '').split(' ').filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase();
 }
 
-/* İstifadəçinin bu modul / alt modul üzrə vəziyyəti (kilidlər və izahlar). */
-function userState(u, isSubModule) {
-    const implicit = !!u.implicit_access;
-    const isModuleAdmin = !!u.is_module_admin;
-    const isSubAdmin = !!u.is_sub_module_admin;
-    // Superuser / qurum admini və modul admini avtomatik girişə malikdir - "giriş"
-    // açarını söndürmək heç nəyə təsir etmir, ona görə açar kilidlənir.
-    const accessLocked = implicit || isModuleAdmin || (isSubModule && isSubAdmin);
-    // Admin seçimi yalnız superuser/qurum admini üçün və (alt modulda) əsas modul
-    // admini üçün kilidlidir. Adi istifadəçinin admin statusu həmişə dəyişdirilə bilər.
-    const adminLocked = implicit || (isSubModule && isModuleAdmin);
-    const adminChecked = isSubModule ? (isSubAdmin || isModuleAdmin) : isModuleAdmin;
-
-    let accessTooltip = '';
-    if (implicit) {
-        accessTooltip = 'Avtomatik giriş (superuser / qurum admini) - dəyişdirilə bilməz';
-    } else if (isSubModule && isModuleAdmin) {
-        accessTooltip = 'Əsas modulun admini olduğu üçün bütün alt modullarda avtomatik admindir.';
-    } else if (isModuleAdmin || (isSubModule && isSubAdmin)) {
-        accessTooltip = 'Admin olduğu üçün girişi avtomatikdir. Girişi söndürmək üçün əvvəlcə admin statusunu ləğv edin.';
-    }
-    return {implicit, accessLocked, adminLocked, adminChecked, accessTooltip};
+/* Modul / alt modul faktiki olaraq hamıya açıqdırmı? */
+function isPublicObj(obj, isSub, parent) {
+    return isSub ? (!!parent?.is_public && !obj.is_restricted) : !!obj.is_public;
 }
 
-function UserAccessPanel({organizationId, showOrgPicker, organizations, onOrgChange}) {
-    const {enqueueSnackbar} = useSnackbar();
-    const [loading, setLoading] = useState(true);
-    const [data, setData] = useState(null); // {organization, modules}
-    const [savingKeys, setSavingKeys] = useState(() => new Set());
-    const [bulkKey, setBulkKey] = useState(null);
-    const [selected, setSelected] = useState(null); // {type: 'module'|'sub', id}
+/* Əməkdaşın bu modul / alt modul üzrə səviyyəsi. */
+function userLevel(u, isSub, isPublic) {
+    if (!u) return {level: 'none', locked: false};
+    if (u.implicit_access) {
+        return {level: 'admin', locked: true, reason: 'Sistem və ya qurum inzibatçısıdır - bütün modullara avtomatik girişi var.'};
+    }
+    if (isSub && u.is_module_admin) {
+        return {level: 'admin', locked: true, reason: 'Əsas modulun admini olduğu üçün bu alt modulda da avtomatik admindir.'};
+    }
+    const isAdmin = isSub ? !!u.is_sub_module_admin : !!u.is_module_admin;
+    if (isAdmin) return {level: 'admin', locked: false};
+    if (u.has_access || isPublic) return {level: 'user', locked: false};
+    return {level: 'none', locked: false};
+}
+
+/* 3 vəziyyətli seçici: Giriş yoxdur / İstifadəçi / Admin */
+function LevelControl({state, isPublic, busy, disabled, onChange, compact}) {
+    if (state.locked) {
+        return (
+            <Tooltip title={state.reason}>
+                <Box sx={{
+                    display: 'inline-flex', alignItems: 'center', gap: 0.5, px: 1.25, py: 0.5, borderRadius: '8px',
+                    fontSize: 12, fontWeight: 650, color: C.success, backgroundColor: C.successTint, cursor: 'help',
+                }}>
+                    <LockOutlinedIcon sx={{fontSize: 13}}/> Avtomatik admin
+                </Box>
+            </Tooltip>
+        );
+    }
+    return (
+        <Box sx={{
+            display: 'inline-flex', p: '3px', borderRadius: '10px', backgroundColor: C.surfaceDeep,
+            position: 'relative', opacity: busy ? 0.6 : 1, flexShrink: 0,
+        }}>
+            {LEVELS.map(l => {
+                const active = state.level === l.key;
+                const noneBlocked = l.key === 'none' && isPublic;
+                const off = disabled || busy || noneBlocked;
+                const activeColor = l.key === 'admin' ? C.success : C.gold;
+                const btn = (
+                    <Box
+                        key={l.key} component="button" type="button" disabled={off}
+                        onClick={() => !active && onChange(l.key)}
+                        aria-pressed={active}
+                        sx={{
+                            all: 'unset', boxSizing: 'border-box', cursor: off ? 'default' : (active ? 'default' : 'pointer'),
+                            px: compact ? 1 : 1.4, py: 0.55, borderRadius: '8px', whiteSpace: 'nowrap',
+                            fontSize: compact ? 11.5 : 12.5, fontWeight: active ? 700 : 550,
+                            color: active ? (l.key === 'none' ? C.ink : '#fff') : (noneBlocked ? C.lineStrong : C.inkMuted),
+                            backgroundColor: active ? (l.key === 'none' ? C.surface : activeColor) : 'transparent',
+                            boxShadow: active ? '0 1px 3px rgba(10,27,54,0.18)' : 'none',
+                            transition: 'background-color .15s ease, color .15s ease',
+                            '&:hover': (!off && !active) ? {color: C.ink, backgroundColor: 'rgba(255,255,255,0.7)'} : {},
+                            '&:focus-visible': {outline: `2px solid ${C.gold}`, outlineOffset: 1},
+                        }}
+                    >
+                        {l.label}
+                    </Box>
+                );
+                return noneBlocked ? (
+                    <Tooltip key={l.key} title="Modul hamıya açıqdır - hər kəs avtomatik istifadəçidir">
+                        <span style={{display: 'inline-flex'}}>{btn}</span>
+                    </Tooltip>
+                ) : btn;
+            })}
+            {busy && (
+                <Box sx={{position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+                    <CircularProgress size={16} sx={{color: C.gold}}/>
+                </Box>
+            )}
+        </Box>
+    );
+}
+
+function Avatar({name, tone = 'muted', size = 34}) {
+    const tones = {
+        none: {bg: C.surfaceDeep, fg: C.inkMuted},
+        muted: {bg: C.surfaceDeep, fg: C.inkMuted},
+        user: {bg: C.goldTint, fg: C.goldDeep},
+        admin: {bg: C.successTint, fg: C.success},
+    };
+    const t = tones[tone] || tones.muted;
+    return (
+        <Box sx={{
+            width: size, height: size, borderRadius: '50%', flexShrink: 0, fontSize: size > 40 ? 15 : 11.5, fontWeight: 700,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: t.bg, color: t.fg,
+        }}>
+            {initials(name)}
+        </Box>
+    );
+}
+
+function StatusChip({isPublic, count}) {
+    return isPublic ? (
+        <Box sx={{fontSize: 10.5, fontWeight: 700, px: 0.85, py: 0.2, borderRadius: 999, flexShrink: 0, color: C.success, backgroundColor: C.successTint, whiteSpace: 'nowrap'}}>
+            Hamıya açıq
+        </Box>
+    ) : (
+        <Box sx={{
+            fontSize: 10.5, fontWeight: 700, px: 0.85, py: 0.2, borderRadius: 999, flexShrink: 0, whiteSpace: 'nowrap',
+            color: count ? C.goldDeep : C.inkFaint, backgroundColor: count ? C.goldTint : C.surfaceDeep,
+        }}>
+            {count} nəfər
+        </Box>
+    );
+}
+
+/* Modulun giriş rejimi: "Hamıya açıq" və ya "Yalnız seçilmiş əməkdaşlar" */
+function AccessModePicker({cur, canEdit, busy, onChange}) {
+    const {obj, isSub, parent} = cur;
+    if (isSub && !parent.is_public) {
+        return (
+            <Box sx={{display: 'flex', gap: 1, alignItems: 'flex-start', p: 1.5, borderRadius: '10px', backgroundColor: C.surfaceRaised, border: `1px solid ${C.line}`}}>
+                <InfoOutlinedIcon sx={{fontSize: 18, color: C.inkFaint, mt: 0.1}}/>
+                <Typography sx={{fontSize: 12.5, color: C.inkMuted, lineHeight: 1.55}}>
+                    Bu alt modula giriş verdiyiniz əməkdaşa «{parent.title}» moduluna da avtomatik giriş açılır.
+                </Typography>
+            </Box>
+        );
+    }
+    const pub = isPublicObj(obj, isSub, parent);
+    const options = [
+        {
+            key: true, icon: <PublicOutlinedIcon/>,
+            title: isSub ? 'Hamıya açıq (əsas modul kimi)' : 'Hamıya açıq',
+            text: 'Bütün əməkdaşlar istifadə edə bilər. Aşağıda yalnız adminləri seçin.',
+            color: C.success, tint: C.successTint,
+        },
+        {
+            key: false, icon: <LockOutlinedIcon/>,
+            title: 'Yalnız seçilmiş əməkdaşlar',
+            text: 'Giriş yalnız aşağıda seçdiyiniz əməkdaşlara açılır.',
+            color: C.gold, tint: C.goldTint,
+        },
+    ];
+    return (
+        <Box>
+            <Box sx={{display: 'grid', gridTemplateColumns: {xs: '1fr', sm: '1fr 1fr'}, gap: 1.25}}>
+                {options.map(o => {
+                    const active = pub === o.key;
+                    const off = !canEdit || busy;
+                    return (
+                        <Box
+                            key={String(o.key)} component="button" type="button" disabled={off}
+                            onClick={() => !active && onChange(o.key)} aria-pressed={active}
+                            sx={{
+                                all: 'unset', boxSizing: 'border-box', display: 'flex', gap: 1.25, alignItems: 'flex-start',
+                                p: 1.5, borderRadius: '12px', cursor: off || active ? 'default' : 'pointer',
+                                border: `1.5px solid ${active ? o.color : C.line}`,
+                                backgroundColor: active ? o.tint : C.surface,
+                                opacity: !active && off ? 0.55 : 1,
+                                transition: 'border-color .15s ease, background-color .15s ease',
+                                '&:hover': (!off && !active) ? {borderColor: C.lineStrong, backgroundColor: C.surfaceRaised} : {},
+                                '&:focus-visible': {outline: `2px solid ${C.gold}`, outlineOffset: 2},
+                            }}
+                        >
+                            <Box sx={{
+                                width: 34, height: 34, borderRadius: '9px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                color: active ? '#fff' : C.inkFaint, backgroundColor: active ? o.color : C.surfaceDeep,
+                                '& svg': {fontSize: 19},
+                            }}>
+                                {busy && !active ? <CircularProgress size={16} sx={{color: C.inkFaint}}/> : o.icon}
+                            </Box>
+                            <Box sx={{minWidth: 0}}>
+                                <Typography sx={{fontSize: 13.5, fontWeight: 700, color: active ? C.ink : C.inkMuted}}>{o.title}</Typography>
+                                <Typography sx={{fontSize: 12, color: C.inkMuted, lineHeight: 1.5, mt: 0.25}}>{o.text}</Typography>
+                            </Box>
+                            {active && <CheckCircleIcon sx={{fontSize: 18, color: o.color, ml: 'auto', flexShrink: 0}}/>}
+                        </Box>
+                    );
+                })}
+            </Box>
+            {!canEdit && (
+                <Typography sx={{fontSize: 11.5, color: C.inkFaint, mt: 0.75}}>
+                    Giriş rejimini yalnız sistem inzibatçısı dəyişə bilər.
+                </Typography>
+            )}
+        </Box>
+    );
+}
+
+function SearchBox({value, onChange, placeholder}) {
+    return (
+        <TextField
+            size="small" placeholder={placeholder} value={value} onChange={(e) => onChange(e.target.value)} fullWidth
+            sx={{'& .MuiOutlinedInput-root': {borderRadius: '10px', backgroundColor: C.surface}}}
+            InputProps={{startAdornment: <InputAdornment position="start"><SearchIcon sx={{fontSize: 18, color: C.inkFaint}}/></InputAdornment>}}
+        />
+    );
+}
+
+const matches = (q, ...vals) => !q || vals.some(v => (v || '').toLocaleLowerCase('az').includes(q));
+
+/* ---------------------------------------------------------------------- */
+/* Modul üzrə görünüş                                                     */
+/* ---------------------------------------------------------------------- */
+function ModuleView({data, api}) {
+    const [selected, setSelected] = useState(() => {
+        const first = data.modules[0];
+        return first ? {type: 'module', id: first.id} : null;
+    });
     const [query, setQuery] = useState('');
     const [filter, setFilter] = useState('all');
+    const [bulkKey, setBulkKey] = useState(null);
 
-    // Yalnız bir qurum varsa, avtomatik seçilir
-    useEffect(() => {
-        if (showOrgPicker && !organizationId && organizations?.length === 1) onOrgChange(organizations[0].id);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [showOrgPicker, organizationId, organizations]);
-
-    const load = useCallback(async () => {
-        if (showOrgPicker && !organizationId) { setData(null); setLoading(false); return; }
-        setLoading(true);
-        try {
-            const params = organizationId ? `?organization=${organizationId}` : '';
-            const res = await service_api.get(NEXT_API_ENDPOINTS.CORE.ORG_MODULE_ACCESS + params);
-            setData(res.data);
-            setSelected(prev => {
-                if (prev) return prev;
-                const first = res.data?.modules?.[0];
-                return first ? {type: 'module', id: first.id} : null;
-            });
-        } catch (err) {
-            enqueueSnackbar(handleError(err), {variant: 'error'});
-        } finally {
-            setLoading(false);
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [organizationId]);
-
-    useEffect(() => { load(); }, [load]);
-
-    async function toggle(target, id, userId, grant, {silent = false} = {}) {
-        const key = `${target}:${id}:${userId}`;
-        setSavingKeys(prev => new Set(prev).add(key));
-        try {
-            const payload = {target, id, user_id: userId, grant};
-            if (organizationId) payload.organization = organizationId;
-            await service_api.post(NEXT_API_ENDPOINTS.CORE.ORG_MODULE_ACCESS, payload);
-            setData(prev => {
-                if (!prev) return prev;
-                const next = structuredClone(prev);
-                const applyToggle = (obj) => {
-                    obj.users = obj.users.map(u => {
-                        if (u.id !== userId) return u;
-                        if (target === 'module_admin') {
-                            // Modul admini təyin olunanda avtomatik giriş də alır (backend-də olduğu kimi);
-                            // geri alınanda giriş (permitted_users) dəyişmir, yalnız admin statusu düşür.
-                            return {...u, is_module_admin: grant, has_access: grant ? true : u.has_access};
-                        }
-                        if (target === 'sub_module_admin') {
-                            return {...u, is_sub_module_admin: grant, has_access: grant ? true : u.has_access};
-                        }
-                        return {...u, has_access: grant};
-                    });
-                };
-                for (const m of next.modules) {
-                    if ((target === 'module' || target === 'module_admin') && m.id === id) applyToggle(m);
-                    if (target === 'sub_module' || target === 'sub_module_admin') {
-                        const sub = m.sub_modules.find(s => s.id === id);
-                        if (sub) applyToggle(sub);
-                    }
-                }
-                return next;
-            });
-            return true;
-        } catch (err) {
-            if (!silent) enqueueSnackbar(handleError(err), {variant: 'error'});
-            return false;
-        } finally {
-            setSavingKeys(prev => {
-                const next = new Set(prev);
-                next.delete(key);
-                return next;
-            });
-        }
+    let cur = null;
+    for (const m of data.modules) {
+        if (selected?.type === 'module' && m.id === selected.id) cur = {obj: m, isSub: false, parent: null};
+        const sub = selected?.type === 'sub' && m.sub_modules?.find(s => s.id === selected.id);
+        if (sub) cur = {obj: sub, isSub: true, parent: m};
     }
+    const pub = cur ? isPublicObj(cur.obj, cur.isSub, cur.parent) : false;
 
-    // Seçilmiş modul / alt modul
-    let current = null;
-    if (data && selected) {
-        for (const m of data.modules) {
-            if (selected.type === 'module' && m.id === selected.id) current = {obj: m, isSub: false, parent: null};
-            const sub = m.sub_modules?.find(s => selected.type === 'sub' && s.id === selected.id);
-            if (sub) current = {obj: sub, isSub: true, parent: m};
-        }
-    }
-
-    const accessTarget = current?.isSub ? 'sub_module' : 'module';
-    const adminTarget = current?.isSub ? 'sub_module_admin' : 'module_admin';
-
-    // Axtarış + filtr + şöbələrə görə qruplaşdırma
     const groups = useMemo(() => {
-        if (!current) return [];
+        if (!cur) return [];
         const q = query.trim().toLocaleLowerCase('az');
-        const list = current.obj.users.filter(u => {
-            const st = userState(u, current.isSub);
-            if (filter === 'granted' && !u.has_access) return false;
-            if (filter === 'denied' && u.has_access) return false;
-            if (filter === 'admins' && !st.adminChecked) return false;
-            if (!q) return true;
-            return [u.name, u.username, u.role_title, u.department_title]
-                .some(v => (v || '').toLocaleLowerCase('az').includes(q));
+        const list = cur.obj.users.filter(u => {
+            const lv = userLevel(u, cur.isSub, pub).level;
+            if (filter === 'granted' && lv === 'none') return false;
+            if (filter === 'admins' && lv !== 'admin') return false;
+            if (filter === 'none' && lv !== 'none') return false;
+            return matches(q, u.name, u.username, u.role_title, u.department_title);
         });
         const map = new Map();
         for (const u of list) {
@@ -383,68 +485,49 @@ function UserAccessPanel({organizationId, showOrgPicker, organizations, onOrgCha
             map.get(key).users.push(u);
         }
         return Array.from(map.values()).sort((a, b) => (a.id || 1e9) - (b.id || 1e9));
-    }, [current, query, filter]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [cur?.obj, cur?.isSub, pub, query, filter]);
 
-    async function bulk(group, grant) {
-        const targets = group.users.filter(u => !userState(u, current.isSub).accessLocked && u.has_access !== grant);
+    // Hamıya açıq modulda əsas iş adminləri seçməkdir - filtri ona uyğun təklif edirik
+    const filters = pub
+        ? [{key: 'all', label: 'Hamısı'}, {key: 'admins', label: 'Adminlər'}]
+        : [{key: 'all', label: 'Hamısı'}, {key: 'granted', label: 'Girişi olanlar'}, {key: 'none', label: 'Girişi olmayanlar'}, {key: 'admins', label: 'Adminlər'}];
+
+    useEffect(() => {
+        if (!filters.some(f => f.key === filter)) setFilter('all');
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [pub]);
+
+    const countFor = (obj, isSub, parent) => {
+        const p = isPublicObj(obj, isSub, parent);
+        return obj.users.filter(u => userLevel(u, isSub, p).level !== 'none').length;
+    };
+
+    async function bulk(group, level) {
+        const targets = group.users.filter(u => {
+            const st = userLevel(u, cur.isSub, pub);
+            return !st.locked && st.level !== level && st.level !== 'admin';
+        });
         if (!targets.length) return;
-        setBulkKey(`${group.id}:${grant}`);
+        setBulkKey(`${group.id}:${level}`);
         let failed = 0;
         for (const u of targets) {
-            const ok = await toggle(accessTarget, current.obj.id, u.id, grant, {silent: true});
+            const ok = await api.setLevel(cur, u, level, {silent: true});
             if (!ok) failed += 1;
         }
         setBulkKey(null);
-        if (failed) enqueueSnackbar(`${failed} istifadəçi üçün dəyişiklik alınmadı.`, {variant: 'error'});
-        else enqueueSnackbar(grant ? `${targets.length} nəfərə giriş verildi.` : `${targets.length} nəfərin girişi geri alındı.`, {variant: 'success'});
+        api.notify(failed, targets.length, level);
     }
 
-    const countOf = (obj) => obj.users.filter(u => u.has_access).length;
-
-    const orgPicker = showOrgPicker && (organizations || []).length > 1 && (
-        <FormControl size="small" sx={{minWidth: 280}}>
-            <InputLabel>Qurum seçin</InputLabel>
-            <Select label="Qurum seçin" value={organizationId || ''} onChange={(e) => { setSelected(null); onOrgChange(e.target.value); }}>
-                {(organizations || []).map(org => (
-                    <MenuItem key={org.id} value={org.id}>{org.title}</MenuItem>
-                ))}
-            </Select>
-        </FormControl>
-    );
-
-    if (showOrgPicker && !organizationId) {
-        return (
-            <Box>
-                {orgPicker && <Box sx={{mb: 2}}>{orgPicker}</Box>}
-                <Typography sx={{color: C.inkMuted, fontSize: 13.5}}>
-                    İstifadəçi girişlərini idarə etmək üçün əvvəlcə qurum seçin.
-                </Typography>
-            </Box>
-        );
-    }
-    if (loading) {
-        return <Box sx={{display: 'flex', justifyContent: 'center', py: 6}}><CircularProgress size={26} sx={{color: C.gold}}/></Box>;
-    }
-    if (!data || !data.modules?.length) {
-        return (
-            <Box>
-                {orgPicker && <Box sx={{mb: 2}}>{orgPicker}</Box>}
-                <Typography sx={{color: C.inkMuted, fontSize: 13.5, py: 2}}>
-                    Bu qurum üçün açıq heç bir modul yoxdur. Modulları qurumlara açmaq üçün "Qurum girişləri" bölməsindən istifadə edin.
-                </Typography>
-            </Box>
-        );
-    }
-
-    const navItem = (obj, isSub, parentTitle) => {
+    const navItem = (obj, isSub, parent) => {
         const active = selected && selected.id === obj.id && (selected.type === 'sub') === isSub;
-        const granted = countOf(obj);
+        const p = isPublicObj(obj, isSub, parent);
         return (
             <Box
                 key={`${isSub ? 's' : 'm'}-${obj.id}`}
                 component="button" type="button"
-                onClick={() => setSelected({type: isSub ? 'sub' : 'module', id: obj.id})}
-                title={isSub ? `${parentTitle} / ${obj.title}` : obj.title}
+                onClick={() => { setSelected({type: isSub ? 'sub' : 'module', id: obj.id}); setFilter('all'); }}
+                title={isSub ? `${parent.title} / ${obj.title}` : obj.title}
                 sx={{
                     all: 'unset', boxSizing: 'border-box', cursor: 'pointer', width: '100%',
                     display: 'flex', alignItems: 'center', gap: 1,
@@ -462,209 +545,445 @@ function UserAccessPanel({organizationId, showOrgPicker, organizations, onOrgCha
                 <Typography noWrap sx={{flex: 1, fontSize: isSub ? 12.5 : 13.5, fontWeight: isSub ? 500 : 650, color: active ? C.ink : C.inkMuted}}>
                     {obj.title}
                 </Typography>
-                <Typography sx={{
-                    fontSize: 11, fontWeight: 650, px: 0.85, py: 0.15, borderRadius: 999, flexShrink: 0,
-                    color: granted ? C.goldDeep : C.inkFaint, backgroundColor: granted ? C.goldTint : C.surfaceDeep,
-                }}>
-                    {granted}/{obj.users.length}
+                <StatusChip isPublic={p} count={countFor(obj, isSub, parent)}/>
+            </Box>
+        );
+    };
+
+    const adminCount = cur ? cur.obj.users.filter(u => userLevel(u, cur.isSub, pub).level === 'admin').length : 0;
+
+    return (
+        <Box sx={{display: 'grid', gridTemplateColumns: {xs: '1fr', md: '290px 1fr'}, gap: 2.5, alignItems: 'start'}}>
+            <Box sx={{
+                border: `1px solid ${C.line}`, borderRadius: '12px', p: 1, backgroundColor: C.surface,
+                position: {md: 'sticky'}, top: {md: 140}, maxHeight: {xs: 280, md: 'calc(100vh - 170px)'}, overflowY: 'auto',
+            }}>
+                <Typography sx={{px: 1.5, pt: 1, pb: 1, fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase', color: C.inkFaint, fontWeight: 600}}>
+                    Modul seçin
                 </Typography>
+                {data.modules.map(m => (
+                    <Box key={m.id}>
+                        {navItem(m, false, null)}
+                        {m.sub_modules?.map(s => navItem(s, true, m))}
+                    </Box>
+                ))}
+            </Box>
+
+            {cur && (
+                <Box sx={{border: `1px solid ${C.line}`, borderRadius: '12px', backgroundColor: C.surface, minWidth: 0}}>
+                    <Box sx={{p: {xs: 2, sm: 2.5}, borderBottom: `1px solid ${C.line}`}}>
+                        {cur.isSub && (
+                            <Typography sx={{fontSize: 11.5, color: C.inkFaint, mb: 0.25}}>{cur.parent.title} · alt modul</Typography>
+                        )}
+                        <Typography sx={{fontSize: 19, fontWeight: 700, color: C.ink}}>{cur.obj.title}</Typography>
+                        {!cur.isSub && cur.obj.description && (
+                            <Typography sx={{fontSize: 12.5, color: C.inkMuted, mt: 0.25}}>{cur.obj.description}</Typography>
+                        )}
+
+                        <Typography sx={{fontSize: 12, fontWeight: 700, color: C.ink, mt: 2.25, mb: 1}}>
+                            1. Kim istifadə edə bilər?
+                        </Typography>
+                        <AccessModePicker
+                            cur={cur}
+                            canEdit={!!data.can_toggle_public}
+                            busy={api.modeBusy === `${cur.isSub ? 's' : 'm'}:${cur.obj.id}`}
+                            onChange={(val) => cur.isSub ? api.setRestricted(cur.obj, !val) : api.setPublic(cur.obj, val)}
+                        />
+
+                        <Typography sx={{fontSize: 12, fontWeight: 700, color: C.ink, mt: 2.5, mb: 0.25}}>
+                            {pub ? '2. Adminləri seçin' : '2. Əməkdaşları seçin'}
+                        </Typography>
+                        <Typography sx={{fontSize: 12, color: C.inkMuted, mb: 1.25}}>
+                            {pub
+                                ? `Hamı avtomatik istifadəçidir. Məzmunu idarə edəcək əməkdaşları «Admin» edin. Hazırda ${adminCount} admin var.`
+                                : `Hər əməkdaş üçün səviyyəni seçin. Hazırda ${countFor(cur.obj, cur.isSub, cur.parent)} nəfərin girişi var, ${adminCount} admin.`}
+                        </Typography>
+
+                        <Box sx={{display: 'flex', gap: 1.25, flexWrap: 'wrap', alignItems: 'center'}}>
+                            <Box sx={{flex: '1 1 240px', maxWidth: 380}}>
+                                <SearchBox value={query} onChange={setQuery} placeholder="Ad, vəzifə və ya şöbə üzrə axtarış"/>
+                            </Box>
+                            <Box sx={{display: 'flex', gap: 0.75, flexWrap: 'wrap'}}>
+                                {filters.map(f => (
+                                    <Box key={f.key} component="button" type="button" onClick={() => setFilter(f.key)} sx={{
+                                        all: 'unset', cursor: 'pointer', fontSize: 12.5, fontWeight: 600, px: 1.5, py: 0.6, borderRadius: 999,
+                                        border: `1px solid ${filter === f.key ? C.gold : C.line}`,
+                                        color: filter === f.key ? C.goldDeep : C.inkMuted,
+                                        backgroundColor: filter === f.key ? C.goldTint : 'transparent',
+                                        '&:focus-visible': {outline: `2px solid ${C.gold}`, outlineOffset: 1},
+                                    }}>
+                                        {f.label}
+                                    </Box>
+                                ))}
+                            </Box>
+                        </Box>
+                    </Box>
+
+                    {groups.length === 0 ? (
+                        <Typography sx={{p: 3, fontSize: 13.5, color: C.inkFaint}}>
+                            {cur.obj.users.length ? 'Seçimə uyğun əməkdaş tapılmadı.' : 'Bu qurumda aktiv əməkdaş yoxdur.'}
+                        </Typography>
+                    ) : groups.map(group => {
+                        const changeable = group.users.filter(u => {
+                            const st = userLevel(u, cur.isSub, pub);
+                            return !st.locked && st.level !== 'admin';
+                        });
+                        return (
+                            <Box key={group.id}>
+                                <Box sx={{
+                                    display: 'flex', alignItems: 'center', gap: 1, px: {xs: 2, sm: 2.5}, py: 1,
+                                    backgroundColor: C.surfaceRaised, borderBottom: `1px solid ${C.line}`, flexWrap: 'wrap',
+                                }}>
+                                    <AccountTreeOutlinedIcon sx={{fontSize: 16, color: C.inkFaint}}/>
+                                    <Typography sx={{fontSize: 12.5, fontWeight: 650, color: C.ink, flex: 1, minWidth: 0}} noWrap>
+                                        {group.title}
+                                    </Typography>
+                                    <Typography sx={{fontSize: 11.5, color: C.inkFaint}}>{group.users.length} nəfər</Typography>
+                                    {!pub && changeable.length > 0 && (
+                                        <Box sx={{display: 'flex', gap: 0.5}}>
+                                            {['user', 'none'].map(level => {
+                                                const busy = bulkKey === `${group.id}:${level}`;
+                                                const off = !!bulkKey || changeable.every(u => userLevel(u, cur.isSub, pub).level === level);
+                                                return (
+                                                    <Box key={level} component="button" type="button" disabled={off}
+                                                         onClick={() => bulk(group, level)}
+                                                         sx={{
+                                                             all: 'unset', cursor: off ? 'default' : 'pointer', fontSize: 11.5, fontWeight: 600,
+                                                             px: 1, py: 0.35, borderRadius: '6px',
+                                                             color: off ? C.inkFaint : (level === 'user' ? C.goldDeep : C.danger),
+                                                             opacity: off && !busy ? 0.55 : 1,
+                                                             display: 'inline-flex', alignItems: 'center', gap: 0.5,
+                                                             '&:hover': off ? {} : {backgroundColor: level === 'user' ? C.goldTint : C.dangerTint},
+                                                             '&:focus-visible': {outline: `2px solid ${C.gold}`},
+                                                         }}>
+                                                        {busy && <CircularProgress size={11} sx={{color: 'inherit'}}/>}
+                                                        {level === 'user' ? 'Şöbənin hamısına ver' : 'Hamısından al'}
+                                                    </Box>
+                                                );
+                                            })}
+                                        </Box>
+                                    )}
+                                </Box>
+                                {group.users.map(u => {
+                                    const st = userLevel(u, cur.isSub, pub);
+                                    return (
+                                        <Box key={u.id} sx={{
+                                            display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: {xs: 'wrap', sm: 'nowrap'},
+                                            px: {xs: 2, sm: 2.5}, py: 1, borderBottom: `1px solid ${C.line}`,
+                                            '&:hover': {backgroundColor: C.goldWash},
+                                        }}>
+                                            <Box sx={{display: 'flex', alignItems: 'center', gap: 1.25, minWidth: 0, flex: 1}}>
+                                                <Avatar name={u.name || u.username} tone={st.level}/>
+                                                <Box sx={{minWidth: 0}}>
+                                                    <Typography noWrap sx={{fontSize: 13.5, fontWeight: 600, color: C.ink}}>{u.name || u.username}</Typography>
+                                                    <Typography noWrap sx={{fontSize: 12, color: C.inkFaint}}>{u.role_title || u.username}</Typography>
+                                                </Box>
+                                            </Box>
+                                            <LevelControl
+                                                state={st} isPublic={pub}
+                                                busy={api.busy.has(`${cur.isSub ? 's' : 'm'}:${cur.obj.id}:${u.id}`)}
+                                                disabled={!!bulkKey}
+                                                onChange={(lv) => api.setLevel(cur, u, lv)}
+                                            />
+                                        </Box>
+                                    );
+                                })}
+                            </Box>
+                        );
+                    })}
+                </Box>
+            )}
+        </Box>
+    );
+}
+
+/* ---------------------------------------------------------------------- */
+/* Əməkdaş üzrə görünüş - bir əməkdaşın bütün modullardakı səviyyəsi      */
+/* ---------------------------------------------------------------------- */
+function EmployeeView({data, api}) {
+    const [query, setQuery] = useState('');
+    const people = useMemo(() => {
+        const map = new Map();
+        for (const m of data.modules) for (const u of m.users) if (!map.has(u.id)) map.set(u.id, u);
+        return Array.from(map.values()).sort((a, b) => (a.name || '').localeCompare(b.name || '', 'az'));
+    }, [data.modules]);
+    const [selectedId, setSelectedId] = useState(() => people[0]?.id ?? null);
+
+    const q = query.trim().toLocaleLowerCase('az');
+    const filtered = people.filter(u => matches(q, u.name, u.username, u.role_title, u.department_title));
+    const person = people.find(u => u.id === selectedId);
+
+    const row = (obj, isSub, parent) => {
+        const u = obj.users.find(x => x.id === selectedId);
+        const pub = isPublicObj(obj, isSub, parent);
+        const st = userLevel(u, isSub, pub);
+        const cur = {obj, isSub, parent};
+        return (
+            <Box key={`${isSub ? 's' : 'm'}-${obj.id}`} sx={{
+                display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: {xs: 'wrap', sm: 'nowrap'},
+                pl: isSub ? {xs: 3.5, sm: 5} : {xs: 2, sm: 2.5}, pr: {xs: 2, sm: 2.5}, py: isSub ? 0.85 : 1.2,
+                borderBottom: `1px solid ${C.line}`, backgroundColor: isSub ? C.surfaceRaised : C.surface,
+            }}>
+                <Box sx={{display: 'flex', alignItems: 'center', gap: 1, flex: 1, minWidth: 0}}>
+                    {isSub
+                        ? <SubdirectoryArrowRightIcon sx={{fontSize: 14, color: C.inkFaint}}/>
+                        : <ExtensionOutlinedIcon sx={{fontSize: 17, color: C.inkFaint}}/>}
+                    <Typography noWrap sx={{fontSize: isSub ? 12.75 : 14, fontWeight: isSub ? 500 : 650, color: C.ink}}>{obj.title}</Typography>
+                    {pub && <StatusChip isPublic/>}
+                </Box>
+                {u ? (
+                    <LevelControl
+                        state={st} isPublic={pub} compact={isSub}
+                        busy={api.busy.has(`${isSub ? 's' : 'm'}:${obj.id}:${u.id}`)}
+                        onChange={(lv) => api.setLevel(cur, u, lv)}
+                    />
+                ) : <Typography sx={{fontSize: 12, color: C.inkFaint}}>—</Typography>}
             </Box>
         );
     };
 
     return (
-        <Box>
-            {orgPicker && <Box sx={{mb: 2.5}}>{orgPicker}</Box>}
-            <Box sx={{display: 'grid', gridTemplateColumns: {xs: '1fr', md: '300px 1fr'}, gap: 2.5, alignItems: 'start'}}>
-                {/* Modullar */}
-                <Box sx={{
-                    border: `1px solid ${C.line}`, borderRadius: '12px', p: 1, backgroundColor: C.surface,
-                    position: {md: 'sticky'}, top: {md: 140}, maxHeight: {xs: 280, md: 'calc(100vh - 170px)'}, overflowY: 'auto',
-                }}>
-                    <Typography sx={{px: 1.5, pt: 1, pb: 1, fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase', color: C.inkFaint, fontWeight: 600}}>
-                        Modullar
-                    </Typography>
+        <Box sx={{display: 'grid', gridTemplateColumns: {xs: '1fr', md: '310px 1fr'}, gap: 2.5, alignItems: 'start'}}>
+            <Box sx={{
+                border: `1px solid ${C.line}`, borderRadius: '12px', backgroundColor: C.surface,
+                position: {md: 'sticky'}, top: {md: 140}, display: 'flex', flexDirection: 'column',
+                maxHeight: {xs: 340, md: 'calc(100vh - 170px)'},
+            }}>
+                <Box sx={{p: 1.25, borderBottom: `1px solid ${C.line}`}}>
+                    <SearchBox value={query} onChange={setQuery} placeholder="Əməkdaş axtar"/>
+                </Box>
+                <Box sx={{overflowY: 'auto', p: 0.75}}>
+                    {filtered.length === 0 && (
+                        <Typography sx={{p: 2, fontSize: 13, color: C.inkFaint}}>Əməkdaş tapılmadı.</Typography>
+                    )}
+                    {filtered.map(u => {
+                        const active = u.id === selectedId;
+                        return (
+                            <Box key={u.id} component="button" type="button" onClick={() => setSelectedId(u.id)} sx={{
+                                all: 'unset', boxSizing: 'border-box', cursor: 'pointer', width: '100%',
+                                display: 'flex', alignItems: 'center', gap: 1.1, px: 1.25, py: 0.9, borderRadius: '8px',
+                                backgroundColor: active ? C.goldTint : 'transparent',
+                                boxShadow: active ? `inset 3px 0 0 ${C.gold}` : 'none',
+                                '&:hover': {backgroundColor: active ? C.goldTint : C.surfaceRaised},
+                                '&:focus-visible': {outline: `2px solid ${C.gold}`, outlineOffset: 1},
+                            }}>
+                                <Avatar name={u.name || u.username} tone={active ? 'user' : 'muted'} size={30}/>
+                                <Box sx={{minWidth: 0}}>
+                                    <Typography noWrap sx={{fontSize: 13, fontWeight: 600, color: C.ink}}>{u.name || u.username}</Typography>
+                                    <Typography noWrap sx={{fontSize: 11.5, color: C.inkFaint}}>{u.department_title || u.role_title || u.username}</Typography>
+                                </Box>
+                            </Box>
+                        );
+                    })}
+                </Box>
+            </Box>
+
+            {person ? (
+                <Box sx={{border: `1px solid ${C.line}`, borderRadius: '12px', backgroundColor: C.surface, minWidth: 0, overflow: 'hidden'}}>
+                    <Box sx={{display: 'flex', alignItems: 'center', gap: 1.5, p: {xs: 2, sm: 2.5}, borderBottom: `1px solid ${C.line}`}}>
+                        <Avatar name={person.name || person.username} tone="user" size={46}/>
+                        <Box sx={{minWidth: 0}}>
+                            <Typography sx={{fontSize: 18, fontWeight: 700, color: C.ink}}>{person.name || person.username}</Typography>
+                            <Typography sx={{fontSize: 12.5, color: C.inkMuted}}>
+                                {[person.role_title, person.department_title].filter(Boolean).join(' · ') || person.username}
+                            </Typography>
+                        </Box>
+                    </Box>
+                    {person.implicit_access && (
+                        <Box sx={{display: 'flex', gap: 1, alignItems: 'center', px: 2.5, py: 1.25, backgroundColor: C.successTint, borderBottom: `1px solid ${C.line}`}}>
+                            <LockOutlinedIcon sx={{fontSize: 16, color: C.success}}/>
+                            <Typography sx={{fontSize: 12.5, color: C.success, fontWeight: 600}}>
+                                Bu əməkdaş inzibatçıdır - bütün modullara avtomatik girişi var.
+                            </Typography>
+                        </Box>
+                    )}
                     {data.modules.map(m => (
                         <Box key={m.id}>
-                            {navItem(m, false)}
-                            {m.sub_modules?.map(s => navItem(s, true, m.title))}
+                            {row(m, false, null)}
+                            {m.sub_modules?.map(s => row(s, true, m))}
                         </Box>
                     ))}
                 </Box>
-
-                {/* İşçilər */}
-                {current && (
-                    <Box sx={{border: `1px solid ${C.line}`, borderRadius: '12px', backgroundColor: C.surface, minWidth: 0}}>
-                        <Box sx={{p: {xs: 2, sm: 2.5}, borderBottom: `1px solid ${C.line}`}}>
-                            {current.isSub && (
-                                <Typography sx={{fontSize: 11.5, color: C.inkFaint, mb: 0.25}}>{current.parent.title} · alt modul</Typography>
-                            )}
-                            <Box sx={{display: 'flex', alignItems: 'baseline', gap: 1.5, flexWrap: 'wrap'}}>
-                                <Typography sx={{fontSize: 18, fontWeight: 700, color: C.ink}}>{current.obj.title}</Typography>
-                                <Typography sx={{fontSize: 12.5, color: C.inkMuted}}>
-                                    {countOf(current.obj)} nəfərin girişi var
-                                    {' · '}
-                                    {current.obj.users.filter(u => userState(u, current.isSub).adminChecked).length} admin
-                                </Typography>
-                            </Box>
-                            <Box sx={{display: 'flex', gap: 1.5, mt: 2, flexWrap: 'wrap', alignItems: 'center'}}>
-                                <TextField
-                                    size="small" placeholder="Ad, vəzifə və ya şöbə üzrə axtarış" value={query}
-                                    onChange={(e) => setQuery(e.target.value)}
-                                    sx={{flex: '1 1 260px', maxWidth: 420}}
-                                    InputProps={{startAdornment: <InputAdornment position="start"><SearchIcon sx={{fontSize: 18, color: C.inkFaint}}/></InputAdornment>}}
-                                />
-                                <Box sx={{display: 'flex', gap: 0.75, flexWrap: 'wrap'}}>
-                                    {FILTERS.map(f => (
-                                        <Box key={f.key} component="button" type="button" onClick={() => setFilter(f.key)} sx={{
-                                            all: 'unset', cursor: 'pointer', fontSize: 12.5, fontWeight: 600, px: 1.5, py: 0.6, borderRadius: 999,
-                                            border: `1px solid ${filter === f.key ? C.gold : C.line}`,
-                                            color: filter === f.key ? C.goldDeep : C.inkMuted,
-                                            backgroundColor: filter === f.key ? C.goldTint : 'transparent',
-                                            '&:focus-visible': {outline: `2px solid ${C.gold}`, outlineOffset: 1},
-                                        }}>
-                                            {f.label}
-                                        </Box>
-                                    ))}
-                                </Box>
-                            </Box>
-                        </Box>
-
-                        {/* Sütun başlıqları */}
-                        <Box sx={{
-                            display: {xs: 'none', sm: 'grid'}, gridTemplateColumns: '1fr 92px 72px', gap: 1, px: 2.5, py: 1,
-                            backgroundColor: C.surfaceRaised, borderBottom: `1px solid ${C.line}`,
-                            fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase', color: C.inkFaint, fontWeight: 600,
-                        }}>
-                            <span>İşçi</span>
-                            <Tooltip title="Modula giriş"><span style={{textAlign: 'center'}}>Giriş</span></Tooltip>
-                            <Tooltip title={current.isSub ? 'Alt modul admini - yalnız bu alt modul daxilində idarəetmə' : 'Modul admini - bu modulda məzmun əlavə/redaktə səlahiyyəti'}>
-                                <span style={{textAlign: 'center'}}>Admin</span>
-                            </Tooltip>
-                        </Box>
-
-                        {groups.length === 0 ? (
-                            <Typography sx={{p: 3, fontSize: 13.5, color: C.inkFaint}}>
-                                {current.obj.users.length ? 'Axtarışa uyğun işçi tapılmadı.' : 'Bu qurumda aktiv işçi yoxdur.'}
-                            </Typography>
-                        ) : groups.map(group => {
-                            const granted = group.users.filter(u => u.has_access).length;
-                            const changeable = group.users.filter(u => !userState(u, current.isSub).accessLocked);
-                            return (
-                                <Box key={group.id}>
-                                    <Box sx={{
-                                        display: 'flex', alignItems: 'center', gap: 1, px: {xs: 2, sm: 2.5}, py: 1.1,
-                                        backgroundColor: C.surfaceRaised, borderBottom: `1px solid ${C.line}`, flexWrap: 'wrap',
-                                    }}>
-                                        <AccountTreeOutlinedIcon sx={{fontSize: 16, color: C.inkFaint}}/>
-                                        <Typography sx={{fontSize: 12.5, fontWeight: 650, color: C.ink, flex: 1, minWidth: 0}} noWrap>
-                                            {group.title}
-                                        </Typography>
-                                        <Typography sx={{fontSize: 11.5, color: C.inkFaint}}>{granted}/{group.users.length}</Typography>
-                                        {changeable.length > 0 && (
-                                            <Box sx={{display: 'flex', gap: 0.5}}>
-                                                {[true, false].map(grant => {
-                                                    const busy = bulkKey === `${group.id}:${grant}`;
-                                                    const disabledBtn = !!bulkKey || changeable.every(u => u.has_access === grant);
-                                                    return (
-                                                        <Box key={String(grant)} component="button" type="button" disabled={disabledBtn}
-                                                             onClick={() => bulk(group, grant)}
-                                                             sx={{
-                                                                 all: 'unset', cursor: disabledBtn ? 'default' : 'pointer', fontSize: 11.5, fontWeight: 600,
-                                                                 px: 1, py: 0.35, borderRadius: '6px',
-                                                                 color: disabledBtn ? C.inkFaint : (grant ? C.goldDeep : C.danger),
-                                                                 opacity: disabledBtn && !busy ? 0.55 : 1,
-                                                                 display: 'inline-flex', alignItems: 'center', gap: 0.5,
-                                                                 '&:hover': disabledBtn ? {} : {backgroundColor: grant ? C.goldTint : C.dangerTint},
-                                                                 '&:focus-visible': {outline: `2px solid ${C.gold}`},
-                                                             }}>
-                                                            {busy && <CircularProgress size={11} sx={{color: 'inherit'}}/>}
-                                                            {grant ? 'Hamısına ver' : 'Hamısından al'}
-                                                        </Box>
-                                                    );
-                                                })}
-                                            </Box>
-                                        )}
-                                    </Box>
-                                    {group.users.map(u => {
-                                        const st = userState(u, current.isSub);
-                                        const accessKey = `${accessTarget}:${current.obj.id}:${u.id}`;
-                                        const adminKey = `${adminTarget}:${current.obj.id}:${u.id}`;
-                                        return (
-                                            <Box key={u.id} sx={{
-                                                display: 'grid', gridTemplateColumns: '1fr 92px 72px', gap: 1, alignItems: 'center',
-                                                px: {xs: 2, sm: 2.5}, py: 1, borderBottom: `1px solid ${C.line}`,
-                                                '&:hover': {backgroundColor: C.goldWash},
-                                            }}>
-                                                <Box sx={{display: 'flex', alignItems: 'center', gap: 1.25, minWidth: 0}}>
-                                                    <Box sx={{
-                                                        width: 32, height: 32, borderRadius: '50%', flexShrink: 0, fontSize: 11.5, fontWeight: 700,
-                                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                                        backgroundColor: u.has_access ? C.goldTint : C.surfaceDeep,
-                                                        color: u.has_access ? C.goldDeep : C.inkMuted,
-                                                    }}>
-                                                        {initials(u.name || u.username)}
-                                                    </Box>
-                                                    <Box sx={{minWidth: 0}}>
-                                                        <Box sx={{display: 'flex', alignItems: 'center', gap: 0.75}}>
-                                                            <Typography noWrap sx={{fontSize: 13.5, fontWeight: 600, color: C.ink}}>{u.name || u.username}</Typography>
-                                                            {st.implicit && (
-                                                                <Typography sx={{fontSize: 10, fontWeight: 700, color: C.goldDeep, backgroundColor: C.goldTint, px: 0.75, py: 0.1, borderRadius: '4px', flexShrink: 0}}>
-                                                                    Avtomatik
-                                                                </Typography>
-                                                            )}
-                                                        </Box>
-                                                        <Typography noWrap sx={{fontSize: 12, color: C.inkFaint}}>
-                                                            {u.role_title || u.username}
-                                                        </Typography>
-                                                    </Box>
-                                                </Box>
-                                                <Box sx={{display: 'flex', justifyContent: 'center'}}>
-                                                    {savingKeys.has(accessKey) ? (
-                                                        <CircularProgress size={16} sx={{color: C.gold}}/>
-                                                    ) : (
-                                                        <Tooltip title={st.accessTooltip}>
-                                                            <span>
-                                                                <Switch
-                                                                    size="small" checked={!!u.has_access} disabled={st.accessLocked || !!bulkKey}
-                                                                    onChange={(e) => toggle(accessTarget, current.obj.id, u.id, e.target.checked)}
-                                                                    inputProps={{'aria-label': `${u.name} - giriş`}}
-                                                                />
-                                                            </span>
-                                                        </Tooltip>
-                                                    )}
-                                                </Box>
-                                                <Box sx={{display: 'flex', justifyContent: 'center'}}>
-                                                    {savingKeys.has(adminKey) ? (
-                                                        <CircularProgress size={14} sx={{color: C.gold}}/>
-                                                    ) : (
-                                                        <Checkbox
-                                                            size="small" checked={st.adminChecked} disabled={st.adminLocked || !!bulkKey}
-                                                            onChange={(e) => toggle(adminTarget, current.obj.id, u.id, e.target.checked)}
-                                                            inputProps={{'aria-label': `${u.name} - admin`}}
-                                                        />
-                                                    )}
-                                                </Box>
-                                            </Box>
-                                        );
-                                    })}
-                                </Box>
-                            );
-                        })}
-                    </Box>
-                )}
-            </Box>
+            ) : (
+                <Typography sx={{color: C.inkMuted, fontSize: 13.5, p: 2}}>Soldan əməkdaş seçin.</Typography>
+            )}
         </Box>
     );
+}
+
+/* ---------------------------------------------------------------------- */
+/* Məlumatı yükləyən və dəyişiklikləri göndərən iş sahəsi                 */
+/* ---------------------------------------------------------------------- */
+function AccessWorkspace({organizationId, view}) {
+    const {enqueueSnackbar} = useSnackbar();
+    const [loading, setLoading] = useState(true);
+    const [data, setData] = useState(null);
+    const [busy, setBusy] = useState(() => new Set());
+    const [modeBusy, setModeBusy] = useState(null);
+
+    const load = useCallback(async () => {
+        setLoading(true);
+        try {
+            const params = organizationId ? `?organization=${organizationId}` : '';
+            const res = await service_api.get(NEXT_API_ENDPOINTS.CORE.ORG_MODULE_ACCESS + params);
+            const d = res.data || {};
+            d.can_toggle_public = !!d.modules?.[0]?.can_toggle_public;
+            setData(d);
+        } catch (err) {
+            enqueueSnackbar(handleError(err), {variant: 'error'});
+        } finally {
+            setLoading(false);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [organizationId]);
+
+    useEffect(() => { load(); }, [load]);
+
+    /* Bir API çağırışı + lokal vəziyyətin yenilənməsi */
+    async function post(target, id, userId, grant) {
+        const payload = {target, id, user_id: userId, grant};
+        if (organizationId) payload.organization = organizationId;
+        await service_api.post(NEXT_API_ENDPOINTS.CORE.ORG_MODULE_ACCESS, payload);
+        setData(prev => {
+            if (!prev) return prev;
+            const next = structuredClone(prev);
+            const apply = (obj) => {
+                obj.users = obj.users.map(u => {
+                    if (u.id !== userId) return u;
+                    if (target === 'module_admin') return {...u, is_module_admin: grant, has_access: grant ? true : u.has_access};
+                    if (target === 'sub_module_admin') return {...u, is_sub_module_admin: grant, has_access: grant ? true : u.has_access};
+                    return {...u, has_access: grant};
+                });
+            };
+            for (const m of next.modules) {
+                if ((target === 'module' || target === 'module_admin') && m.id === id) {
+                    apply(m);
+                    // Modul admini bütün alt modullarda avtomatik admindir
+                    if (target === 'module_admin') {
+                        for (const s of m.sub_modules || []) {
+                            s.users = s.users.map(u => u.id === userId ? {...u, is_module_admin: grant} : u);
+                        }
+                    }
+                }
+                if (target === 'sub_module' || target === 'sub_module_admin') {
+                    const sub = m.sub_modules.find(s => s.id === id);
+                    if (sub) apply(sub);
+                }
+            }
+            return next;
+        });
+    }
+
+    /* Səviyyəni (none / user / admin) lazımi API addımlarına çevirir */
+    async function setLevel(cur, u, nextLevel, {silent = false} = {}) {
+        const {obj, isSub, parent} = cur;
+        const pub = isPublicObj(obj, isSub, parent);
+        const st = userLevel(u, isSub, pub);
+        if (st.locked || st.level === nextLevel) return true;
+
+        const accessT = isSub ? 'sub_module' : 'module';
+        const adminT = isSub ? 'sub_module_admin' : 'module_admin';
+        const steps = [];
+        // Alt modula giriş üçün əsas modula da giriş lazımdır
+        const ensureParent = () => {
+            if (!isSub || parent.is_public) return;
+            const pu = parent.users.find(x => x.id === u.id);
+            if (pu && !pu.has_access && !pu.implicit_access && !pu.is_module_admin) steps.push(['module', parent.id, true]);
+        };
+
+        if (nextLevel === 'admin') {
+            ensureParent();
+            steps.push([adminT, obj.id, true]);
+        } else if (nextLevel === 'user') {
+            if (st.level === 'admin') steps.push([adminT, obj.id, false]);
+            if (!pub) ensureParent();
+            steps.push([accessT, obj.id, true]);
+        } else {
+            if (st.level === 'admin') steps.push([adminT, obj.id, false]);
+            steps.push([accessT, obj.id, false]);
+        }
+
+        const key = `${isSub ? 's' : 'm'}:${obj.id}:${u.id}`;
+        setBusy(prev => new Set(prev).add(key));
+        try {
+            for (const [t, id, g] of steps) await post(t, id, u.id, g);
+            return true;
+        } catch (err) {
+            if (!silent) enqueueSnackbar(handleError(err), {variant: 'error'});
+            return false;
+        } finally {
+            setBusy(prev => { const n = new Set(prev); n.delete(key); return n; });
+        }
+    }
+
+    async function setPublic(module, value) {
+        setModeBusy(`m:${module.id}`);
+        try {
+            await service_api.post(NEXT_API_ENDPOINTS.CORE.MODULE_ORG_ACCESS, {target: 'module_public', id: module.id, grant: value});
+            setData(prev => {
+                const next = structuredClone(prev);
+                const m = next.modules.find(x => x.id === module.id);
+                if (m) m.is_public = value;
+                return next;
+            });
+            enqueueSnackbar(value ? `«${module.title}» bütün əməkdaşlara açıldı.` : `«${module.title}» yalnız seçilmiş əməkdaşlara açıqdır.`, {variant: 'success'});
+        } catch (err) {
+            enqueueSnackbar(handleError(err), {variant: 'error'});
+        } finally {
+            setModeBusy(null);
+        }
+    }
+
+    async function setRestricted(sub, value) {
+        setModeBusy(`s:${sub.id}`);
+        try {
+            await service_api.post(NEXT_API_ENDPOINTS.CORE.MODULE_ORG_ACCESS, {target: 'sub_module_restricted', id: sub.id, grant: value});
+            setData(prev => {
+                const next = structuredClone(prev);
+                for (const m of next.modules) {
+                    const s = m.sub_modules?.find(x => x.id === sub.id);
+                    if (s) s.is_restricted = value;
+                }
+                return next;
+            });
+            enqueueSnackbar(value ? `«${sub.title}» yalnız seçilmiş əməkdaşlara açıqdır.` : `«${sub.title}» bütün əməkdaşlara açıldı.`, {variant: 'success'});
+        } catch (err) {
+            enqueueSnackbar(handleError(err), {variant: 'error'});
+        } finally {
+            setModeBusy(null);
+        }
+    }
+
+    const notify = (failed, total, level) => {
+        if (failed) enqueueSnackbar(`${failed} əməkdaş üçün dəyişiklik alınmadı.`, {variant: 'error'});
+        else enqueueSnackbar(level === 'none' ? `${total} əməkdaşın girişi götürüldü.` : `${total} əməkdaşa giriş verildi.`, {variant: 'success'});
+    };
+
+    if (loading) {
+        return <Box sx={{display: 'flex', justifyContent: 'center', py: 6}}><CircularProgress size={26} sx={{color: C.gold}}/></Box>;
+    }
+    if (!data || !data.modules?.length) {
+        return (
+            <Typography sx={{color: C.inkMuted, fontSize: 13.5, py: 2}}>
+                Bu qurum üçün açıq heç bir modul yoxdur.
+            </Typography>
+        );
+    }
+
+    const api = {busy, modeBusy, setLevel, setPublic, setRestricted, notify};
+    return view === 'employee'
+        ? <EmployeeView data={data} api={api}/>
+        : <ModuleView data={data} api={api}/>;
 }
 
 /* ---------------------------------------------------------------------- */
 /* Əsas komponent                                                         */
 /* ---------------------------------------------------------------------- */
 export default function ModulePermissionsPage({isSuperUser}) {
-    const [subTab, setSubTab] = useState(0);
+    const [view, setView] = useState('module');
     const [selectedOrgId, setSelectedOrgId] = useState('');
     const [orgOptions, setOrgOptions] = useState([]);
+    const [orgsLoaded, setOrgsLoaded] = useState(false);
     const {enqueueSnackbar} = useSnackbar();
 
     useEffect(() => {
@@ -672,61 +991,78 @@ export default function ModulePermissionsPage({isSuperUser}) {
         (async () => {
             try {
                 const res = await service_api.get(NEXT_API_ENDPOINTS.CORE.MODULE_ORG_ACCESS);
-                setOrgOptions(res.data?.organizations || []);
+                const orgs = res.data?.organizations || [];
+                setOrgOptions(orgs);
+                if (orgs.length >= 1) setSelectedOrgId(prev => prev || orgs[0].id);
             } catch (err) {
                 enqueueSnackbar(handleError(err), {variant: 'error'});
+            } finally {
+                setOrgsLoaded(true);
             }
         })();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isSuperUser]);
 
-    if (!isSuperUser) {
-        // Qurum admini - yalnız öz qurumunun istifadəçilərinə, artıq qurumuna
-        // açılmış modullar daxilində giriş verə bilər.
-        return (
-            <Box sx={cardSx}>
-                <Typography sx={{fontSize: 15, fontWeight: 700, color: C.ink, mb: 0.5}}>
-                    Modul icazələri
-                </Typography>
-                <Typography sx={{fontSize: 13, color: C.inkMuted, mb: 2.5}}>
-                    Qurumunuza açıq olan modullardan hansını hansı işçinizə vermək istədiyinizi seçin.
-                </Typography>
-                <UserAccessPanel organizationId={null} showOrgPicker={false}/>
-            </Box>
-        );
-    }
+    const multiOrg = isSuperUser && orgOptions.length > 1;
+    const views = [
+        {key: 'module', label: 'Modul üzrə', icon: <ExtensionOutlinedIcon sx={{fontSize: 17}}/>},
+        {key: 'employee', label: 'Əməkdaş üzrə', icon: <PersonOutlineIcon sx={{fontSize: 18}}/>},
+        ...(multiOrg ? [{key: 'orgs', label: 'Qurumlar', icon: <DomainOutlinedIcon sx={{fontSize: 17}}/>}] : []),
+    ];
+    const waitingOrg = isSuperUser && !selectedOrgId && !orgsLoaded;
 
     return (
         <Box sx={cardSx}>
-            <Typography sx={{fontSize: 15, fontWeight: 700, color: C.ink, mb: 0.5}}>
-                Modul icazələri
-            </Typography>
-            <Typography sx={{fontSize: 13, color: C.inkMuted, mb: 2}}>
-                Modulları qurumlara açın, sonra həmin qurumun konkret işçilərinə giriş verin.
-            </Typography>
+            {/* Səviyyələrin qısa izahı */}
+            <Box sx={{
+                display: 'flex', gap: {xs: 1.25, md: 3}, flexWrap: 'wrap', alignItems: 'center',
+                p: 1.5, mb: 2.5, borderRadius: '10px', backgroundColor: C.surfaceRaised, border: `1px solid ${C.line}`,
+            }}>
+                <Typography sx={{fontSize: 12, fontWeight: 700, color: C.ink}}>Səviyyələr:</Typography>
+                {LEVEL_HELP.map(l => (
+                    <Box key={l.key} sx={{display: 'flex', alignItems: 'center', gap: 0.75}}>
+                        <Box sx={{width: 9, height: 9, borderRadius: '50%', backgroundColor: l.color}}/>
+                        <Typography sx={{fontSize: 12, color: C.inkMuted}}>
+                            <b style={{color: C.ink}}>{l.title}</b> - {l.text}
+                        </Typography>
+                    </Box>
+                ))}
+            </Box>
 
-            <Tabs
-                value={subTab} onChange={(e, v) => setSubTab(v)}
-                sx={{
-                    mb: 2.5, minHeight: 36, borderBottom: `1px solid ${C.line}`,
-                    '& .MuiTab-root': {textTransform: 'none', minHeight: 36, fontSize: 13.5, color: C.inkMuted, gap: 0.5},
-                    '& .Mui-selected': {color: `${C.ink} !important`, fontWeight: 600},
-                    '& .MuiTabs-indicator': {backgroundColor: C.gold},
-                }}
-            >
-                <Tab label="Qurum girişləri" icon={<DomainOutlinedIcon sx={{fontSize: 17}}/>} iconPosition="start"/>
-                <Tab label="İstifadəçi girişləri" icon={<GroupOutlinedIcon sx={{fontSize: 17}}/>} iconPosition="start"/>
-            </Tabs>
+            <Box sx={{display: 'flex', gap: 1.5, alignItems: 'center', flexWrap: 'wrap', mb: 2.5}}>
+                <Box sx={{display: 'inline-flex', p: '4px', borderRadius: '12px', backgroundColor: C.surfaceDeep}}>
+                    {views.map(v => {
+                        const active = view === v.key;
+                        return (
+                            <Box key={v.key} component="button" type="button" onClick={() => setView(v.key)} aria-pressed={active} sx={{
+                                all: 'unset', boxSizing: 'border-box', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 0.75,
+                                px: 1.75, py: 0.8, borderRadius: '9px', fontSize: 13.5, fontWeight: active ? 700 : 550,
+                                color: active ? C.ink : C.inkMuted, backgroundColor: active ? C.surface : 'transparent',
+                                boxShadow: active ? '0 1px 4px rgba(10,27,54,0.12)' : 'none',
+                                '&:hover': active ? {} : {color: C.ink},
+                                '&:focus-visible': {outline: `2px solid ${C.gold}`, outlineOffset: 1},
+                            }}>
+                                {v.icon}{v.label}
+                            </Box>
+                        );
+                    })}
+                </Box>
+                {multiOrg && view !== 'orgs' && (
+                    <FormControl size="small" sx={{minWidth: 260, ml: {sm: 'auto'}}}>
+                        <InputLabel>Qurum</InputLabel>
+                        <Select label="Qurum" value={selectedOrgId || ''} onChange={(e) => setSelectedOrgId(e.target.value)}>
+                            {orgOptions.map(org => <MenuItem key={org.id} value={org.id}>{org.title}</MenuItem>)}
+                        </Select>
+                    </FormControl>
+                )}
+            </Box>
 
-            {subTab === 0 ? (
+            {view === 'orgs' ? (
                 <OrgAccessMatrix/>
+            ) : waitingOrg ? (
+                <Box sx={{display: 'flex', justifyContent: 'center', py: 6}}><CircularProgress size={26} sx={{color: C.gold}}/></Box>
             ) : (
-                <UserAccessPanel
-                    organizationId={selectedOrgId}
-                    showOrgPicker
-                    organizations={orgOptions}
-                    onOrgChange={setSelectedOrgId}
-                />
+                <AccessWorkspace key={`${selectedOrgId || 'own'}`} organizationId={isSuperUser ? (selectedOrgId || null) : null} view={view}/>
             )}
         </Box>
     );

@@ -28,7 +28,7 @@ export default function Page() {
             <ModuleHero
                 eyebrow="İdarəetmə"
                 title="Modul icazələri"
-                subtitle="Qurum və istifadəçilərin modullara girişini tənzimləyin."
+                
                 breadcrumb={["İnzibatçı paneli", 'Modul icazələri']}
                 icon={<ExtensionOutlinedIcon sx={{fontSize: 26}}/>}
             />

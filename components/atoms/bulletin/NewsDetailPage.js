@@ -22,7 +22,7 @@ import {handleError} from "@/app/utils";
 import {NEXT_API_ENDPOINTS} from "@/app/urls";
 import {service_api} from "@/app/service";
 import {
-    C, EmptyState, NewsFormDialog, useCanManageBulletin, dialogPaperSx, formatFull,
+    C, EmptyState, useCanManageBulletin, dialogPaperSx, formatFull,
     normalizeList, pageWrapSx, panelSx, primaryButtonSx, readingTime, softButtonSx,
 } from "./bulletinShared";
 
@@ -35,7 +35,6 @@ export default function NewsDetailPage({id}) {
     const [others, setOthers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [notFound, setNotFound] = useState(false);
-    const [editOpen, setEditOpen] = useState(false);
     const [confirmOpen, setConfirmOpen] = useState(false);
     const [deleting, setDeleting] = useState(false);
 
@@ -215,7 +214,7 @@ export default function NewsDetailPage({id}) {
                                 </Button>
                                 {canManage && (
                                     <>
-                                        <Button size="small" startIcon={<EditOutlinedIcon/>} onClick={() => setEditOpen(true)}
+                                        <Button size="small" startIcon={<EditOutlinedIcon/>} component={Link} href={`/elanlar/xeberler/${item.id}/redakte`}
                                                 sx={softButtonSx}>
                                             Redaktə et
                                         </Button>
@@ -279,7 +278,6 @@ export default function NewsDetailPage({id}) {
                 </Grid>
             </Grid>
 
-            <NewsFormDialog open={editOpen} onClose={() => setEditOpen(false)} onSaved={load} initial={item}/>
 
             <Dialog open={confirmOpen} onClose={() => !deleting && setConfirmOpen(false)} maxWidth="xs" fullWidth
                     PaperProps={{sx: dialogPaperSx}}>

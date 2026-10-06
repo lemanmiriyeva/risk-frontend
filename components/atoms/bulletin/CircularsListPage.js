@@ -26,7 +26,7 @@ import {NEXT_API_ENDPOINTS} from "@/app/urls";
 import {service_api} from "@/app/service";
 import CategoryManagerDialog from "./CategoryManagerDialog";
 import {
-    C, CategoryIcon, CircularFormDialog, EmptyState, useBulletinCategories, useCanManageBulletin,
+    C, CategoryIcon, EmptyState, useBulletinCategories, useCanManageBulletin,
     dayNumber, fieldSx, formatFull, monthShort, normalizeList, pageWrapSx, panelSx, softButtonSx,
 } from "./bulletinShared";
 
@@ -103,18 +103,15 @@ function CircularRow({item, canManage, onDelete, deleting}) {
 export default function CircularsListPage({initialCategory}) {
     const {enqueueSnackbar} = useSnackbar();
     const user = useAppSelector((state) => state.user);
-    const isRoot = !!user?.is_superuser;
     const {canManage, canManageCategories} = useCanManageBulletin();
     const {categories, loading: categoriesLoading, reload: reloadCategories} = useBulletinCategories();
 
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [organizations, setOrganizations] = useState([]);
     const [category, setCategory] = useState(initialCategory || 'all');
     const [search, setSearch] = useState('');
     const [year, setYear] = useState('all');
     const [order, setOrder] = useState('new');
-    const [dialogCategoryId, setDialogCategoryId] = useState(null);
     const [managerOpen, setManagerOpen] = useState(false);
     const [deletingId, setDeletingId] = useState(null);
 
@@ -143,17 +140,6 @@ export default function CircularsListPage({initialCategory}) {
 
     useEffect(() => { load(); }, [load]);
 
-    useEffect(() => {
-        if (!isRoot) return;
-        (async () => {
-            try {
-                const res = await service_api.get(NEXT_API_ENDPOINTS.ORGANIZATION.LIST);
-                setOrganizations(normalizeList(res.data));
-            } catch (e) {
-                // qurum siyahısı kritik deyil
-            }
-        })();
-    }, [isRoot]);
 
     const years = useMemo(() => {
         const set = new Set();
@@ -207,10 +193,6 @@ export default function CircularsListPage({initialCategory}) {
         ...categories.map((c) => ({value: c.key, label: c.plural_label || c.label})),
     ];
 
-    function openCreateDialog() {
-        const target = category !== 'all' ? categories.find((c) => c.key === category) : null;
-        setDialogCategoryId((target || categories[0])?.id || null);
-    }
 
     return (
         <Box sx={pageWrapSx}>
@@ -261,7 +243,9 @@ export default function CircularsListPage({initialCategory}) {
                     <MenuItem value="old">Əvvəlcə köhnələr</MenuItem>
                 </TextField>
                 {canManage && (
-                    <Button startIcon={<AddIcon/>} onClick={openCreateDialog} sx={{...softButtonSx, py: 1}}>
+                    <Button startIcon={<AddIcon/>} component={Link}
+                            href={category !== 'all' ? `/elanlar/senedler/yeni?category=${category}` : '/elanlar/senedler/yeni'}
+                            sx={{...softButtonSx, py: 1}}>
                         Yeni sənəd
                     </Button>
                 )}
@@ -345,16 +329,6 @@ export default function CircularsListPage({initialCategory}) {
                     </Box>
                 </Grid>
             </Grid>
-
-            <CircularFormDialog
-                open={!!dialogCategoryId}
-                onClose={() => setDialogCategoryId(null)}
-                onSaved={load}
-                categories={categories}
-                defaultCategoryId={dialogCategoryId}
-                isRoot={isRoot}
-                organizations={organizations}
-            />
 
             <CategoryManagerDialog
                 open={managerOpen}

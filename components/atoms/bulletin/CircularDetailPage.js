@@ -22,7 +22,7 @@ import {handleError} from "@/app/utils";
 import {NEXT_API_ENDPOINTS} from "@/app/urls";
 import {service_api} from "@/app/service";
 import {
-    C, CategoryIcon, CircularFormDialog, EmptyState, useBulletinCategories, useCanManageBulletin, dialogPaperSx,
+    C, CategoryIcon, EmptyState, useCanManageBulletin, dialogPaperSx,
     formatFull, normalizeList, pageWrapSx, panelSx, primaryButtonSx, softButtonSx,
 } from "./bulletinShared";
 
@@ -39,16 +39,12 @@ export default function CircularDetailPage({id}) {
     const {enqueueSnackbar} = useSnackbar();
     const router = useRouter();
     const user = useAppSelector((state) => state.user);
-    const isRoot = !!user?.is_superuser;
     const {canManage} = useCanManageBulletin();
-    const {categories} = useBulletinCategories();
 
     const [item, setItem] = useState(null);
     const [related, setRelated] = useState([]);
-    const [organizations, setOrganizations] = useState([]);
     const [loading, setLoading] = useState(true);
     const [notFound, setNotFound] = useState(false);
-    const [editOpen, setEditOpen] = useState(false);
     const [confirmOpen, setConfirmOpen] = useState(false);
     const [deleting, setDeleting] = useState(false);
 
@@ -87,17 +83,6 @@ export default function CircularDetailPage({id}) {
         })();
     }, [id]);
 
-    useEffect(() => {
-        if (!isRoot) return;
-        (async () => {
-            try {
-                const res = await service_api.get(NEXT_API_ENDPOINTS.ORGANIZATION.LIST);
-                setOrganizations(normalizeList(res.data));
-            } catch (e) {
-                // kritik deyil
-            }
-        })();
-    }, [isRoot]);
 
     const sameCategory = useMemo(() => related
         .filter((c) => String(c.id) !== String(id) && c.category_key === item?.category_key)
@@ -211,7 +196,7 @@ export default function CircularDetailPage({id}) {
                             </Button>
                             {canManage && (
                                 <>
-                                    <Button startIcon={<EditOutlinedIcon/>} onClick={() => setEditOpen(true)} sx={softButtonSx}>
+                                    <Button startIcon={<EditOutlinedIcon/>} component={Link} href={`/elanlar/senedler/${item.id}/redakte`} sx={softButtonSx}>
                                         Redaktə et
                                     </Button>
                                     <Button startIcon={<DeleteOutlineIcon/>} onClick={() => setConfirmOpen(true)}
@@ -282,12 +267,6 @@ export default function CircularDetailPage({id}) {
                     </Box>
                 </Grid>
             </Grid>
-
-            <CircularFormDialog
-                open={editOpen} onClose={() => setEditOpen(false)} onSaved={load}
-                categories={categories} defaultCategoryId={item.category}
-                isRoot={isRoot} organizations={organizations} initial={item}
-            />
 
             <Dialog open={confirmOpen} onClose={() => !deleting && setConfirmOpen(false)} maxWidth="xs" fullWidth
                     PaperProps={{sx: dialogPaperSx}}>

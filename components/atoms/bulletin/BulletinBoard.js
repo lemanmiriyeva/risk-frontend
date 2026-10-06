@@ -1,6 +1,7 @@
 "use client"
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import Link from 'next/link';
+import {useRouter} from 'next/navigation';
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
@@ -23,7 +24,7 @@ import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 import CardSlider from "./CardSlider";
 import CategoryManagerDialog from "./CategoryManagerDialog";
 import {
-    C, CategoryIcon, CircularFormDialog, EmptyState, NewsFormDialog,
+    C, CategoryIcon, EmptyState,
     useBulletinCategories, useCanManageBulletin, formatDay, formatFull, initials,
     normalizeList, pageWrapSx, panelSx, softButtonSx,
 } from "./bulletinShared";
@@ -64,7 +65,7 @@ function PanelTitle({icon, title, count, onAdd, addLabel, size = 'md'}) {
             )}
             {onAdd && (
                 <Tooltip title={addLabel}>
-                    <IconButton size="small" onClick={onAdd} sx={{color: C.gold, flexShrink: 0}}>
+                    <IconButton size="small" onClick={onAdd} aria-label={addLabel} sx={{color: C.gold, flexShrink: 0}}>
                         <AddIcon sx={{fontSize: big ? 20 : 17}}/>
                     </IconButton>
                 </Tooltip>
@@ -219,8 +220,8 @@ function BirthdaySlide({person}) {
 /*  Sol sütun - Fərman / Sərəncam / Daxili qayda, alt-alta ayrıca slaydlar */
 /* ===================================================================== */
 
-function CircularsColumn({circulars, categories, categoriesLoading, canManage, canManageCategories, isRoot, organizations, onRefresh, onCategoriesChanged}) {
-    const [dialogCategoryId, setDialogCategoryId] = useState(null);
+function CircularsColumn({circulars, categories, categoriesLoading, canManage, canManageCategories, onRefresh, onCategoriesChanged}) {
+    const router = useRouter();
     const [managerOpen, setManagerOpen] = useState(false);
 
     return (
@@ -257,7 +258,7 @@ function CircularsColumn({circulars, categories, categoriesLoading, canManage, c
                                     icon={<CategoryIcon icon={cat.icon}/>}
                                     title={cat.plural_label || cat.label}
                                     count={list.length}
-                                    onAdd={canManage ? () => setDialogCategoryId(cat.id) : null}
+                                    onAdd={canManage ? () => router.push(`/elanlar/senedler/yeni?category=${cat.key}`) : null}
                                     addLabel={`${cat.label} əlavə et`}
                                 />
                             )}
@@ -273,16 +274,6 @@ function CircularsColumn({circulars, categories, categoriesLoading, canManage, c
                     </Box>
                 );
             })}
-
-            <CircularFormDialog
-                open={!!dialogCategoryId}
-                onClose={() => setDialogCategoryId(null)}
-                onSaved={onRefresh}
-                categories={categories}
-                defaultCategoryId={dialogCategoryId}
-                isRoot={isRoot}
-                organizations={organizations}
-            />
 
             <CategoryManagerDialog
                 open={managerOpen}
@@ -302,14 +293,12 @@ function CircularsColumn({circulars, categories, categoriesLoading, canManage, c
 export default function BulletinBoard() {
     const {enqueueSnackbar} = useSnackbar();
     const user = useAppSelector((state) => state.user);
-    const isRoot = !!user?.is_superuser;
     const {canManage, canManageCategories} = useCanManageBulletin();
     const {categories, loading: categoriesLoading, reload: reloadCategories} = useBulletinCategories();
 
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [organizations, setOrganizations] = useState([]);
-    const [newsFormOpen, setNewsFormOpen] = useState(false);
+    const router = useRouter();
 
     const load = useCallback(async () => {
         setLoading(true);
@@ -326,18 +315,6 @@ export default function BulletinBoard() {
 
     useEffect(() => { load(); }, [load]);
 
-    useEffect(() => {
-        if (!isRoot) return;
-        (async () => {
-            try {
-                const res = await service_api.get(NEXT_API_ENDPOINTS.ORGANIZATION.LIST);
-                setOrganizations(normalizeList(res.data));
-            } catch (err) {
-                enqueueSnackbar(handleError(err), {variant: 'error'});
-            }
-        })();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isRoot]);
 
     const news = data?.news || [];
     const birthdays = useMemo(
@@ -371,7 +348,6 @@ export default function BulletinBoard() {
                     <CircularsColumn
                         circulars={data?.circulars} categories={categories} categoriesLoading={categoriesLoading}
                         canManage={canManage} canManageCategories={canManageCategories}
-                        isRoot={isRoot} organizations={organizations}
                         onRefresh={load} onCategoriesChanged={reloadCategories}
                     />
                 </Grid>
@@ -395,7 +371,7 @@ export default function BulletinBoard() {
                                     icon={<NewspaperOutlinedIcon sx={{fontSize: 20}}/>}
                                     title="Xəbərlər"
                                     count={news.length}
-                                    onAdd={canManage ? () => setNewsFormOpen(true) : null}
+                                    onAdd={canManage ? () => router.push('/elanlar/xeberler/yeni') : null}
                                     addLabel="Yeni xəbər"
                                 />
                             )}
@@ -440,7 +416,6 @@ export default function BulletinBoard() {
                 </Grid>
             </Grid>
 
-            <NewsFormDialog open={newsFormOpen} onClose={() => setNewsFormOpen(false)} onSaved={load}/>
         </Box>
     );
 }

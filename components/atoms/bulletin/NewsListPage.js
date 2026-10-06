@@ -17,7 +17,7 @@ import {handleError} from "@/app/utils";
 import {NEXT_API_ENDPOINTS} from "@/app/urls";
 import {service_api} from "@/app/service";
 import {
-    C, EmptyState, NewsFormDialog, useCanManageBulletin, dayNumber, formatFull,
+    C, EmptyState, useCanManageBulletin, dayNumber, formatFull,
     fieldSx, monthShort, normalizeList, pageWrapSx, panelSx, softButtonSx,
 } from "./bulletinShared";
 
@@ -89,7 +89,6 @@ export default function NewsListPage() {
     const [year, setYear] = useState('all');
     const [order, setOrder] = useState('new');
     const [visible, setVisible] = useState(PAGE_SIZE);
-    const [formOpen, setFormOpen] = useState(false);
 
     const load = useCallback(async () => {
         setLoading(true);
@@ -167,7 +166,7 @@ export default function NewsListPage() {
                     <MenuItem value="old">Əvvəlcə köhnələr</MenuItem>
                 </TextField>
                 {canManage && (
-                    <Button startIcon={<AddIcon/>} onClick={() => setFormOpen(true)} sx={{...softButtonSx, py: 1}}>
+                    <Button startIcon={<AddIcon/>} component={Link} href="/elanlar/xeberler/yeni" sx={{...softButtonSx, py: 1}}>
                         Yeni xəbər
                     </Button>
                 )}
@@ -213,7 +212,6 @@ export default function NewsListPage() {
                 </>
             )}
 
-            <NewsFormDialog open={formOpen} onClose={() => setFormOpen(false)} onSaved={load}/>
         </Box>
     );
 }

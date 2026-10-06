@@ -120,7 +120,7 @@ export const MODULE_ACCENTS = {
 };
 export const DEFAULT_MODULE_ACCENT = BRAND.navy600;
 
-export const FONT_STACK = '"Inter Variable", Inter, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
+export const FONT_STACK = '"Montserrat Variable", Montserrat, "Segoe UI", Arial, sans-serif';
 
 
 /* Azərbaycan dilində tarix (brauzerin "az" lokal dəstəyindən asılı olmadan). */
@@ -137,5 +137,5 @@ export function formatAzDate(date, {weekday = true} = {}) {
     return `${w.charAt(0).toUpperCase()}${w.slice(1)}, ${base}`;
 }
 
-export const SERIF_STACK = '"Noto Serif", Georgia, "Times New Roman", serif';
+export const SERIF_STACK = FONT_STACK; // başlıqlar da loqodakı şriftlə (Montserrat)
 export const HEADER_HEIGHT = 76;

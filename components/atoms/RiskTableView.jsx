@@ -24,7 +24,7 @@ import {DATA_GRID_LOCALE_AZ} from "@/lib/dataGridLocaleAz";
 import {TREATMENT_OPTIONS, RISK_LEVEL_META} from "./RiskFormDialog";
 import ExcelJS from 'exceljs';
 import {saveAs} from 'file-saver';
-import {C} from "@/components/theme/tokens";
+import {C, FONT_STACK} from "@/components/theme/tokens";
 
 
 
@@ -397,12 +397,11 @@ export default function RiskTableView() {
     return (
         <Box sx={{minHeight: '100vh', backgroundColor: C.bg, px: {xs: 2, md: 5}, pt: {xs: 3, sm: 4}, pb: 5}}>
             <GlobalStyles styles={{
-                '@import': "url('https://fonts.googleapis.com/css2?family=Newsreader:wght@500;600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap')",
                 ':root': {
-                    '--font-serif': "'Newsreader', serif",
-                    '--font-mono': "'IBM Plex Mono', monospace",
+                    '--font-serif': 'inherit',
+                    '--font-mono': 'inherit',
                 },
-                body: {fontFamily: "'Inter', sans-serif"},
+                body: {fontFamily: FONT_STACK},
             }}/>
 
             <Box sx={{maxWidth: 1440, mx: 'auto'}}>

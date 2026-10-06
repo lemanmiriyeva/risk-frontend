@@ -3,9 +3,7 @@ import '@fontsource/roboto/300.css';
 import '@fontsource/roboto/400.css';
 import '@fontsource/roboto/500.css';
 import '@fontsource/roboto/700.css';
-import '@fontsource-variable/inter';
-import '@fontsource/noto-serif/500.css';
-import '@fontsource/noto-serif/600.css';
+import '@fontsource-variable/montserrat';
 import './globals.css'
 import Container from "@mui/material/Container";
 import UserFetcher from "./UserFetcher";

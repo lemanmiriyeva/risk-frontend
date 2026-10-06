@@ -11,9 +11,9 @@ export default function Page() {
         <Box sx={{ backgroundColor: GOV.pageBg, minHeight: "100vh" }}>
             <ModuleHero
                 eyebrow="Modul"
-                title="Loqlar"
+                title="Hərəkət tarixçəsi"
                 subtitle="Sistemdə baş vermiş bütün fəaliyyətlərin tarixçəsi — giriş/çıxış, baxışlar və dəyişikliklər."
-                breadcrumb={["Loqlar"]}
+                breadcrumb={["Hərəkət tarixçəsi"]}
                 icon={<HistoryIcon sx={{ fontSize: 26 }} />}
             />
             <ActivityLogTable/>

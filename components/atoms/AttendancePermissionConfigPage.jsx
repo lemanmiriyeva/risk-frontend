@@ -1228,7 +1228,7 @@ export default function AttendancePermissionConfigPage() {
                                             WARNING
                                         ================================== */}
 
-                                {managerDisabled && (
+                                {managerDisabled && (department.no_manager_fallback || "replacement") === "replacement" && !department.replacement_user && (
 
                                     <Box
                                         sx={{

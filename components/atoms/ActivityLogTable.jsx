@@ -286,12 +286,6 @@ export default function ActivityLogTable() {
 
     return (
         <Box sx={{p: {xs: 2, sm: 3},maxWidth: {xs: '100%', sm: '92%', lg: 1400}, mx: 'auto'}}>
-            <Typography sx={{fontSize: {xs: 20, sm: 24}, fontWeight: 700, color: C.ink, mb: 0.5}}>
-                Loqlar
-            </Typography>
-            <Typography sx={{fontSize: 13, color: C.inkMuted, mb: 3}}>
-                Sistemdə baş vermiş bütün fəaliyyətlərin tarixçəsi — giriş/çıxış, baxışlar və dəyişikliklər.
-            </Typography>
 
             <Box sx={{display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 1.5, mb: 2}}>
                 <TextField

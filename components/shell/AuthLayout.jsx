@@ -8,10 +8,9 @@ import {ThemeProvider} from '@mui/material/styles';
 import ShieldOutlinedIcon from '@mui/icons-material/ShieldOutlined';
 import HubOutlinedIcon from '@mui/icons-material/HubOutlined';
 import HistoryOutlinedIcon from '@mui/icons-material/HistoryOutlined';
-import Image from "next/image";
 import appTheme from "@/components/theme/appTheme";
 import {BRAND, C, FONT_STACK, TRICOLOR} from "@/components/theme/tokens";
-import {float, growX, reducedMotion, reveal} from "@/components/theme/motion";
+import {growX, reducedMotion, reveal} from "@/components/theme/motion";
 import AnimatedPattern from "@/components/shell/AnimatedPattern";
 import bina from "@/app/msn_bina.png";
 import logo from "@/app/logo.svg";
@@ -23,28 +22,11 @@ import logo from "@/app/logo.svg";
 
 export const SUPPORT_EMAIL = 'itsupport@mdi.gov.az';
 
-/* Səkkizguşəli ulduz (bayraqdakı motiv) - fon bəzəyi. */
-function Star({size = 320, color = '#FFFFFF', opacity = 0.10}) {
-    const h = size / 2, r1 = size * 0.48, r2 = size * 0.22;
-    const pts = Array.from({length: 16}, (_, i) => {
-        const r = i % 2 ? r2 : r1;
-        const a = (Math.PI / 8) * i - Math.PI / 2;
-        return `${(h + r * Math.cos(a)).toFixed(1)},${(h + r * Math.sin(a)).toFixed(1)}`;
-    }).join(' ');
-    return (
-        <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} aria-hidden>
-            <polygon points={pts} fill="none" stroke={color} strokeOpacity={opacity} strokeWidth="1.5"/>
-            <circle cx={h} cy={h} r={r2 * 0.75} fill="none" stroke={color} strokeOpacity={opacity * 0.8} strokeWidth="1"/>
-        </svg>
-    );
-}
-
 function BrandMark({height = 44}) {
     return (
-        <Box sx={{position: 'relative', width: height * 5.45, maxWidth: '100%', height, flexShrink: 0}}>
-            <Image src={logo} alt="Azərbaycan Respublikasının Müdafiə Sənayesi Nazirliyi" fill priority
-                   style={{objectFit: 'contain', objectPosition: 'left center'}}/>
-        </Box>
+        <Box component="img" src={logo.src || logo}
+             alt="Azərbaycan Respublikasının Müdafiə Sənayesi Nazirliyi"
+             sx={{display: 'block', height, width: 'auto', maxWidth: '100%', flexShrink: 0}}/>
     );
 }
 
@@ -74,14 +56,7 @@ function BrandPanel() {
                 pointerEvents: 'none',
                 '& img': {width: '100%', height: 'auto', display: 'block', filter: 'grayscale(1)'},
             }}>
-                <Image src={bina} alt="" priority/>
-            </Box>
-
-            <Box aria-hidden sx={{
-                position: 'absolute', right: {md: -120, lg: -60}, top: {md: 40, lg: 20},
-                animation: `${float} 16s ease-in-out infinite`, [reducedMotion]: {animation: 'none'},
-            }}>
-                <Star size={460} color="#E9C766" opacity={0.18}/>
+                <img src={bina.src || bina} alt=""/>
             </Box>
 
             <Box sx={{position: 'relative', ...reveal(0, 0.05)}}>

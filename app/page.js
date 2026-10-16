@@ -11,7 +11,7 @@ import {useRouter} from "next/navigation";
 import {service_api} from "@/app/service";
 import {NEXT_API_ENDPOINTS} from "@/app/urls";
 import {BRAND, C, TRICOLOR} from "@/components/theme/tokens";
-import {float, growX, reducedMotion, reveal, sheen} from "@/components/theme/motion";
+import {growX, reducedMotion, reveal, sheen} from "@/components/theme/motion";
 import {moduleAccent, moduleIcon, useUserModules} from "@/components/shell/moduleMeta";
 import AnimatedPattern from "@/components/shell/AnimatedPattern";
 import CardSlider from "@/components/atoms/bulletin/CardSlider";
@@ -30,22 +30,6 @@ function timeAgo(dateStr) {
     const hours = Math.floor(mins / 60);
     if (hours < 24) return `${hours} saat əvvəl`;
     return `${Math.floor(hours / 24)} gün əvvəl`;
-}
-
-/* Bayraqdakı səkkizguşəli ulduz - hero-da böyük, yavaş hərəkət edən dekor. */
-function Star({size = 320, color = '#FFFFFF', opacity = 0.10}) {
-    const h = size / 2, r1 = size * 0.48, r2 = size * 0.22;
-    const pts = Array.from({length: 16}, (_, i) => {
-        const r = i % 2 ? r2 : r1;
-        const a = (Math.PI / 8) * i - Math.PI / 2;
-        return `${(h + r * Math.cos(a)).toFixed(1)},${(h + r * Math.sin(a)).toFixed(1)}`;
-    }).join(' ');
-    return (
-        <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} aria-hidden>
-            <polygon points={pts} fill="none" stroke={color} strokeOpacity={opacity} strokeWidth="1.5"/>
-            <circle cx={h} cy={h} r={r2 * 0.75} fill="none" stroke={color} strokeOpacity={opacity * 0.8} strokeWidth="1"/>
-        </svg>
-    );
 }
 
 /* Sol sütun - modulların yığcam siyahısı */
@@ -191,12 +175,6 @@ export default function Home() {
                 background: `radial-gradient(90% 120% at 85% 10%, ${BRAND.navy600} 0%, ${BRAND.navy900} 55%, ${BRAND.navy950} 100%)`,
             }}>
                 <AnimatedPattern opacity={0.045} size={120} duration={90}/>
-                <Box aria-hidden sx={{
-                    position: 'absolute', right: {xs: -180, md: '6%'}, top: {xs: -120, md: -150},
-                    animation: `${float} 14s ease-in-out infinite`, [reducedMotion]: {animation: 'none'},
-                }}>
-                    <Star size={420} color="#E9C766" opacity={0.22}/>
-                </Box>
                 <Box aria-hidden sx={{position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none'}}>
                     <Box sx={{
                         position: 'absolute', top: 0, bottom: 0, width: '30%',

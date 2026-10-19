@@ -13,7 +13,7 @@ import {BRAND, C, FONT_STACK, TRICOLOR} from "@/components/theme/tokens";
 import {growX, reducedMotion, reveal} from "@/components/theme/motion";
 import AnimatedPattern from "@/components/shell/AnimatedPattern";
 import bina from "@/app/msn_bina.png";
-import logo from "@/app/logo.svg";
+import LOGO_DATA_URI from "@/components/shell/logoDataUri";
 
 /*
  * Giriş axını səhifələri (giriş, şifrə təyini, 2FA qurulması, təsdiq gözləmə)
@@ -24,7 +24,7 @@ export const SUPPORT_EMAIL = 'itsupport@mdi.gov.az';
 
 function BrandMark({height = 44}) {
     return (
-        <Box component="img" src={logo.src || logo}
+        <Box component="img" src={LOGO_DATA_URI}
              alt="Azərbaycan Respublikasının Müdafiə Sənayesi Nazirliyi"
              sx={{display: 'block', height, width: 'auto', maxWidth: '100%', flexShrink: 0}}/>
     );

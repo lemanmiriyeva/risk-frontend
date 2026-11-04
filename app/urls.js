@@ -87,6 +87,12 @@ export const DJANGO_API_ENDPOINTS = {
         BASE: API_URL + "/api/trainings/",
     },
 
+    // Müraciətlər (ticket sistemi) - bütün sorğular app/api/tickets/[...path] proxy-si
+    // vasitəsilə bu prefiksə ötürülür.
+    TICKETS: {
+        BASE: API_URL + "/api/tickets/",
+    },
+
 }
 
 export const NEXT_API_ENDPOINTS = {
@@ -192,6 +198,27 @@ export const NEXT_API_ENDPOINTS = {
         STATS_FEEDBACK: "trainings/statistics/feedback/",
         STATS_FEEDBACK_DETAIL: (id) => `trainings/statistics/feedback/${id}/`,
         STATS_EXPORT: "trainings/statistics/export/",
+    },
+
+    TICKETS: {
+        LIST: "tickets/",
+        META: "tickets/meta/",
+        USERS: "tickets/users/",
+        STATS: "tickets/stats/",
+        CATEGORIES: "tickets/categories/",
+        CATEGORY_DETAIL: (id) => `tickets/categories/${id}/`,
+        DETAIL: (id) => `tickets/${id}/`,
+        STATUS: (id) => `tickets/${id}/status/`,
+        DEPARTMENTS: (id) => `tickets/${id}/departments/`,
+        DEPARTMENT_STATUS: (id) => `tickets/${id}/department-status/`,
+        ASSIGNEE: (id) => `tickets/${id}/assignee/`,
+        TAKE: (id) => `tickets/${id}/take/`,
+        COMMENTS: (id) => `tickets/${id}/comments/`,
+        ATTACHMENTS: (id) => `tickets/${id}/attachments/`,
+        WATCH: (id) => `tickets/${id}/watch/`,
+        UNWATCH: (id) => `tickets/${id}/unwatch/`,
+        WATCHERS: (id) => `tickets/${id}/watchers/`,
+        RATE: (id) => `tickets/${id}/rate/`,
     },
 
 }

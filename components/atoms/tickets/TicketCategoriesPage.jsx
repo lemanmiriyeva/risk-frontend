@@ -118,7 +118,7 @@ export default function TicketCategoriesPage() {
                     Kateqoriyanın defolt şöbəsi və prioriteti var: müraciətçi şöbə seçməsə, müraciət avtomatik həmin şöbəyə yönləndirilir.
                 </Typography>
                 {loading ? <Box sx={{textAlign: 'center', py: 8}}><CircularProgress/></Box> : (
-                    <Box sx={{backgroundColor: C.surface, border: `1px solid ${C.line}`, borderRadius: '8px', overflowX: 'auto'}}>
+                    <Box sx={{backgroundColor: C.surface, border: `1px solid ${C.line}`, borderRadius: '4px', overflowX: 'auto'}}>
                         <Table size="small">
                             <TableHead>
                                 <TableRow>

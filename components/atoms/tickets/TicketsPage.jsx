@@ -9,14 +9,10 @@ import TextField from '@mui/material/TextField';
 import MenuItem from '@mui/material/MenuItem';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
-import ToggleButton from '@mui/material/ToggleButton';
-import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import {DataGrid} from '@mui/x-data-grid';
 import {useSnackbar} from "notistack";
 import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
-import ViewListIcon from '@mui/icons-material/ViewList';
-import ViewKanbanIcon from '@mui/icons-material/ViewKanban';
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 import ConfirmationNumberOutlinedIcon from '@mui/icons-material/ConfirmationNumberOutlined';
 import ModuleHero from "@/components/ModuleHero";
@@ -26,10 +22,9 @@ import {NEXT_API_ENDPOINTS} from "@/app/urls";
 import {handleError} from "@/app/utils";
 import {DATA_GRID_LOCALE_AZ} from "@/lib/dataGridLocaleAz";
 import TicketFormDialog from "./TicketFormDialog";
-import TicketBoard from "./TicketBoard";
 import TicketStats from "./TicketStats";
-import {DeptChip, PriorityChip, SlaBadge, StatusChip} from "./TicketBadges";
-import {BOARD_COLUMNS, STATUS_META, timeAgo} from "./ticketMeta";
+import {DeptList, PriorityChip, SlaBadge, StatusChip} from "./TicketBadges";
+import {STATUS_META, timeAgo} from "./ticketMeta";
 
 const TABS = [
     {value: 'all', label: 'Hamısı'},
@@ -39,14 +34,6 @@ const TABS = [
     {value: 'watching', label: 'İzlədiklərim'},
 ];
 
-const SORTS = [
-    {value: '-last_activity_at', label: 'Son fəaliyyət'},
-    {value: '-created_at', label: 'Ən yeni'},
-    {value: 'created_at', label: 'Ən köhnə'},
-    {value: '-priority_rank,due_at', label: 'Prioritet'},
-    {value: 'due_at', label: 'SLA vaxtı'},
-];
-
 const STATUS_FILTERS = [
     {value: '', label: 'Bütün statuslar'},
     {value: 'new,open,in_progress,waiting', label: 'Aktiv müraciətlər'},
@@ -54,12 +41,12 @@ const STATUS_FILTERS = [
 ];
 
 const gridSx = {
-    border: `1px solid ${C.line}`, borderRadius: '8px', backgroundColor: C.surface,
-    '& .MuiDataGrid-columnHeaders': {backgroundColor: C.surfaceRaised, borderBottom: `1px solid ${C.lineStrong}`},
-    '& .MuiDataGrid-columnHeaderTitle': {fontSize: 11, letterSpacing: '0.05em', color: C.inkFaint, textTransform: 'uppercase', fontWeight: 600},
+    border: `1px solid ${C.line}`, borderRadius: '4px', backgroundColor: C.surface,
+    '& .MuiDataGrid-columnHeaders': {backgroundColor: C.surface, borderBottom: `1px solid ${C.lineStrong}`},
+    '& .MuiDataGrid-columnHeaderTitle': {fontSize: 11, letterSpacing: '0.05em', color: C.inkFaint, textTransform: 'uppercase', fontWeight: 500},
     '& .MuiDataGrid-cell': {borderBottom: `1px solid ${C.line}`, fontSize: 13.5, color: C.ink, display: 'flex', alignItems: 'center'},
     '& .MuiDataGrid-row': {cursor: 'pointer'},
-    '& .MuiDataGrid-row:hover': {backgroundColor: 'rgba(10,108,194,0.04)'},
+    '& .MuiDataGrid-row:hover': {backgroundColor: 'rgba(0,0,0,0.015)'},
     '& .MuiDataGrid-cell:focus, & .MuiDataGrid-cell:focus-within': {outline: 'none'},
     '& .MuiDataGrid-columnHeader:focus, & .MuiDataGrid-columnHeader:focus-within': {outline: 'none'},
 };
@@ -74,7 +61,6 @@ export default function TicketsPage() {
     const [rowCount, setRowCount] = useState(0);
     const [loading, setLoading] = useState(false);
 
-    const [view, setView] = useState('list');
     const [tab, setTab] = useState('all');
     const [search, setSearch] = useState('');
     const [debounced, setDebounced] = useState('');
@@ -83,20 +69,9 @@ export default function TicketsPage() {
     const [category, setCategory] = useState('');
     const [department, setDepartment] = useState('');
     const [quick, setQuick] = useState('');
-    const [ordering, setOrdering] = useState('-last_activity_at');
+    const ordering = '-last_activity_at';
     const [paging, setPaging] = useState({page: 0, pageSize: 20});
     const [formOpen, setFormOpen] = useState(false);
-
-    // seçilmiş görünüş yadda saxlanılır (xəta olsa səssiz keçilir)
-    useEffect(() => {
-        try {
-            const saved = localStorage.getItem('tickets.view');
-            if (saved === 'list' || saved === 'board') setView(saved);
-        } catch {}
-    }, []);
-    useEffect(() => {
-        try { localStorage.setItem('tickets.view', view); } catch {}
-    }, [view]);
 
     useEffect(() => {
         const t = setTimeout(() => setDebounced(search.trim()), 350);
@@ -125,9 +100,7 @@ export default function TicketsPage() {
     const fetchRows = useCallback(async () => {
         setLoading(true);
         try {
-            const extra = view === 'board'
-                ? {page_size: 200, ordering: ordering === '-last_activity_at' ? '-priority_rank,due_at' : ordering, status: status || BOARD_COLUMNS.join(',')}
-                : {page: paging.page + 1, page_size: paging.pageSize, ordering};
+            const extra = {page: paging.page + 1, page_size: paging.pageSize, ordering};
             const res = await service_api.get(`${NEXT_API_ENDPOINTS.TICKETS.LIST}?${buildParams(extra)}`);
             setRows(res.data.results || []);
             setRowCount(res.data.count || 0);
@@ -136,7 +109,7 @@ export default function TicketsPage() {
         } finally {
             setLoading(false);
         }
-    }, [view, buildParams, ordering, paging, status, enqueueSnackbar]);
+    }, [buildParams, paging, enqueueSnackbar]);
 
     const fetchStats = useCallback(async () => {
         try {
@@ -155,34 +128,20 @@ export default function TicketsPage() {
     // filtr dəyişəndə 1-ci səhifəyə qayıt
     useEffect(() => {
         setPaging((p) => (p.page === 0 ? p : {...p, page: 0}));
-    }, [tab, debounced, status, priority, category, department, quick, ordering]);
+    }, [tab, debounced, status, priority, category, department, quick]);
 
     function onQuick(q) {
         setQuick((cur) => (cur === q ? '' : q));
         if (q === 'overdue' || q === 'unassigned') setStatus('');
     }
 
-    async function onMove(ticket, newStatus) {
-        const prev = rows;
-        setRows((rs) => rs.map((r) => (r.id === ticket.id ? {...r, status: newStatus} : r)));
-        try {
-            await service_api.post(NEXT_API_ENDPOINTS.TICKETS.STATUS(ticket.id), {status: newStatus});
-            enqueueSnackbar(`${ticket.number}: ${STATUS_META[newStatus].label}`, {variant: 'success'});
-            fetchRows();
-            fetchStats();
-        } catch (e) {
-            setRows(prev);
-            enqueueSnackbar(handleError(e), {variant: 'error'});
-        }
-    }
-
     const columns = useMemo(() => [
         {field: 'number', headerName: '№', width: 110, sortable: false,
-            renderCell: (p) => <Typography sx={{fontSize: 13, fontWeight: 600, color: C.goldDeep}}>{p.value}</Typography>},
+            renderCell: (p) => <Typography sx={{fontSize: 13, fontWeight: 600, color: C.ink}}>{p.value}</Typography>},
         {field: 'title', headerName: 'Mövzu', flex: 1.6, minWidth: 260, sortable: false,
             renderCell: (p) => (
                 <Box sx={{minWidth: 0, py: 0.75}}>
-                    <Typography noWrap sx={{fontSize: 13.5, fontWeight: 600}}>{p.value}</Typography>
+                    <Typography noWrap sx={{fontSize: 13.5, fontWeight: 500}}>{p.value}</Typography>
                     <Typography noWrap sx={{fontSize: 12, color: C.inkFaint}}>
                         {p.row.category_title || p.row.type_display}
                         {p.row.comment_count ? ` · ${p.row.comment_count} şərh` : ''}
@@ -194,13 +153,7 @@ export default function TicketsPage() {
         {field: 'priority', headerName: 'Prioritet', width: 120, sortable: false,
             renderCell: (p) => <PriorityChip priority={p.value} label={p.row.priority_display}/>},
         {field: 'departments', headerName: 'Şöbələr', flex: 1.1, minWidth: 190, sortable: false,
-            renderCell: (p) => (
-                <Box sx={{display: 'flex', gap: 0.5, flexWrap: 'wrap'}}>
-                    {(p.value || []).slice(0, 2).map((d) => <DeptChip key={d.id} dept={d}/>)}
-                    {(p.value || []).length > 2 && <Typography sx={{fontSize: 12, color: C.inkFaint}}>+{p.value.length - 2}</Typography>}
-                    {!(p.value || []).length && <Typography sx={{fontSize: 12, color: C.inkFaint}}>Təyin olunmayıb</Typography>}
-                </Box>
-            )},
+            renderCell: (p) => <DeptList departments={p.value}/>},
         {field: 'requester_name', headerName: 'Müraciətçi', width: 170, sortable: false,
             renderCell: (p) => (
                 <Box sx={{minWidth: 0}}>
@@ -244,7 +197,7 @@ export default function TicketsPage() {
 
                 <Tabs
                     value={tab} onChange={(_, v) => setTab(v)} variant="scrollable" scrollButtons="auto"
-                    sx={{mb: 2, borderBottom: `1px solid ${C.line}`, '& .MuiTab-root': {textTransform: 'none', fontWeight: 600, fontSize: 14}}}
+                    sx={{mb: 2, borderBottom: `1px solid ${C.line}`, '& .MuiTab-root': {textTransform: 'none', fontWeight: 500, fontSize: 14}}}
                 >
                     {TABS.map((t) => <Tab key={t.value} value={t.value} label={t.label}/>)}
                 </Tabs>
@@ -273,38 +226,20 @@ export default function TicketsPage() {
                         <MenuItem value="">Bütün şöbələr</MenuItem>
                         {(meta?.departments || []).map((d) => <MenuItem key={d.id} value={d.id}>{d.shortname || d.title}</MenuItem>)}
                     </TextField>
-                    <TextField select size="small" value={ordering} onChange={(e) => setOrdering(e.target.value)} sx={{minWidth: 160}}>
-                        {SORTS.map((s) => <MenuItem key={s.value} value={s.value}>Sıra: {s.label}</MenuItem>)}
-                    </TextField>
-                    <ToggleButtonGroup size="small" exclusive value={view} onChange={(_, v) => v && setView(v)} sx={{ml: 'auto'}}>
-                        <ToggleButton value="list" aria-label="Siyahı"><ViewListIcon fontSize="small"/></ToggleButton>
-                        <ToggleButton value="board" aria-label="Lövhə"><ViewKanbanIcon fontSize="small"/></ToggleButton>
-                    </ToggleButtonGroup>
                 </Box>
 
-                {view === 'list' ? (
-                    <Box sx={{width: '100%'}}>
-                        <DataGrid
-                            rows={rows} columns={columns} rowCount={rowCount} loading={loading}
-                            paginationMode="server" paginationModel={paging} onPaginationModelChange={setPaging}
-                            pageSizeOptions={[10, 20, 50, 100]}
-                            onRowClick={(p) => open(p.row)}
-                            disableRowSelectionOnClick disableColumnFilter disableColumnMenu
-                            getRowHeight={() => 'auto'} autoHeight
-                            localeText={{...DATA_GRID_LOCALE_AZ, noRowsLabel: 'Müraciət tapılmadı'}}
-                            sx={{...gridSx, '& .MuiDataGrid-cell': {...gridSx['& .MuiDataGrid-cell'], py: 0.5}}}
-                        />
-                    </Box>
-                ) : (
-                    <>
-                        {rowCount > rows.length && (
-                            <Typography sx={{fontSize: 12.5, color: C.warning, mb: 1}}>
-                                Lövhədə ilk {rows.length} müraciət göstərilir - daha dəqiq nəticə üçün filtrlərdən istifadə edin.
-                            </Typography>
-                        )}
-                        <TicketBoard tickets={rows} onOpen={open} onMove={onMove}/>
-                    </>
-                )}
+                <Box sx={{width: '100%'}}>
+                    <DataGrid
+                        rows={rows} columns={columns} rowCount={rowCount} loading={loading}
+                        paginationMode="server" paginationModel={paging} onPaginationModelChange={setPaging}
+                        pageSizeOptions={[10, 20, 50, 100]}
+                        onRowClick={(p) => open(p.row)}
+                        disableRowSelectionOnClick disableColumnFilter disableColumnMenu
+                        getRowHeight={() => 'auto'} autoHeight
+                        localeText={{...DATA_GRID_LOCALE_AZ, noRowsLabel: 'Müraciət tapılmadı'}}
+                        sx={{...gridSx, '& .MuiDataGrid-cell': {...gridSx['& .MuiDataGrid-cell'], py: 0.5}}}
+                    />
+                </Box>
             </Box>
 
             <TicketFormDialog

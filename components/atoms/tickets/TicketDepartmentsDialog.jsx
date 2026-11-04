@@ -29,7 +29,7 @@ function DepartmentRow({dept, item, onChange, onRemove, disabled}) {
     }, [dept.id]);
 
     return (
-        <Box sx={{display: 'flex', gap: 1.5, alignItems: 'flex-start', p: 1.5, border: `1px solid ${C.line}`, borderRadius: '8px', mb: 1.25}}>
+        <Box sx={{display: 'flex', gap: 1.5, alignItems: 'flex-start', p: 1.5, border: `1px solid ${C.line}`, borderRadius: '4px', mb: 1.25}}>
             <Box sx={{flex: 1, minWidth: 0}}>
                 <Typography sx={{fontSize: 14, fontWeight: 600}}>{dept.title}</Typography>
                 <Typography sx={{fontSize: 12, color: C.inkFaint, mb: 1}}>

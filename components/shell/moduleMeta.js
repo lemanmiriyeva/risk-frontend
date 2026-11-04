@@ -8,6 +8,7 @@ import EventAvailableOutlinedIcon from '@mui/icons-material/EventAvailableOutlin
 import FactCheckOutlinedIcon from '@mui/icons-material/FactCheckOutlined';
 import CampaignOutlinedIcon from '@mui/icons-material/CampaignOutlined';
 import SchoolOutlinedIcon from '@mui/icons-material/SchoolOutlined';
+import ConfirmationNumberOutlinedIcon from '@mui/icons-material/ConfirmationNumberOutlined';
 import WidgetsOutlinedIcon from '@mui/icons-material/WidgetsOutlined';
 import {service_api} from "@/app/service";
 import {NEXT_API_ENDPOINTS} from "@/app/urls";
@@ -23,6 +24,7 @@ const ICONS = {
     emeliyyatlar: FactCheckOutlinedIcon,
     elanlar: CampaignOutlinedIcon,
     telimler: SchoolOutlinedIcon,
+    muracietler: ConfirmationNumberOutlinedIcon,
 };
 
 export function moduleIcon(urlEndpoint) {

@@ -116,6 +116,7 @@ export const MODULE_ACCENTS = {
     loqlar: '#475569',
     elanlar: '#C99A1E',
     telimler: '#0E8A9A',
+    muracietler: '#D9731A',
     'inzibatci-paneli': '#173560',
 };
 export const DEFAULT_MODULE_ACCENT = BRAND.navy600;

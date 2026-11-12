@@ -135,6 +135,10 @@ export default function TicketsPage() {
         if (q === 'overdue' || q === 'unassigned') setStatus('');
     }
 
+    function resetFilters() {
+        setSearch(''); setStatus(''); setPriority(''); setCategory(''); setDepartment(''); setQuick(''); setTab('all');
+    }
+
     const columns = useMemo(() => [
         {field: 'number', headerName: '№', width: 110, sortable: false,
             renderCell: (p) => <Typography sx={{fontSize: 13, fontWeight: 600, color: C.ink}}>{p.value}</Typography>},
@@ -167,6 +171,12 @@ export default function TicketsPage() {
             renderCell: (p) => <SlaBadge ticket={p.row}/>},
         {field: 'last_activity_at', headerName: 'Son fəaliyyət', width: 130, sortable: false,
             valueGetter: (v, row) => timeAgo(row.last_activity_at)},
+        {field: 'actions', headerName: '', width: 100, sortable: false, filterable: false, disableColumnMenu: true,
+            renderCell: (p) => (
+                <Button size="small" variant="outlined" component={Link} href={`/muracietler/${p.row.id}`} onClick={(e) => e.stopPropagation()}>
+                    Bax
+                </Button>
+            )},
     ], []);
 
     const open = (t) => router.push(`/muracietler/${t.id}`);
@@ -226,6 +236,7 @@ export default function TicketsPage() {
                         <MenuItem value="">Bütün şöbələr</MenuItem>
                         {(meta?.departments || []).map((d) => <MenuItem key={d.id} value={d.id}>{d.shortname || d.title}</MenuItem>)}
                     </TextField>
+                    <Button variant="outlined" onClick={resetFilters}>Sıfırla</Button>
                 </Box>
 
                 <Box sx={{width: '100%'}}>

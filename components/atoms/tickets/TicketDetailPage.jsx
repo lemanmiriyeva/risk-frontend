@@ -45,7 +45,7 @@ function SideSection({title, action, children}) {
     return (
         <Box sx={{py: 2, borderBottom: `1px solid ${C.line}`, '&:last-child': {borderBottom: 'none'}}}>
             <Box sx={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1}}>
-                <Typography sx={{fontSize: 11.5, color: C.inkFaint, textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600}}>
+                <Typography sx={{fontSize: 11.5, color: C.inkFaint, textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 700}}>
                     {title}
                 </Typography>
                 {action}
@@ -101,6 +101,227 @@ function TimelineItem({entry}) {
     const text = (ACTIVITY_TEXT[a.action] || (() => a.action))(a.data || {});
     return (
         <Box sx={{display: 'flex', gap: 1.5, mb: 1.5, alignItems: 'center'}}>
+            <Typography sx={{fontSize: 13, color: C.inkMuted}}>
+                <b style={{color: C.ink}}>{a.actor_name}</b> {text}
+                <Tooltip title={formatDateTime(a.created_at)}><span style={{color: C.inkFaint}}> · {timeAgo(a.created_at)}</span></Tooltip>
+            </Typography>
+        </Box>
+    );
+}
+
+export default function TicketDetailPage({id}) {
+    const {enqueueSnackbar} = useSnackbar();
+    const router = useRouter();
+    const [ticket, setTicket] = useState(null);
+    const [meta, setMeta] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [notFound, setNotFound] = useState(false);
+    const [busy, setBusy] = useState(false);
+
+    const [feedTab, setFeedTab] = useState('all');
+    const [body, setBody] = useState('');
+    const [internal, setInternal] = useState(false);
+    const [files, setFiles] = useState([]);
+    const fileRef = useRef(null);
+
+    const [statusDlg, setStatusDlg] = useState(null);       // {value, label}
+    const [statusComment, setStatusComment] = useState('');
+    const [deptDlg, setDeptDlg] = useState(false);
+    const [editDlg, setEditDlg] = useState(false);
+    const [editForm, setEditForm] = useState({title: '', description: ''});
+    const [assigneeOptions, setAssigneeOptions] = useState([]);
+    const [ratingValue, setRatingValue] = useState(0);
+    const [ratingComment, setRatingComment] = useState('');
+
+    const load = useCallback(async (silent = false) => {
+        if (!silent) setLoading(true);
+        try {
+            const res = await service_api.get(NEXT_API_ENDPOINTS.TICKETS.DETAIL(id));
+            setTicket(res.data);
+            setNotFound(false);
+        } catch (e) {
+            if (e?.response?.status === 404 || e?.status === 404) setNotFound(true);
+            else enqueueSnackbar(handleError(e), {variant: 'error'});
+        } finally {
+            setLoading(false);
+        }
+    }, [id, enqueueSnackbar]);
+
+    useEffect(() => { load(); }, [load]);
+    useEffect(() => {
+        service_api.get(NEXT_API_ENDPOINTS.TICKETS.META).then((r) => setMeta(r.data)).catch(() => {});
+    }, []);
+
+    // cavabdeh icraçı seçimi: təyin olunmuş şöbələrin əməkdaşları
+    const deptKey = (ticket?.department_links || []).map((l) => l.department).join(',');
+    useEffect(() => {
+        if (!ticket?.permissions?.can_set_assignee || !deptKey) {setAssigneeOptions([]); return;}
+        let alive = true;
+        Promise.all(deptKey.split(',').map((d) =>
+            service_api.get(`${NEXT_API_ENDPOINTS.TICKETS.USERS}?department=${d}`).then((r) => r.data).catch(() => [])))
+            .then((lists) => {
+                if (!alive) return;
+                const map = new Map();
+                lists.flat().forEach((u) => map.set(u.id, u));
+                setAssigneeOptions(Array.from(map.values()));
+            });
+        return () => {alive = false;};
+    }, [deptKey, ticket?.permissions?.can_set_assignee]);
+
+    async function act(fn, okMsg) {
+        setBusy(true);
+        try {
+            const res = await fn();
+            if (res?.data?.id === ticket?.id && res.data.permissions) setTicket(res.data);
+            else await load(true);
+            if (okMsg) enqueueSnackbar(okMsg, {variant: 'success'});
+            return true;
+        } catch (e) {
+            enqueueSnackbar(handleError(e), {variant: 'error'});
+            return false;
+        } finally {
+            setBusy(false);
+        }
+    }
+
+    const perms = ticket?.permissions;
+
+    const feed = useMemo(() => {
+        if (!ticket) return [];
+        const comments = (ticket.comments || []).map((c) => ({kind: 'comment', at: c.created_at, key: `c${c.id}`, data: c}));
+        const acts = (ticket.activities || []).filter((a) => a.action !== 'commented')
+            .map((a) => ({kind: 'activity', at: a.created_at, key: `a${a.id}`, data: a}));
+        let list = feedTab === 'comments' ? comments : feedTab === 'history' ? acts : [...comments, ...acts];
+        return list.sort((x, y) => new Date(x.at) - new Date(y.at));
+    }, [ticket, feedTab]);
+
+    function addFiles(e) {
+        const picked = Array.from(e.target.files || []);
+        e.target.value = '';
+        const err = validateFiles(picked);
+        if (err) {enqueueSnackbar(err, {variant: 'warning'}); return;}
+        setFiles((p) => [...p, ...picked].slice(0, 10));
+    }
+
+    async function sendComment() {
+        if (!body.trim()) return;
+        setBusy(true);
+        try {
+            const res = await service_api.post(NEXT_API_ENDPOINTS.TICKETS.COMMENTS(id), {body: body.trim(), is_internal: internal});
+            if (files.length) {
+                try {
+                    const fd = new FormData();
+                    files.forEach((f) => fd.append('files', f));
+                    fd.append('comment', res.data.id);
+                    await service_api.post(NEXT_API_ENDPOINTS.TICKETS.ATTACHMENTS(id), fd, {headers: {'Content-Type': 'multipart/form-data'}});
+                } catch (e) {
+                    enqueueSnackbar(`Şərh göndərildi, fayllar yüklənmədi: ${handleError(e)}`, {variant: 'warning'});
+                }
+            }
+            setBody(''); setFiles([]); setInternal(false);
+            await load(true);
+        } catch (e) {
+            enqueueSnackbar(handleError(e), {variant: 'error'});
+        } finally {
+            setBusy(false);
+        }
+    }
+
+    async function submitStatus() {
+        const ok = await act(() => service_api.post(NEXT_API_ENDPOINTS.TICKETS.STATUS(id),
+            {status: statusDlg.value, comment: statusComment.trim()}), `Status: ${statusDlg.label}`);
+        if (ok) {setStatusDlg(null); setStatusComment('');}
+    }
+
+    async function saveEdit() {
+        const ok = await act(() => service_api.patch(NEXT_API_ENDPOINTS.TICKETS.DETAIL(id),
+            {title: editForm.title.trim(), description: editForm.description.trim()}), 'Müraciət yeniləndi.');
+        if (ok) setEditDlg(false);
+    }
+
+    if (loading) {
+        return <Box sx={{display: 'flex', justifyContent: 'center', py: 12}}><CircularProgress/></Box>;
+    }
+    if (notFound || !ticket) {
+        return (
+            <Box sx={{maxWidth: 560, mx: 'auto', py: 12, textAlign: 'center'}}>
+                <Typography sx={{fontSize: 20, fontWeight: 600, mb: 1}}>Müraciət tapılmadı</Typography>
+                <Typography sx={{color: C.inkMuted, mb: 3}}>Müraciət mövcud deyil və ya ona baxmaq icazəniz yoxdur.</Typography>
+                <Button component={Link} href="/muracietler" variant="contained">Müraciətlərə qayıt</Button>
+            </Box>
+        );
+    }
+
+    const active = !['closed', 'canceled'].includes(ticket.status);
+    const primaryTransition = (perms.transitions || []).find((t) => ['resolved', 'closed'].includes(t.value));
+    const reopenTransition = (perms.transitions || []).find((t) => t.value === 'in_progress' && ['resolved', 'closed'].includes(ticket.status));
+
+    return (
+        <Box sx={{backgroundColor: GOV.pageBg, minHeight: '100vh', pb: 8}}>
+            <Box sx={{backgroundColor: C.surface, borderBottom: `1px solid ${C.line}`}}>
+                <Box sx={{maxWidth: 1440, mx: 'auto', px: {xs: 2, sm: 4}, py: 2.5}}>
+                    <Button size="small" startIcon={<ArrowBackIcon/>} component={Link} href="/muracietler" sx={{mb: 1.5, color: C.inkMuted}}>
+                        Bütün müraciətlər
+                    </Button>
+                    <Box sx={{display: 'flex', gap: 2, alignItems: 'flex-start', flexWrap: 'wrap'}}>
+                        <Box sx={{flex: 1, minWidth: 260}}>
+                            <Box sx={{display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap', mb: 0.75}}>
+                                <Typography sx={{fontSize: 13, fontWeight: 600, color: C.ink}}>{ticket.number}</Typography>
+                                <StatusChip status={ticket.status} label={ticket.status_display}/>
+                                <PriorityChip priority={ticket.priority} label={ticket.priority_display}/>
+                                <Chip size="small" variant="outlined" label={ticket.type_display} sx={{height: 24}}/>
+                                {ticket.category_title && (
+                                    <Chip size="small" variant="outlined" label={ticket.category_title} sx={{height: 24}}/>
+                                )}
+                                {ticket.reopen_count > 0 && <Chip size="small" label={`Yenidən açılıb ×${ticket.reopen_count}`} sx={{height: 24}}/>}
+                            </Box>
+                            <Box sx={{display: 'flex', gap: 1, alignItems: 'flex-start'}}>
+                                <Typography component="h1" sx={{fontSize: {xs: 20, sm: 24}, fontWeight: 650, color: C.ink, lineHeight: 1.3, wordBreak: 'break-word'}}>
+                                    {ticket.title}
+                                </Typography>
+                                {perms.can_edit && (
+                                    <Tooltip title="Mövzu və təsviri redaktə et">
+                                        <IconButton size="small" onClick={() => {setEditForm({title: ticket.title, description: ticket.description}); setEditDlg(true);}}>
+                                            <EditOutlinedIcon fontSize="small"/>
+                                        </IconButton>
+                                    </Tooltip>
+                                )}
+                            </Box>
+                            <Typography sx={{fontSize: 13, color: C.inkMuted, mt: 0.5}}>
+                                {ticket.requester_name}{ticket.requester_department ? ` · ${ticket.requester_department}` : ''} · {formatDateTime(ticket.created_at)}
+                            </Typography>
+                        </Box>
+                        <Box sx={{display: 'flex', gap: 1, flexWrap: 'wrap'}}>
+                            <Button
+                                variant="outlined" size="small" disabled={busy}
+                                startIcon={perms.is_watching ? <VisibilityOffOutlinedIcon/> : <VisibilityOutlinedIcon/>}
+                                onClick={() => act(() => service_api.post(perms.is_watching ? NEXT_API_ENDPOINTS.TICKETS.UNWATCH(id) : NEXT_API_ENDPOINTS.TICKETS.WATCH(id)),
+                                    perms.is_watching ? 'İzləmə dayandırıldı.' : 'Müraciəti izləyirsiniz.')}
+                            >
+                                {perms.is_watching ? 'İzləməyi burax' : 'İzlə'}
+                            </Button>
+                            {perms.can_take && (
+                                <Button variant="outlined" size="small" startIcon={<PlayArrowIcon/>} disabled={busy}
+                                        onClick={() => act(() => service_api.post(NEXT_API_ENDPOINTS.TICKETS.TAKE(id)), 'Müraciəti öz üzərinizə götürdünüz.')}>
+                                    Özümə götür
+                                </Button>
+                            )}
+                            {reopenTransition && (
+                                <Button variant="outlined" size="small" color="warning" disabled={busy}
+                                        onClick={() => setStatusDlg({value: 'in_progress', label: 'Yenidən açıldı'})}>
+                                    Yenidən aç
+                                </Button>
+                            )}
+                            {primaryTransition && (
+                                <Button variant="contained" size="small" color="success" disabled={busy}
+                                        onClick={() => setStatusDlg({value: primaryTransition.value, label: primaryTransition.label})}>
+                                    {primaryTransition.value === 'closed' ? 'Bağla' : 'Həll edildi'}
+                                </Button>
+                            )}
+                        </Box>
+                    </Box>
+                </Box>
+            </Box>
 
             <Box sx={{maxWidth: 1440, mx: 'auto', px: {xs: 2, sm: 4}, pt: 3, display: 'flex', gap: 3, flexWrap: {xs: 'wrap', lg: 'nowrap'}, alignItems: 'flex-start'}}>
                 {/* ----------- əsas sütun ----------- */}
@@ -255,7 +476,9 @@ function TimelineItem({entry}) {
                                 {assigneeOptions.map((u) => <MenuItem key={u.id} value={u.id}>{u.name}{u.department_title ? ` · ${u.department_title}` : ''}</MenuItem>)}
                             </TextField>
                         ) : (
-                            <Typography sx={{fontSize: 14}}>{ticket.assignee_name || 'Hələ təyin olunmayıb'}</Typography>
+                            <Box sx={{display: 'flex', alignItems: 'center', gap: 1}}>
+                                <Typography sx={{fontSize: 14}}>{ticket.assignee_name || 'Hələ təyin olunmayıb'}</Typography>
+                            </Box>
                         )}
                     </SideSection>
 
@@ -270,7 +493,7 @@ function TimelineItem({entry}) {
                                 <Box key={l.id} sx={{p: 1.25, mb: 1, borderRadius: '4px', border: `1px solid ${C.line}`}}>
                                     <Box sx={{display: 'flex', justifyContent: 'space-between', gap: 1, alignItems: 'center'}}>
                                         <Typography sx={{fontSize: 13.5, fontWeight: 600}}>{l.department_title}{l.is_primary ? ' (əsas)' : ''}</Typography>
-                                        <Typography sx={{fontSize: 12, color: m.fg}}>{m.label}</Typography>
+                                        <Chip size="small" label={m.label} sx={{height: 20, fontSize: 11, backgroundColor: m.bg, color: m.fg, fontWeight: 600}}/>
                                     </Box>
                                     <Typography sx={{fontSize: 12, color: C.inkFaint}}>
                                         {l.assignee_name ? `İcraçı: ${l.assignee_name}` : (l.manager_name ? `Rəhbər: ${l.manager_name}` : 'İcraçı yoxdur')}
@@ -306,9 +529,11 @@ function TimelineItem({entry}) {
                     </SideSection>
 
                     <SideSection title="Müraciətçi">
-                        <Box>
+                        <Box sx={{display: 'flex', alignItems: 'center', gap: 1}}>
+                            <Box>
                                 <Typography sx={{fontSize: 14}}>{ticket.requester_name}</Typography>
                                 <Typography sx={{fontSize: 12, color: C.inkFaint}}>{ticket.requester_department}</Typography>
+                            </Box>
                         </Box>
                     </SideSection>
 

@@ -165,8 +165,8 @@ export default function TicketsPage() {
                     <Typography noWrap sx={{fontSize: 11.5, color: C.inkFaint}}>{p.row.requester_department}</Typography>
                 </Box>
             )},
-        {field: 'assignee_name', headerName: 'İcraçı', width: 150, sortable: false,
-            valueGetter: (v, row) => row.assignee_name || '—'},
+        {field: 'assignee_name', headerName: 'İcraçılar', width: 200, sortable: false,
+            valueGetter: (v, row) => (row.assignees || []).map((x) => x.name).join(', ') || '—'},
         {field: 'due_at', headerName: 'SLA', width: 150, sortable: false,
             renderCell: (p) => <SlaBadge ticket={p.row}/>},
         {field: 'last_activity_at', headerName: 'Son fəaliyyət', width: 130, sortable: false,

@@ -23,6 +23,12 @@ export const DEPT_STATUS_META = {
     done: {label: 'Tamamlandı', fg: '#1F7A4D', bg: 'rgba(31,122,77,0.10)'},
 };
 
+export const ASSIGNEE_STATUS_META = {
+    assigned: {label: 'Təyin olunub', fg: C.inkMuted},
+    in_progress: {label: 'İcradadır', fg: '#8A5A2E'},
+    done: {label: 'Tamamlayıb', fg: '#1F7A4D'},
+};
+
 export const BOARD_COLUMNS = ['new', 'open', 'in_progress', 'waiting', 'resolved'];
 
 export const ACTIVITY_TEXT = {
@@ -35,6 +41,9 @@ export const ACTIVITY_TEXT = {
     assignee_changed: (d) => d.department
         ? `${d.department} şöbəsi üçün icraçı təyin etdi: ${d.assignee}`
         : (d.assignee ? `icraçı təyin etdi: ${d.assignee}` : 'icraçını götürdü'),
+    assignee_added: (d) => d.self ? 'müraciəti üzərinə götürdü' : `icraçı əlavə etdi: ${d.assignee}`,
+    assignee_removed: (d) => d.self ? 'müraciətdən çıxdı' : `icraçını çıxardı: ${d.assignee}`,
+    assignee_status: (d) => `${d.assignee} icra statusunu dəyişdi: ${ASSIGNEE_STATUS_META[d.to]?.label || d.to}`,
     department_added: (d) => `şöbə əlavə etdi: ${d.department}`,
     department_removed: (d) => `şöbəni çıxardı: ${d.department}`,
     department_status: (d) => `${d.department} şöbəsinin statusu: ${DEPT_STATUS_META[d.to]?.label || d.to}`,

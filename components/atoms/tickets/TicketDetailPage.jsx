@@ -37,7 +37,7 @@ import {GOV, C} from "@/components/theme/tokens";
 import TicketDepartmentsDialog from "./TicketDepartmentsDialog";
 import {PriorityChip, SlaBadge, StatusChip} from "./TicketBadges";
 import {
-    ACTIVITY_TEXT, DEPT_STATUS_META, PRIORITY_META, STATUS_META,
+    ACTIVITY_TEXT, ASSIGNEE_STATUS_META, DEPT_STATUS_META, PRIORITY_META, STATUS_META,
     formatDateTime, formatSize, timeAgo, validateFiles,
 } from "./ticketMeta";
 
@@ -127,6 +127,8 @@ export default function TicketDetailPage({id}) {
     const [statusDlg, setStatusDlg] = useState(null);       // {value, label}
     const [statusComment, setStatusComment] = useState('');
     const [deptDlg, setDeptDlg] = useState(false);
+    const [addDlg, setAddDlg] = useState(false);
+    const [addSel, setAddSel] = useState([]);
     const [editDlg, setEditDlg] = useState(false);
     const [editForm, setEditForm] = useState({title: '', description: ''});
     const [assigneeOptions, setAssigneeOptions] = useState([]);
@@ -463,23 +465,68 @@ export default function TicketDetailPage({id}) {
                     </SideSection>
 
                     <SideSection
-                        title="İcraçı"
-                        action={null}
-                    >
-                        {perms.can_set_assignee ? (
-                            <TextField select size="small" fullWidth value={ticket.assignee || ''} disabled={busy}
-                                       onChange={(e) => act(() => service_api.post(NEXT_API_ENDPOINTS.TICKETS.ASSIGNEE(id), {assignee: e.target.value || null}), 'İcraçı yeniləndi.')}>
-                                <MenuItem value="">— Təyin olunmayıb —</MenuItem>
-                                {ticket.assignee && !assigneeOptions.some((u) => u.id === ticket.assignee) && (
-                                    <MenuItem value={ticket.assignee}>{ticket.assignee_name}</MenuItem>
-                                )}
-                                {assigneeOptions.map((u) => <MenuItem key={u.id} value={u.id}>{u.name}{u.department_title ? ` · ${u.department_title}` : ''}</MenuItem>)}
-                            </TextField>
-                        ) : (
-                            <Box sx={{display: 'flex', alignItems: 'center', gap: 1}}>
-                                <Typography sx={{fontSize: 14}}>{ticket.assignee_name || 'Hələ təyin olunmayıb'}</Typography>
-                            </Box>
+                        title={`İcraçılar (${(ticket.assignees || []).length})`}
+                        action={perms.can_set_assignee && (
+                            <Button size="small" onClick={() => {setAddSel([]); setAddDlg(true);}} sx={{minWidth: 0, fontSize: 12}}>Əlavə et</Button>
                         )}
+                    >
+                        {(ticket.assignees || []).length === 0 && (
+                            <Typography sx={{fontSize: 13.5, color: C.inkMuted}}>
+                                {perms.can_take
+                                    ? 'Hələ heç kim götürməyib. Müraciəti özünüz götürə bilərsiniz.'
+                                    : 'Hələ icraçı yoxdur. Təyin olunmuş şöbənin əməkdaşları müraciəti özlərinə götürə bilər.'}
+                            </Typography>
+                        )}
+                        {(ticket.assignees || []).map((a) => {
+                            const mine = a.user === perms.user_id;
+                            const st = ASSIGNEE_STATUS_META[a.status] || ASSIGNEE_STATUS_META.assigned;
+                            const editable = perms.can_set_my_status;
+                            return (
+                                <Box key={a.id} sx={{p: 1.25, mb: 1, borderRadius: '4px', border: `1px solid ${C.line}`}}>
+                                    <Box sx={{display: 'flex', justifyContent: 'space-between', gap: 1}}>
+                                        <Box sx={{minWidth: 0}}>
+                                            <Typography sx={{fontSize: 13.5, fontWeight: 600}}>{a.name}{mine ? ' (siz)' : ''}</Typography>
+                                            {a.department_title && <Typography sx={{fontSize: 12, color: C.inkFaint}}>{a.department_title}</Typography>}
+                                        </Box>
+                                        <Typography sx={{fontSize: 12.5, color: st.fg, whiteSpace: 'nowrap'}}>{a.status_display}</Typography>
+                                    </Box>
+                                    {mine && editable && (
+                                        <Box sx={{display: 'flex', gap: 1, mt: 1, flexWrap: 'wrap'}}>
+                                            {a.status === 'assigned' && (
+                                                <Button size="small" variant="contained" disabled={busy}
+                                                        onClick={() => act(() => service_api.post(NEXT_API_ENDPOINTS.TICKETS.ASSIGNEE_STATUS(id), {status: 'in_progress'}), 'İcraya başladınız.')}>
+                                                    İşə başla
+                                                </Button>
+                                            )}
+                                            {a.status === 'in_progress' && (
+                                                <Button size="small" variant="contained" color="success" disabled={busy}
+                                                        onClick={() => act(() => service_api.post(NEXT_API_ENDPOINTS.TICKETS.ASSIGNEE_STATUS(id), {status: 'done'}), 'Hissənizi tamamladınız.')}>
+                                                    Tamamladım
+                                                </Button>
+                                            )}
+                                            {a.status === 'done' && (
+                                                <Button size="small" variant="outlined" disabled={busy}
+                                                        onClick={() => act(() => service_api.post(NEXT_API_ENDPOINTS.TICKETS.ASSIGNEE_STATUS(id), {status: 'in_progress'}), 'Yenidən icradasınız.')}>
+                                                    Yenidən işə al
+                                                </Button>
+                                            )}
+                                            <Button size="small" variant="outlined" color="inherit" disabled={busy}
+                                                    onClick={() => act(() => service_api.post(NEXT_API_ENDPOINTS.TICKETS.RELEASE(id), {}), 'Müraciətdən çıxdınız.')}>
+                                                Çıx
+                                            </Button>
+                                        </Box>
+                                    )}
+                                    {!mine && perms.can_set_assignee && ticket.status !== 'resolved' && (
+                                        <Box sx={{mt: 1}}>
+                                            <Button size="small" variant="outlined" color="inherit" disabled={busy}
+                                                    onClick={() => act(() => service_api.post(NEXT_API_ENDPOINTS.TICKETS.RELEASE(id), {user: a.user}), 'İcraçı çıxarıldı.')}>
+                                                Çıxar
+                                            </Button>
+                                        </Box>
+                                    )}
+                                </Box>
+                            );
+                        })}
                     </SideSection>
 
                     <SideSection
@@ -578,6 +625,32 @@ export default function TicketDetailPage({id}) {
                     <Button onClick={() => setEditDlg(false)} disabled={busy}>İmtina</Button>
                     <Button variant="contained" onClick={saveEdit}
                             disabled={busy || editForm.title.trim().length < 5 || editForm.description.trim().length < 10}>Yadda saxla</Button>
+                </DialogActions>
+            </Dialog>
+
+            <Dialog open={addDlg} onClose={() => !busy && setAddDlg(false)} maxWidth="xs" fullWidth>
+                <DialogTitle sx={{fontWeight: 600}}>İcraçı əlavə et</DialogTitle>
+                <DialogContent>
+                    <Typography sx={{fontSize: 13, color: C.inkMuted, mb: 2}}>
+                        Təyin olunmuş şöbələrin əməkdaşlarından bir və ya bir neçəsini seçin. Seçilənlər bildiriş alacaq.
+                    </Typography>
+                    <TextField select fullWidth size="small" label="Əməkdaşlar" value={addSel}
+                               SelectProps={{multiple: true, renderValue: (v) => assigneeOptions.filter((u) => v.includes(u.id)).map((u) => u.name).join(', ')}}
+                               onChange={(e) => setAddSel(e.target.value)}>
+                        {assigneeOptions.filter((u) => !(ticket.assignees || []).some((a) => a.user === u.id)).map((u) => (
+                            <MenuItem key={u.id} value={u.id}>{u.name}{u.department_title ? ` · ${u.department_title}` : ''}</MenuItem>
+                        ))}
+                    </TextField>
+                </DialogContent>
+                <DialogActions sx={{px: 3, pb: 2}}>
+                    <Button onClick={() => setAddDlg(false)} disabled={busy}>Ləğv et</Button>
+                    <Button variant="contained" disabled={busy || !addSel.length}
+                            onClick={async () => {
+                                const ok = await act(() => service_api.post(NEXT_API_ENDPOINTS.TICKETS.ASSIGNEES(id), {users: addSel}), 'İcraçılar əlavə edildi.');
+                                if (ok) setAddDlg(false);
+                            }}>
+                        Əlavə et
+                    </Button>
                 </DialogActions>
             </Dialog>
 

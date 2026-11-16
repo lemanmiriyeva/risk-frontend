@@ -234,7 +234,9 @@ export default function TicketsPage() {
                     <TextField select size="small" value={department} onChange={(e) => setDepartment(e.target.value)} sx={{minWidth: 170, maxWidth: 240}}
                                SelectProps={{displayEmpty: true}}>
                         <MenuItem value="">Bütün şöbələr</MenuItem>
-                        {(meta?.departments || []).map((d) => <MenuItem key={d.id} value={d.id}>{d.shortname || d.title}</MenuItem>)}
+                        {(meta?.departments || [])
+                            .filter((d) => meta?.is_admin || (meta?.my_departments || []).includes(d.id))
+                            .map((d) => <MenuItem key={d.id} value={d.id}>{d.shortname || d.title}</MenuItem>)}
                     </TextField>
                     <Button variant="outlined" onClick={resetFilters}>Sıfırla</Button>
                 </Box>

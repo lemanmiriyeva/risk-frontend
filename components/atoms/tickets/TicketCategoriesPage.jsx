@@ -105,6 +105,19 @@ export default function TicketCategoriesPage() {
 
     const set = (k) => (e) => setEditing((c) => ({...c, [k]: e.target.value}));
 
+    if (loading && !meta) {
+        return <Box sx={{display: 'flex', justifyContent: 'center', py: 12}}><CircularProgress/></Box>;
+    }
+    if (meta && !meta.is_admin) {
+        return (
+            <Box sx={{maxWidth: 560, mx: 'auto', py: 12, textAlign: 'center'}}>
+                <Typography sx={{fontSize: 20, fontWeight: 600, mb: 1}}>Bu səhifəyə icazəniz yoxdur</Typography>
+                <Typography sx={{color: C.inkMuted, mb: 3}}>Kateqoriyaları yalnız Müraciətlər modulunun adminləri idarə edə bilər.</Typography>
+                <Button component={Link} href="/muracietler" variant="contained">Müraciətlərə qayıt</Button>
+            </Box>
+        );
+    }
+
     return (
         <Box sx={{backgroundColor: GOV.pageBg, minHeight: '100vh'}}>
             <ModuleHero

@@ -17,6 +17,7 @@ import Popper from '@mui/material/Popper';
 import Fade from '@mui/material/Fade';
 import Collapse from '@mui/material/Collapse';
 import Skeleton from '@mui/material/Skeleton';
+import Tooltip from '@mui/material/Tooltip';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import MenuIcon from '@mui/icons-material/Menu';
 import CloseIcon from '@mui/icons-material/Close';
@@ -24,7 +25,9 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
 import NotificationsNoneOutlinedIcon from '@mui/icons-material/NotificationsNoneOutlined';
 import LogoutIcon from '@mui/icons-material/Logout';
-import NorthEastIcon from '@mui/icons-material/NorthEast';
+import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
+import KeyboardDoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrowLeft';
+import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArrowRight';
 import {useAppSelector} from "@/lib/hooks";
 import {APP_ROUTES} from "@/components/constants";
 import NotificationBell from "@/components/atoms/NotificationBell";
@@ -35,7 +38,12 @@ import {moduleAccent, moduleIcon, moduleKeyFromPath, useUserModules} from "./mod
 import AnimatedPattern from "./AnimatedPattern";
 import logo from '@/app/logo.png';
 
-const NAV_HEIGHT = 52;
+const SIDEBAR_W = 268;
+const SIDEBAR_W_COLLAPSED = 76;
+const SIDEBAR_STORAGE_KEY = 'mis.sidebar.collapsed';
+const MOBILE_QUERY = '(max-width:1099px)';
+/* Başlığın hündürlüyü (sürüşdürəndə kiçilir) - sidebar onun altından başlayır. */
+const headerHeight = (scrolled) => (scrolled ? 60 : 76) + 3;
 
 
 function fullName(user) {
@@ -116,81 +124,178 @@ function UserMenu({compact}) {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Üfüqi menyu (modullar + açılan alt bölmələr)                       */
+/*  Sol sidebar (modullar + açılan alt bölmələr, yığıla bilir)         */
 /* ------------------------------------------------------------------ */
 
-function NavLink({href, label, active, hasMenu, open, onEnter, onLeave, anchorRef}) {
+const isPathActive = (pathname, href) => pathname === href || pathname.startsWith(href + '/');
+
+const scrollbarSx = {
+    '&::-webkit-scrollbar': {width: 6},
+    '&::-webkit-scrollbar-thumb': {backgroundColor: C.lineStrong, borderRadius: 3},
+};
+
+/** Açıq sidebar: ikon + ad, alt bölmələr akkordeon kimi açılır. */
+function ExpandedItem({href, label, Icon, accent, active, subs = [], pathname, open, onToggle, baseHref}) {
     return (
-        <Box ref={anchorRef} onMouseEnter={onEnter} onMouseLeave={onLeave} sx={{position: 'relative', height: '100%', display: 'flex'}}>
-            <Box component={Link} href={href} sx={{
-                position: 'relative', display: 'flex', alignItems: 'center', gap: 0.5,
-                px: 1.75, height: '100%', textDecoration: 'none', whiteSpace: 'nowrap',
-                fontSize: 14, fontWeight: active ? 650 : 550,
-                color: active ? BRAND.navy900 : C.inkMuted,
-                transition: 'color .2s ease',
-                '&:hover': {color: BRAND.navy900},
-                '&::after': {
-                    content: '""', position: 'absolute', left: 14, right: 14, bottom: 0, height: 3, borderRadius: '3px 3px 0 0',
-                    backgroundColor: BRAND.crest,
-                    transform: active || open ? 'scaleX(1)' : 'scaleX(0)', transformOrigin: 'left',
-                    transition: 'transform .3s cubic-bezier(.2,.7,.2,1)',
-                },
-                '&:hover::after': {transform: 'scaleX(1)'},
+        <Box sx={{mb: 0.25}}>
+            <Box sx={{
+                position: 'relative', display: 'flex', alignItems: 'center', borderRadius: '10px',
+                backgroundColor: active ? `${accent}14` : 'transparent', transition: 'background-color .15s ease',
+                '&:hover': {backgroundColor: active ? `${accent}1F` : C.surfaceDeep},
             }}>
-                {label}
-                {hasMenu && <KeyboardArrowDownIcon sx={{fontSize: 17, opacity: 0.7, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform .2s ease'}}/>}
+                {active && <Box sx={{position: 'absolute', left: 0, top: 9, bottom: 9, width: 3, borderRadius: 3, backgroundColor: accent}}/>}
+                <Box component={Link} href={href} aria-current={active ? 'page' : undefined} sx={{
+                    flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 1.5, pl: 1.75, py: 1.05,
+                    textDecoration: 'none', fontSize: 14, fontWeight: active ? 700 : 550, color: active ? accent : C.ink,
+                }}>
+                    <Icon sx={{fontSize: 21, flexShrink: 0, color: active ? accent : C.inkMuted}}/>
+                    <Box component="span" sx={{overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>{label}</Box>
+                </Box>
+                {subs.length > 0 && (
+                    <IconButton size="small" onClick={onToggle} aria-expanded={open} aria-label={`${label} alt bölmələri`} sx={{mr: 0.5, color: C.inkMuted}}>
+                        <KeyboardArrowDownIcon fontSize="small" sx={{transform: open ? 'rotate(180deg)' : 'none', transition: 'transform .2s ease'}}/>
+                    </IconButton>
+                )}
             </Box>
+            {subs.length > 0 && (
+                <Collapse in={open} timeout={200} unmountOnExit>
+                    <Box sx={{ml: 3.25, pl: 1, my: 0.5, borderLeft: `2px solid ${C.line}`}}>
+                        {subs.map((s) => {
+                            const subHref = `${baseHref}/${s.url_endpoint}`;
+                            const subActive = isPathActive(pathname, subHref);
+                            return (
+                                <Box key={s.id} component={Link} href={subHref} aria-current={subActive ? 'page' : undefined} sx={{
+                                    display: 'block', px: 1.5, py: 0.8, my: '1px', borderRadius: '8px', textDecoration: 'none',
+                                    fontSize: 13.5, fontWeight: subActive ? 650 : 500, color: subActive ? accent : C.inkMuted,
+                                    backgroundColor: subActive ? `${accent}12` : 'transparent',
+                                    '&:hover': {backgroundColor: `${accent}0F`, color: accent},
+                                }}>
+                                    {s.title}
+                                </Box>
+                            );
+                        })}
+                    </Box>
+                </Collapse>
+            )}
         </Box>
     );
 }
 
-function ModuleNavItem({module, active}) {
+/** Yığılmış sidebar: yalnız ikon; alt bölməsi olan modulun üzərinə gələndə sağda açılan siyahı. */
+function CollapsedItem({href, label, Icon, accent, active, subs = [], pathname, baseHref}) {
     const [open, setOpen] = useState(false);
     const anchorRef = useRef(null);
     const timer = useRef(null);
-    const subs = module.sub_modules || [];
-    const accent = moduleAccent(module.url_endpoint);
-    const Icon = moduleIcon(module.url_endpoint);
-
-    const enter = () => { clearTimeout(timer.current); if (subs.length) setOpen(true); };
+    const enter = () => { clearTimeout(timer.current); setOpen(true); };
     const leave = () => { timer.current = setTimeout(() => setOpen(false), 120); };
+    useEffect(() => () => clearTimeout(timer.current), []);
 
+    const iconLink = (
+        <Box component={Link} href={href} aria-label={label} aria-current={active ? 'page' : undefined} sx={{
+            position: 'relative', width: 48, height: 44, mx: 'auto', borderRadius: '10px',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none',
+            color: active ? accent : C.inkMuted, backgroundColor: active ? `${accent}14` : 'transparent',
+            transition: 'background-color .15s ease, color .15s ease',
+            '&:hover': {backgroundColor: active ? `${accent}1F` : C.surfaceDeep, color: accent},
+        }}>
+            {active && <Box sx={{position: 'absolute', left: -8, top: 9, bottom: 9, width: 3, borderRadius: 3, backgroundColor: accent}}/>}
+            <Icon sx={{fontSize: 23}}/>
+        </Box>
+    );
+
+    if (subs.length === 0) {
+        return <Box sx={{mb: 0.5}}><Tooltip title={label} placement="right" arrow>{iconLink}</Tooltip></Box>;
+    }
     return (
-        <>
-            <NavLink href={`/${module.url_endpoint}`} label={module.title} active={active} hasMenu={subs.length > 0}
-                     open={open} onEnter={enter} onLeave={leave} anchorRef={anchorRef}/>
-            {subs.length > 0 && (
-                <Popper open={open} anchorEl={anchorRef.current} placement="bottom-start" transition sx={{zIndex: 1300}}>
-                    {({TransitionProps}) => (
-                        <Fade {...TransitionProps} timeout={180}>
-                            <Box onMouseEnter={enter} onMouseLeave={leave} sx={{
-                                mt: '1px', minWidth: 300, p: 1, backgroundColor: '#fff', borderRadius: '0 0 14px 14px',
-                                border: `1px solid ${C.line}`, borderTop: `3px solid ${accent}`,
-                                boxShadow: '0 24px 50px rgba(6,18,38,0.16)',
+        <Box ref={anchorRef} onMouseEnter={enter} onMouseLeave={leave} sx={{mb: 0.5}}>
+            {iconLink}
+            <Popper open={open} anchorEl={anchorRef.current} placement="right-start" transition sx={{zIndex: 1300}}>
+                {({TransitionProps}) => (
+                    <Fade {...TransitionProps} timeout={160}>
+                        <Box onMouseEnter={enter} onMouseLeave={leave} sx={{
+                            ml: '10px', minWidth: 260, p: 1, backgroundColor: '#fff', borderRadius: '12px',
+                            border: `1px solid ${C.line}`, borderLeft: `3px solid ${accent}`, boxShadow: '0 24px 50px rgba(6,18,38,0.16)',
+                        }}>
+                            <Box component={Link} href={href} onClick={() => setOpen(false)} sx={{
+                                display: 'flex', alignItems: 'center', gap: 1.25, px: 1.5, pt: 1, pb: 1.25, textDecoration: 'none',
                             }}>
-                                <Box sx={{display: 'flex', alignItems: 'center', gap: 1.25, px: 1.5, pt: 1, pb: 1.25}}>
-                                    <Icon sx={{fontSize: 20, color: accent}}/>
-                                    <Typography sx={{fontFamily: SERIF_STACK, fontSize: 15, fontWeight: 600, color: C.ink}}>{module.title}</Typography>
-                                </Box>
-                                {subs.map((s) => (
-                                    <Box key={s.id} component={Link} href={`/${module.url_endpoint}/${s.url_endpoint}`}
-                                         onClick={() => setOpen(false)} sx={{
-                                        display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2,
-                                        px: 1.5, py: 1.1, borderRadius: '10px', textDecoration: 'none',
-                                        color: C.ink, fontSize: 14, fontWeight: 550,
-                                        transition: 'background-color .15s ease, padding-left .2s ease',
-                                        '&:hover': {backgroundColor: `${accent}0F`, color: accent, pl: 2},
+                                <Icon sx={{fontSize: 20, color: accent}}/>
+                                <Typography sx={{fontFamily: SERIF_STACK, fontSize: 15, fontWeight: 600, color: C.ink}}>{label}</Typography>
+                            </Box>
+                            {subs.map((s) => {
+                                const subActive = isPathActive(pathname, `${baseHref}/${s.url_endpoint}`);
+                                return (
+                                    <Box key={s.id} component={Link} href={`${baseHref}/${s.url_endpoint}`} onClick={() => setOpen(false)} sx={{
+                                        display: 'block', px: 1.5, py: 1, borderRadius: '8px', textDecoration: 'none',
+                                        fontSize: 14, fontWeight: subActive ? 650 : 550, color: subActive ? accent : C.ink,
+                                        backgroundColor: subActive ? `${accent}12` : 'transparent',
+                                        '&:hover': {backgroundColor: `${accent}0F`, color: accent},
                                     }}>
                                         {s.title}
-                                        <NorthEastIcon sx={{fontSize: 15, opacity: 0.55}}/>
                                     </Box>
-                                ))}
-                            </Box>
-                        </Fade>
-                    )}
-                </Popper>
-            )}
-        </>
+                                );
+                            })}
+                        </Box>
+                    </Fade>
+                )}
+            </Popper>
+        </Box>
+    );
+}
+
+function Sidebar({modules, loading, pathname, collapsed, onToggleCollapsed, top}) {
+    const currentKey = moduleKeyFromPath(pathname);
+    const [openKey, setOpenKey] = useState(currentKey);
+    // Başqa modula keçəndə həmin modul avtomatik açılır
+    useEffect(() => { setOpenKey(currentKey); }, [currentKey]);
+
+    return (
+        <Box component="nav" aria-label="Əsas menyu" sx={{
+            position: 'sticky', top, alignSelf: 'flex-start', flexShrink: 0, zIndex: 1100,
+            width: collapsed ? SIDEBAR_W_COLLAPSED : SIDEBAR_W, height: `calc(100vh - ${top}px)`,
+            display: 'flex', flexDirection: 'column', backgroundColor: '#fff', borderRight: `1px solid ${C.line}`,
+            boxShadow: '1px 0 0 rgba(6,18,38,0.02), 6px 0 24px rgba(6,18,38,0.04)',
+            transition: 'width .25s cubic-bezier(.2,.7,.2,1), top .3s ease, height .3s ease',
+            [reducedMotion]: {transition: 'none'},
+        }}>
+            <Box sx={{flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'hidden', p: collapsed ? 1 : 1.5, pt: 2, ...scrollbarSx}}>
+                {!collapsed && (
+                    <Typography sx={{px: 1.75, pb: 1, fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: C.inkFaint}}>
+                        Modullar
+                    </Typography>
+                )}
+                {collapsed
+                    ? <CollapsedItem href="/" label="Ana səhifə" Icon={HomeOutlinedIcon} accent={BRAND.navy600} active={pathname === '/'} pathname={pathname} baseHref=""/>
+                    : <ExpandedItem href="/" label="Ana səhifə" Icon={HomeOutlinedIcon} accent={BRAND.navy600} active={pathname === '/'} pathname={pathname} baseHref=""/>}
+
+                {loading && [0, 1, 2, 3, 4].map((i) => (
+                    <Skeleton key={i} variant="rounded" height={collapsed ? 44 : 40} width={collapsed ? 48 : undefined}
+                              sx={{my: 0.75, mx: collapsed ? 'auto' : 0, borderRadius: '10px'}}/>
+                ))}
+
+                {modules.map((m) => {
+                    const subs = m.sub_modules || [];
+                    const baseHref = `/${m.url_endpoint}`;
+                    const common = {
+                        href: baseHref, label: m.title, Icon: moduleIcon(m.url_endpoint), accent: moduleAccent(m.url_endpoint),
+                        active: currentKey === m.url_endpoint, subs, pathname, baseHref,
+                    };
+                    return collapsed
+                        ? <CollapsedItem key={m.id} {...common}/>
+                        : <ExpandedItem key={m.id} {...common} open={openKey === m.url_endpoint}
+                                        onToggle={() => setOpenKey(openKey === m.url_endpoint ? null : m.url_endpoint)}/>;
+                })}
+            </Box>
+
+            <Box sx={{borderTop: `1px solid ${C.line}`, p: 1, display: 'flex', justifyContent: collapsed ? 'center' : 'flex-end'}}>
+                <Tooltip title={collapsed ? 'Menyunu aç' : 'Menyunu yığ'} placement="right" arrow>
+                    <IconButton onClick={onToggleCollapsed} aria-label={collapsed ? 'Menyunu aç' : 'Menyunu yığ'} aria-pressed={collapsed}
+                                sx={{color: C.inkMuted, '&:hover': {color: BRAND.navy900}}}>
+                        {collapsed ? <KeyboardDoubleArrowRightIcon/> : <KeyboardDoubleArrowLeftIcon/>}
+                    </IconButton>
+                </Tooltip>
+            </Box>
+        </Box>
     );
 }
 
@@ -255,23 +360,15 @@ function MobileMenu({open, onClose, modules, currentKey}) {
 /*  Başlıq                                                             */
 /* ------------------------------------------------------------------ */
 
-function SiteHeader() {
+function SiteHeader({scrolled, isMobile}) {
     const pathname = usePathname() || '/';
-    const {modules, loading} = useUserModules();
+    const {modules} = useUserModules();
     const currentKey = moduleKeyFromPath(pathname);
-    const isMobile = useMediaQuery('(max-width:1099px)', {noSsr: true});
     const [mobileOpen, setMobileOpen] = useState(false);
-    const [scrolled, setScrolled] = useState(false);
     const [today, setToday] = useState('');
 
     useEffect(() => { setToday(formatNumericDate(new Date())); }, []);
     useEffect(() => { setMobileOpen(false); }, [pathname]);
-    useEffect(() => {
-        const onScroll = () => setScrolled(window.scrollY > 24);
-        onScroll();
-        window.addEventListener('scroll', onScroll, {passive: true});
-        return () => window.removeEventListener('scroll', onScroll);
-    }, []);
 
     return (
         <Box component="header" sx={{position: 'sticky', top: 0, zIndex: 1200}}>
@@ -284,7 +381,7 @@ function SiteHeader() {
                 <Box sx={{position: 'relative',
                     display: 'flex', alignItems: 'center', gap: 2,
                     height: scrolled ? 60 : 76, transition: 'height .3s ease',
-                    px: {xs: 2, sm: 3, md: 5}, maxWidth: 1480, mx: 'auto',
+                    px: {xs: 2, sm: 3, md: 5},
                 }}>
                     <Box component={Link} href="/" sx={{display: 'flex', alignItems: 'center', gap: 2, textDecoration: 'none', minWidth: 0}}>
                         <Box sx={{position: 'relative', height: scrolled ? 36 : 44, width: scrolled ? 197 : 240, transition: 'all .3s ease', flexShrink: 0}}>
@@ -312,26 +409,6 @@ function SiteHeader() {
                 </Box>
                 <Box sx={{height: 3, background: TRICOLOR}}/>
             </Box>
-
-            {/* Naviqasiya zolağı (ana səhifədə modullar kart kimi göstərildiyi üçün gizlədilir) */}
-            {!isMobile && pathname !== '/' && (
-                <Box sx={{
-                    backgroundColor: 'rgba(255,255,255,0.94)', backdropFilter: 'saturate(180%) blur(10px)',
-                    borderBottom: `1px solid ${C.line}`,
-                    boxShadow: scrolled ? '0 10px 30px rgba(6,18,38,0.08)' : 'none', transition: 'box-shadow .3s ease',
-                }}>
-                    <Box sx={{display: 'flex', alignItems: 'stretch', height: NAV_HEIGHT, px: {sm: 1.5, md: 3.5}, maxWidth: 1480, mx: 'auto',
-                        overflowX: 'auto', '&::-webkit-scrollbar': {display: 'none'}}}>
-                        <NavLink href="/" label="Ana səhifə" active={pathname === '/'}/>
-                        {loading && [0, 1, 2, 3, 4].map((i) => (
-                            <Skeleton key={i} width={96} sx={{mx: 1.5, alignSelf: 'center'}}/>
-                        ))}
-                        {modules.map((m) => (
-                            <ModuleNavItem key={m.id} module={m} active={currentKey === m.url_endpoint}/>
-                        ))}
-                    </Box>
-                </Box>
-            )}
 
             <MobileMenu open={mobileOpen} onClose={() => setMobileOpen(false)} modules={modules} currentKey={currentKey}/>
         </Box>
@@ -366,21 +443,54 @@ function SiteFooter() {
 /* ------------------------------------------------------------------ */
 
 export default function AppShell({children}) {
-    const pathname = usePathname();
+    const pathname = usePathname() || '/';
+    const {modules, loading} = useUserModules();
+    const isMobile = useMediaQuery(MOBILE_QUERY, {noSsr: true});
+    const [scrolled, setScrolled] = useState(false);
+    const [collapsed, setCollapsed] = useState(false);
+
+    useEffect(() => {
+        const onScroll = () => setScrolled(window.scrollY > 24);
+        onScroll();
+        window.addEventListener('scroll', onScroll, {passive: true});
+        return () => window.removeEventListener('scroll', onScroll);
+    }, []);
+
+    // İstifadəçinin seçimi (yığılıb/açıq) yadda saxlanılır
+    useEffect(() => {
+        try { setCollapsed(window.localStorage.getItem(SIDEBAR_STORAGE_KEY) === '1'); } catch { /* saxlama əlçatan deyil */ }
+    }, []);
+    const toggleCollapsed = () => {
+        setCollapsed((prev) => {
+            const next = !prev;
+            try { window.localStorage.setItem(SIDEBAR_STORAGE_KEY, next ? '1' : '0'); } catch { /* saxlama əlçatan deyil */ }
+            return next;
+        });
+    };
+
+    // Ana səhifədə modullar kart kimi göstərildiyi üçün sidebar yalnız digər səhifələrdədir
+    const showSidebar = !isMobile && pathname !== '/';
+
     return (
         <ThemeProvider theme={appTheme}>
             <Box sx={{
                 minHeight: '100vh', display: 'flex', flexDirection: 'column',
                 backgroundColor: '#F3F6FA', fontFamily: FONT_STACK,
             }}>
-                <SiteHeader/>
-                {/* Səhifə dəyişəndə yumşaq görünmə */}
-                <Box component="main" key={pathname} sx={{
-                    flex: 1, minWidth: 0,
-                    animation: `${fadeIn} .45s ease both`,
-                    [reducedMotion]: {animation: 'none'},
-                }}>
-                    {children}
+                <SiteHeader scrolled={scrolled} isMobile={isMobile}/>
+                <Box sx={{display: 'flex', flex: 1, minWidth: 0}}>
+                    {showSidebar && (
+                        <Sidebar modules={modules} loading={loading} pathname={pathname} collapsed={collapsed}
+                                 onToggleCollapsed={toggleCollapsed} top={headerHeight(scrolled)}/>
+                    )}
+                    {/* Səhifə dəyişəndə yumşaq görünmə */}
+                    <Box component="main" key={pathname} sx={{
+                        flex: 1, minWidth: 0,
+                        animation: `${fadeIn} .45s ease both`,
+                        [reducedMotion]: {animation: 'none'},
+                    }}>
+                        {children}
+                    </Box>
                 </Box>
                 <SiteFooter/>
             </Box>

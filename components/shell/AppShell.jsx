@@ -313,8 +313,8 @@ function SiteHeader() {
                 <Box sx={{height: 3, background: TRICOLOR}}/>
             </Box>
 
-            {/* Naviqasiya zolağı */}
-            {!isMobile && (
+            {/* Naviqasiya zolağı (ana səhifədə modullar kart kimi göstərildiyi üçün gizlədilir) */}
+            {!isMobile && pathname !== '/' && (
                 <Box sx={{
                     backgroundColor: 'rgba(255,255,255,0.94)', backdropFilter: 'saturate(180%) blur(10px)',
                     borderBottom: `1px solid ${C.line}`,

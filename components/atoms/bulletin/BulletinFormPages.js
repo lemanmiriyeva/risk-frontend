@@ -139,13 +139,14 @@ export function NewsFormPage({id}) {
     const organizations = useOrganizations(isRoot);
     const {item, loading} = useExisting(isEdit ? NEXT_API_ENDPOINTS.BULLETIN.NEWS_DETAIL(id) : null, isEdit);
 
-    const [form, setForm] = useState({title: '', summary: '', body: '', organization: ''});
+    const [form, setForm] = useState({post_type: 'news', title: '', summary: '', body: '', organization: ''});
     const [image, setImage] = useState(null);
     const [saving, setSaving] = useState(false);
 
     useEffect(() => {
         if (!item) return;
         setForm({
+            post_type: item.post_type || 'news',
             title: item.title || '',
             summary: item.summary || '',
             body: item.body || '',
@@ -185,6 +186,7 @@ export function NewsFormPage({id}) {
         setSaving(true);
         try {
             const payload = new FormData();
+            payload.append('post_type', form.post_type || 'news');
             payload.append('title', form.title.trim());
             payload.append('summary', form.summary || '');
             payload.append('body', form.body || '');
@@ -261,6 +263,14 @@ export function NewsFormPage({id}) {
                     </Box>
                 )}
             >
+                <TextField select label="Növ" size="small" fullWidth sx={fieldSx}
+                           helperText="Ana səhifədəki «Elanlar» lentində başlığın yanında teq kimi görünür."
+                           value={form.post_type} onChange={(e) => set('post_type', e.target.value)}>
+                    <MenuItem value="news">Xəbər</MenuItem>
+                    <MenuItem value="announcement">Elan</MenuItem>
+                    <MenuItem value="event">Tədbir</MenuItem>
+                    <MenuItem value="other">Digər</MenuItem>
+                </TextField>
                 <TextField label="Başlıq" required size="small" fullWidth sx={fieldSx}
                            value={form.title} onChange={(e) => set('title', e.target.value)}/>
                 <TextField label="Qısa xülasə" size="small" fullWidth multiline minRows={2} sx={fieldSx}

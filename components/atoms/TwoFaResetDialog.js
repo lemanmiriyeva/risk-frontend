@@ -20,11 +20,12 @@ function TwoFAResetDialog({open, handleClose, handleSubmit, loading}) {
                 <DialogContentText>
                     Əgər autentifikasiya (Google Authenticator və s.) tətbiqini silmisiniz və ya telefonunuzu
                     dəyişmisiniz/itirmisiniz, iki mərhələli autentifikasiyanızı (2FA) sıfırlaya bilərik.
-                    Təsdiqlədikdən sonra hesabınızın e-poçt ünvanına bildiriş göndəriləcək və növbəti
-                    daxilolma zamanı sistem sizə yenidən skan etmək üçün yeni QR kod göstərəcək.
+                    Təsdiqlədikdən sonra hesabınızın e-poçt ünvanına QR kod göndəriləcək. QR kodu
+                    telefonunuzun kamerası ilə oxutduqda 2FA sıfırlanacaq və giriş səhifəsi açılacaq,
+                    daxil olduqda isə yeni QR kod skan etməyiniz üçün göstəriləcək.
                 </DialogContentText>
                 <DialogContentText sx={{fontSize: 13, color: 'text.secondary'}}>
-                    Bu sorğunu siz göndərməmisinizsə, heç bir dəyişiklik edilməyəcək.
+                    QR kod 15 dəqiqə ərzində və yalnız bir dəfə işləyir. Bu sorğunu siz göndərməmisinizsə, QR kodu oxutmayın.
                 </DialogContentText>
             </DialogContent>
             <DialogActions sx={{pb: 3, px: 3, display: 'flex', justifyContent: 'end', alignItems: 'center', gap: '10px'}}>

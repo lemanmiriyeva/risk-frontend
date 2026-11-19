@@ -13,6 +13,7 @@ export const DJANGO_API_ENDPOINTS = {
         TWO_FA_SETUP: API_URL + "/api/authentication/2fa/setup/",
         TWO_FA_VERIFY: API_URL + "/api/authentication/2fa/verify/",
         TWO_FA_REQUEST_RESET: API_URL + "/api/authentication/2fa/request-reset/",
+        TWO_FA_RESET_CONFIRM: API_URL + "/api/authentication/2fa/reset-confirm/",
         ROLES: API_URL + "/api/authentication/roles/",
     },
     RISK: {
@@ -93,6 +94,11 @@ export const DJANGO_API_ENDPOINTS = {
         BASE: API_URL + "/api/tickets/",
     },
 
+    // Təqvim və ana səhifə lenti - bütün sorğular app/api/agenda/[[...path]] proxy-si ilə
+    AGENDA: {
+        BASE: API_URL + "/api/agenda/",
+    },
+
 }
 
 export const NEXT_API_ENDPOINTS = {
@@ -107,6 +113,7 @@ export const NEXT_API_ENDPOINTS = {
         TWO_FA_SETUP: "auth/2fa-setup/",
         TWO_FA_VERIFY: "auth/2fa-verify/",
         TWO_FA_REQUEST_RESET: "auth/2fa-request-reset/",
+        TWO_FA_RESET_CONFIRM: "auth/2fa-reset-confirm/",
         ROLES: 'auth/roles/',
     },
     RISK: {
@@ -198,6 +205,13 @@ export const NEXT_API_ENDPOINTS = {
         STATS_FEEDBACK: "trainings/statistics/feedback/",
         STATS_FEEDBACK_DETAIL: (id) => `trainings/statistics/feedback/${id}/`,
         STATS_EXPORT: "trainings/statistics/export/",
+    },
+
+    AGENDA: {
+        CALENDAR: "agenda/calendar/",
+        FEED: "agenda/feed/",
+        ENTRIES: "agenda/entries/",
+        ENTRY_DETAIL: (id) => `agenda/entries/${id}/`,
     },
 
     TICKETS: {

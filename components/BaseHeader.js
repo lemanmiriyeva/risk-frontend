@@ -57,7 +57,7 @@ export default function BaseHeader({env}) {
 
 
 
-    if (!pathname.includes(APP_ROUTES.SIGNIN) && !pathname.includes(APP_ROUTES.PASSWORD_RESET) && !pathname.includes(APP_ROUTES.TWO_FA_VERIFY) && !pathname.includes(APP_ROUTES.TWO_FA_SETUP)) return (<>
+    if (!pathname.includes(APP_ROUTES.SIGNIN) && !pathname.includes(APP_ROUTES.PASSWORD_RESET) && !pathname.includes(APP_ROUTES.TWO_FA_VERIFY) && !pathname.includes(APP_ROUTES.TWO_FA_SETUP) && !pathname.includes(APP_ROUTES.TWO_FA_RESET)) return (<>
 
         <AppBar position="static" sx={{
             p: {xs: '8px 12px', sm: '10px 25px'}, background: "#020624"
@@ -185,4 +185,4 @@ export default function BaseHeader({env}) {
         </AppBar>
 
     </>);
-}
+}

@@ -34,6 +34,7 @@ import AuthLayout, {
 
 export default function Page() {
     const searchParams = useSearchParams();
+    const twoFaResetNotice = searchParams.get('two_fa_reset');
     const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = React.useState(false);
     const [errors, setErrors] = useState({username: null, password: null, common: null})
@@ -67,6 +68,15 @@ export default function Page() {
             window.history.replaceState({}, '', cleanUrl);
         }
     }, [searchParams]);
+
+    useEffect(() => {
+        if (twoFaResetNotice === 'ok') {
+            enqueueSnackbar('2FA sıfırlandı. Daxil olun, yeni QR kodu skan etməyiniz üçün göstəriləcək.',
+                {variant: 'success', autoHideDuration: 8000});
+            window.history.replaceState({}, '', window.location.pathname);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [twoFaResetNotice]);
 
     const performLogin = async (payload) => {
         setLoading(true)
@@ -165,7 +175,7 @@ export default function Page() {
                 password: pendingCredentials.password,
             })
             enqueueSnackbar(
-                'Sorğunuz qəbul olundu. Məlumatlarınız doğrudursa, e-poçt ünvanınıza bildiriş göndərildi. Yenidən daxil olmağa cəhd edin.',
+                'Sorğunuz qəbul olundu. Məlumatlarınız doğrudursa, e-poçt ünvanınıza QR kod göndərildi. QR kodu telefonunuzun kamerası ilə oxudun.',
                 {variant: 'success', autoHideDuration: 6000}
             )
             setShowTwoFaResetDialog(false)
@@ -353,7 +363,7 @@ export default function Page() {
                         </Box>
                         <Typography sx={{fontSize: 12.5, color: C.inkFaint, mb: 3, lineHeight: 1.6}}>
                             Autentifikasiya tətbiqi silinibsə və ya telefonunuz dəyişilib/itirilibsə,
-                            «Kodu əldə edə bilmirəm» bağlantısı ilə 2FA-nın sıfırlanmasını istəyin.
+                            «Kodu əldə edə bilmirəm» bağlantısı ilə e-poçtunuza QR kod göndərin: onu oxutduqda 2FA sıfırlanacaq.
                         </Typography>
                     </>
                 )}
@@ -389,4 +399,4 @@ export default function Page() {
             />
         </AuthLayout>
     );
-}
+}

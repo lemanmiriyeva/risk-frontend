@@ -36,10 +36,11 @@ export const APP_ROUTES = {
     SIGNOUT: "/chixish",
     PASSWORD_RESET: "/shifre-teyini",
     TWO_FA_SETUP: "/2fa-qurulmasi",
+    TWO_FA_RESET: "/2fa-sifirlama",
     PENDING_APPROVAL: "/gozleme",
     ORG_ADMIN: "/inzibatci-paneli-idaresi",
     PROFILE: "/sexsi-kabinet",
     NOTIFICATIONS: "/bildirisler",
 }
 
-export const DISPLAY_DATE_FORMAT = 'DD MMM YYYY'
+export const DISPLAY_DATE_FORMAT = 'DD MMM YYYY'

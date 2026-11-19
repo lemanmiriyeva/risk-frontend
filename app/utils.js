@@ -129,6 +129,7 @@ export function getPageAndFilterData(url = '', page, limit, query) {
 
 const require_login_exception_list = [
     APP_ROUTES.PASSWORD_RESET,
+    APP_ROUTES.TWO_FA_RESET,
     APP_ROUTES.SIGNIN,
 ]
 
@@ -155,4 +156,4 @@ export async function logPageView(page, extra = {}) {
     } catch (e) {
         console.log('Baxış logu göndərilmədi:', e);
     }
-}
+}

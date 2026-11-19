@@ -9,6 +9,7 @@ import FactCheckOutlinedIcon from '@mui/icons-material/FactCheckOutlined';
 import CampaignOutlinedIcon from '@mui/icons-material/CampaignOutlined';
 import SchoolOutlinedIcon from '@mui/icons-material/SchoolOutlined';
 import ConfirmationNumberOutlinedIcon from '@mui/icons-material/ConfirmationNumberOutlined';
+import CalendarMonthOutlinedIcon from '@mui/icons-material/CalendarMonthOutlined';
 import WidgetsOutlinedIcon from '@mui/icons-material/WidgetsOutlined';
 import {service_api} from "@/app/service";
 import {NEXT_API_ENDPOINTS} from "@/app/urls";
@@ -25,6 +26,7 @@ const ICONS = {
     elanlar: CampaignOutlinedIcon,
     telimler: SchoolOutlinedIcon,
     muracietler: ConfirmationNumberOutlinedIcon,
+    teqvim: CalendarMonthOutlinedIcon,
 };
 
 export function moduleIcon(urlEndpoint) {

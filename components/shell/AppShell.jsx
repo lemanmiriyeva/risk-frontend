@@ -26,8 +26,8 @@ import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
 import NotificationsNoneOutlinedIcon from '@mui/icons-material/NotificationsNoneOutlined';
 import LogoutIcon from '@mui/icons-material/Logout';
 import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
-import KeyboardDoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrowLeft';
-import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArrowRight';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import {useAppSelector} from "@/lib/hooks";
 import {APP_ROUTES} from "@/components/constants";
 import NotificationBell from "@/components/atoms/NotificationBell";
@@ -38,8 +38,8 @@ import {moduleAccent, moduleIcon, moduleKeyFromPath, useUserModules} from "./mod
 import AnimatedPattern from "./AnimatedPattern";
 import logo from '@/app/logo.png';
 
-const SIDEBAR_W = 268;
-const SIDEBAR_W_COLLAPSED = 76;
+const SIDEBAR_W = 280;
+const SIDEBAR_W_COLLAPSED = 92;
 const SIDEBAR_STORAGE_KEY = 'mis.sidebar.collapsed';
 const MOBILE_QUERY = '(max-width:1099px)';
 /* Başlığın hündürlüyü (sürüşdürəndə kiçilir) - sidebar onun altından başlayır. */
@@ -129,48 +129,88 @@ function UserMenu({compact}) {
 
 const isPathActive = (pathname, href) => pathname === href || pathname.startsWith(href + '/');
 
+/* Rəngi ağa doğru açır (tünd fonda tünd vurğu rəngləri də oxunsun deyə). */
+function lift(hex, amount = 0.3) {
+    const n = parseInt(String(hex).replace('#', ''), 16);
+    if (Number.isNaN(n)) return hex;
+    const f = (c) => Math.round(c + (255 - c) * amount);
+    return `#${[(n >> 16) & 255, (n >> 8) & 255, n & 255].map((c) => f(c).toString(16).padStart(2, '0')).join('')}`;
+}
+
+const NAVY_TEXT = '#C9D4E6';
+const NAVY_MUTED = '#7C8EAD';
+
 const scrollbarSx = {
-    '&::-webkit-scrollbar': {width: 6},
-    '&::-webkit-scrollbar-thumb': {backgroundColor: C.lineStrong, borderRadius: 3},
+    '&::-webkit-scrollbar': {width: 5},
+    '&::-webkit-scrollbar-thumb': {backgroundColor: 'rgba(255,255,255,0.14)', borderRadius: 3},
 };
 
-/** Açıq sidebar: ikon + ad, alt bölmələr akkordeon kimi açılır. */
+/** Rəngli ikon "plitəsi" - aktiv olanda vurğu rəngi ilə parlayır. */
+function IconTile({Icon, accent, active, size = 36}) {
+    return (
+        <Box className="nav-tile" sx={{
+            width: size, height: size, flexShrink: 0, borderRadius: '11px',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: active ? '#fff' : NAVY_TEXT,
+            background: active ? `linear-gradient(135deg, ${lift(accent, 0.28)}, ${accent})` : 'rgba(255,255,255,0.06)',
+            boxShadow: active ? `0 6px 18px ${accent}66, inset 0 1px 0 rgba(255,255,255,0.25)` : 'none',
+            transition: 'background .2s ease, box-shadow .2s ease, color .2s ease, transform .2s ease',
+        }}>
+            <Icon sx={{fontSize: 20}}/>
+        </Box>
+    );
+}
+
+/** Açıq sidebar: plitə + ad, alt bölmələr akkordeon kimi açılır. */
 function ExpandedItem({href, label, Icon, accent, active, subs = [], pathname, open, onToggle, baseHref}) {
     return (
-        <Box sx={{mb: 0.25}}>
+        <Box sx={{mb: 0.5}}>
             <Box sx={{
-                position: 'relative', display: 'flex', alignItems: 'center', borderRadius: '10px',
-                backgroundColor: active ? `${accent}14` : 'transparent', transition: 'background-color .15s ease',
-                '&:hover': {backgroundColor: active ? `${accent}1F` : C.surfaceDeep},
+                position: 'relative', display: 'flex', alignItems: 'center', borderRadius: '14px',
+                background: active ? `linear-gradient(90deg, ${accent}38 0%, ${accent}0D 70%, transparent 100%)` : 'transparent',
+                transition: 'background .2s ease',
+                '&:hover': {backgroundColor: active ? undefined : 'rgba(255,255,255,0.05)'},
+                '&:hover .nav-tile': {transform: 'scale(1.06)', ...(active ? {} : {backgroundColor: `${accent}40`, color: '#fff'})},
             }}>
-                {active && <Box sx={{position: 'absolute', left: 0, top: 9, bottom: 9, width: 3, borderRadius: 3, backgroundColor: accent}}/>}
+                {active && (
+                    <Box sx={{position: 'absolute', left: -12, top: 10, bottom: 10, width: 4, borderRadius: '0 4px 4px 0',
+                        backgroundColor: lift(accent, 0.15), boxShadow: `0 0 12px ${accent}`}}/>
+                )}
                 <Box component={Link} href={href} aria-current={active ? 'page' : undefined} sx={{
-                    flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 1.5, pl: 1.75, py: 1.05,
-                    textDecoration: 'none', fontSize: 14, fontWeight: active ? 700 : 550, color: active ? accent : C.ink,
+                    flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 1.5, p: '7px 8px',
+                    textDecoration: 'none', fontSize: 14, fontWeight: active ? 700 : 550, color: active ? '#fff' : NAVY_TEXT,
+                    '&:hover': {color: '#fff'},
                 }}>
-                    <Icon sx={{fontSize: 21, flexShrink: 0, color: active ? accent : C.inkMuted}}/>
+                    <IconTile Icon={Icon} accent={accent} active={active}/>
                     <Box component="span" sx={{overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>{label}</Box>
                 </Box>
                 {subs.length > 0 && (
-                    <IconButton size="small" onClick={onToggle} aria-expanded={open} aria-label={`${label} alt bölmələri`} sx={{mr: 0.5, color: C.inkMuted}}>
+                    <IconButton size="small" onClick={onToggle} aria-expanded={open} aria-label={`${label} alt bölmələri`}
+                                sx={{mr: 0.5, color: NAVY_MUTED, '&:hover': {color: '#fff', backgroundColor: 'rgba(255,255,255,0.08)'}}}>
                         <KeyboardArrowDownIcon fontSize="small" sx={{transform: open ? 'rotate(180deg)' : 'none', transition: 'transform .2s ease'}}/>
                     </IconButton>
                 )}
             </Box>
             {subs.length > 0 && (
-                <Collapse in={open} timeout={200} unmountOnExit>
-                    <Box sx={{ml: 3.25, pl: 1, my: 0.5, borderLeft: `2px solid ${C.line}`}}>
-                        {subs.map((s) => {
-                            const subHref = `${baseHref}/${s.url_endpoint}`;
+                <Collapse in={open} timeout={220} unmountOnExit>
+                    <Box sx={{ml: '25px', pl: 2, my: 0.5, position: 'relative', borderLeft: '1px solid rgba(255,255,255,0.12)'}}>
+                        {subs.map((sub) => {
+                            const subHref = `${baseHref}/${sub.url_endpoint}`;
                             const subActive = isPathActive(pathname, subHref);
                             return (
-                                <Box key={s.id} component={Link} href={subHref} aria-current={subActive ? 'page' : undefined} sx={{
-                                    display: 'block', px: 1.5, py: 0.8, my: '1px', borderRadius: '8px', textDecoration: 'none',
-                                    fontSize: 13.5, fontWeight: subActive ? 650 : 500, color: subActive ? accent : C.inkMuted,
-                                    backgroundColor: subActive ? `${accent}12` : 'transparent',
-                                    '&:hover': {backgroundColor: `${accent}0F`, color: accent},
+                                <Box key={sub.id} component={Link} href={subHref} aria-current={subActive ? 'page' : undefined} sx={{
+                                    position: 'relative', display: 'flex', alignItems: 'center', px: 1.5, py: 0.85, my: '2px', borderRadius: '10px',
+                                    textDecoration: 'none', fontSize: 13.5, fontWeight: subActive ? 650 : 500,
+                                    color: subActive ? '#fff' : NAVY_MUTED, backgroundColor: subActive ? 'rgba(255,255,255,0.08)' : 'transparent',
+                                    transition: 'background-color .15s ease, color .15s ease',
+                                    '&:hover': {color: '#fff', backgroundColor: 'rgba(255,255,255,0.06)'},
+                                    '&::before': {
+                                        content: '""', position: 'absolute', left: -21, top: '50%', width: 9, height: 9, borderRadius: '50%',
+                                        transform: 'translateY(-50%)', backgroundColor: subActive ? lift(accent, 0.15) : BRAND.navy700,
+                                        border: `2px solid ${BRAND.navy900}`, boxShadow: subActive ? `0 0 10px ${accent}` : 'none',
+                                    },
                                 }}>
-                                    {s.title}
+                                    {sub.title}
                                 </Box>
                             );
                         })}
@@ -181,7 +221,7 @@ function ExpandedItem({href, label, Icon, accent, active, subs = [], pathname, o
     );
 }
 
-/** Yığılmış sidebar: yalnız ikon; alt bölməsi olan modulun üzərinə gələndə sağda açılan siyahı. */
+/** Yığılmış sidebar: yalnız plitələr; alt bölməsi olan modulun üzərinə gələndə sağda açılan siyahı. */
 function CollapsedItem({href, label, Icon, accent, active, subs = [], pathname, baseHref}) {
     const [open, setOpen] = useState(false);
     const anchorRef = useRef(null);
@@ -190,48 +230,49 @@ function CollapsedItem({href, label, Icon, accent, active, subs = [], pathname, 
     const leave = () => { timer.current = setTimeout(() => setOpen(false), 120); };
     useEffect(() => () => clearTimeout(timer.current), []);
 
-    const iconLink = (
+    const tile = (
         <Box component={Link} href={href} aria-label={label} aria-current={active ? 'page' : undefined} sx={{
-            position: 'relative', width: 48, height: 44, mx: 'auto', borderRadius: '10px',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none',
-            color: active ? accent : C.inkMuted, backgroundColor: active ? `${accent}14` : 'transparent',
-            transition: 'background-color .15s ease, color .15s ease',
-            '&:hover': {backgroundColor: active ? `${accent}1F` : C.surfaceDeep, color: accent},
+            position: 'relative', display: 'flex', justifyContent: 'center', py: 0.5, textDecoration: 'none',
+            '&:hover .nav-tile': {transform: 'scale(1.08)', ...(active ? {} : {backgroundColor: `${accent}40`, color: '#fff'})},
         }}>
-            {active && <Box sx={{position: 'absolute', left: -8, top: 9, bottom: 9, width: 3, borderRadius: 3, backgroundColor: accent}}/>}
-            <Icon sx={{fontSize: 23}}/>
+            {active && (
+                <Box sx={{position: 'absolute', left: -12, top: 12, bottom: 12, width: 4, borderRadius: '0 4px 4px 0',
+                    backgroundColor: lift(accent, 0.15), boxShadow: `0 0 12px ${accent}`}}/>
+            )}
+            <IconTile Icon={Icon} accent={accent} active={active} size={44}/>
         </Box>
     );
 
     if (subs.length === 0) {
-        return <Box sx={{mb: 0.5}}><Tooltip title={label} placement="right" arrow>{iconLink}</Tooltip></Box>;
+        return <Box sx={{mb: 0.25}}><Tooltip title={label} placement="right" arrow>{tile}</Tooltip></Box>;
     }
     return (
-        <Box ref={anchorRef} onMouseEnter={enter} onMouseLeave={leave} sx={{mb: 0.5}}>
-            {iconLink}
+        <Box ref={anchorRef} onMouseEnter={enter} onMouseLeave={leave} sx={{mb: 0.25}}>
+            {tile}
             <Popper open={open} anchorEl={anchorRef.current} placement="right-start" transition sx={{zIndex: 1300}}>
                 {({TransitionProps}) => (
                     <Fade {...TransitionProps} timeout={160}>
                         <Box onMouseEnter={enter} onMouseLeave={leave} sx={{
-                            ml: '10px', minWidth: 260, p: 1, backgroundColor: '#fff', borderRadius: '12px',
-                            border: `1px solid ${C.line}`, borderLeft: `3px solid ${accent}`, boxShadow: '0 24px 50px rgba(6,18,38,0.16)',
+                            ml: '14px', minWidth: 250, p: 1, borderRadius: '16px',
+                            background: `linear-gradient(180deg, ${BRAND.navy900}, ${BRAND.navy950})`,
+                            border: '1px solid rgba(255,255,255,0.10)', boxShadow: '0 24px 60px rgba(6,18,38,0.45)',
                         }}>
                             <Box component={Link} href={href} onClick={() => setOpen(false)} sx={{
-                                display: 'flex', alignItems: 'center', gap: 1.25, px: 1.5, pt: 1, pb: 1.25, textDecoration: 'none',
+                                display: 'flex', alignItems: 'center', gap: 1.25, px: 1, pt: 0.75, pb: 1.25, textDecoration: 'none',
                             }}>
-                                <Icon sx={{fontSize: 20, color: accent}}/>
-                                <Typography sx={{fontFamily: SERIF_STACK, fontSize: 15, fontWeight: 600, color: C.ink}}>{label}</Typography>
+                                <IconTile Icon={Icon} accent={accent} active size={32}/>
+                                <Typography sx={{fontFamily: SERIF_STACK, fontSize: 15, fontWeight: 600, color: '#fff'}}>{label}</Typography>
                             </Box>
-                            {subs.map((s) => {
-                                const subActive = isPathActive(pathname, `${baseHref}/${s.url_endpoint}`);
+                            {subs.map((sub) => {
+                                const subActive = isPathActive(pathname, `${baseHref}/${sub.url_endpoint}`);
                                 return (
-                                    <Box key={s.id} component={Link} href={`${baseHref}/${s.url_endpoint}`} onClick={() => setOpen(false)} sx={{
-                                        display: 'block', px: 1.5, py: 1, borderRadius: '8px', textDecoration: 'none',
-                                        fontSize: 14, fontWeight: subActive ? 650 : 550, color: subActive ? accent : C.ink,
-                                        backgroundColor: subActive ? `${accent}12` : 'transparent',
-                                        '&:hover': {backgroundColor: `${accent}0F`, color: accent},
+                                    <Box key={sub.id} component={Link} href={`${baseHref}/${sub.url_endpoint}`} onClick={() => setOpen(false)} sx={{
+                                        display: 'block', px: 1.5, py: 1, borderRadius: '10px', textDecoration: 'none',
+                                        fontSize: 14, fontWeight: subActive ? 650 : 500, color: subActive ? '#fff' : NAVY_TEXT,
+                                        backgroundColor: subActive ? 'rgba(255,255,255,0.10)' : 'transparent',
+                                        '&:hover': {backgroundColor: 'rgba(255,255,255,0.08)', color: '#fff'},
                                     }}>
-                                        {s.title}
+                                        {sub.title}
                                     </Box>
                                 );
                             })}
@@ -243,58 +284,101 @@ function CollapsedItem({href, label, Icon, accent, active, subs = [], pathname, 
     );
 }
 
+/** Aşağıdakı istifadəçi kartı (şəxsi kabinetə keçid). */
+function SidebarUser({collapsed}) {
+    const user = useAppSelector(({user}) => user);
+    const avatar = (
+        <Avatar src={user?.image || undefined} sx={{width: 38, height: 38, fontSize: 13, fontWeight: 700, bgcolor: BRAND.crest, color: BRAND.navy950}}>
+            {user?.isLoaded === false ? '' : initials(user)}
+        </Avatar>
+    );
+    const card = (
+        <Box component={Link} href={APP_ROUTES.PROFILE} aria-label="Şəxsi kabinet" sx={{
+            display: 'flex', alignItems: 'center', justifyContent: collapsed ? 'center' : 'flex-start', gap: 1.25,
+            p: collapsed ? 0.75 : 1.1, borderRadius: '14px', textDecoration: 'none',
+            backgroundColor: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)',
+            transition: 'background-color .2s ease, border-color .2s ease',
+            '&:hover': {backgroundColor: 'rgba(255,255,255,0.10)', borderColor: 'rgba(201,154,30,0.55)'},
+        }}>
+            {avatar}
+            {!collapsed && (
+                <Box sx={{minWidth: 0}}>
+                    <Typography sx={{fontSize: 13, fontWeight: 650, color: '#fff', lineHeight: 1.25}} noWrap>{fullName(user)}</Typography>
+                    <Typography sx={{fontSize: 11.5, color: NAVY_MUTED, lineHeight: 1.3}} noWrap>{roleLabel(user)}</Typography>
+                </Box>
+            )}
+        </Box>
+    );
+    return collapsed ? <Tooltip title={fullName(user) || 'Şəxsi kabinet'} placement="right" arrow>{card}</Tooltip> : card;
+}
+
 function Sidebar({modules, loading, pathname, collapsed, onToggleCollapsed, top}) {
     const currentKey = moduleKeyFromPath(pathname);
     const [openKey, setOpenKey] = useState(currentKey);
     // Başqa modula keçəndə həmin modul avtomatik açılır
     useEffect(() => { setOpenKey(currentKey); }, [currentKey]);
 
+    const home = {href: '/', label: 'Ana səhifə', Icon: HomeOutlinedIcon, accent: BRAND.accent, active: pathname === '/', pathname, baseHref: ''};
+
     return (
         <Box component="nav" aria-label="Əsas menyu" sx={{
             position: 'sticky', top, alignSelf: 'flex-start', flexShrink: 0, zIndex: 1100,
-            width: collapsed ? SIDEBAR_W_COLLAPSED : SIDEBAR_W, height: `calc(100vh - ${top}px)`,
-            display: 'flex', flexDirection: 'column', backgroundColor: '#fff', borderRight: `1px solid ${C.line}`,
-            boxShadow: '1px 0 0 rgba(6,18,38,0.02), 6px 0 24px rgba(6,18,38,0.04)',
-            transition: 'width .25s cubic-bezier(.2,.7,.2,1), top .3s ease, height .3s ease',
+            width: collapsed ? SIDEBAR_W_COLLAPSED : SIDEBAR_W, height: `calc(100vh - ${top}px)`, p: '12px',
+            transition: 'width .28s cubic-bezier(.2,.7,.2,1), top .3s ease, height .3s ease',
             [reducedMotion]: {transition: 'none'},
         }}>
-            <Box sx={{flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'hidden', p: collapsed ? 1 : 1.5, pt: 2, ...scrollbarSx}}>
-                {!collapsed && (
-                    <Typography sx={{px: 1.75, pb: 1, fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: C.inkFaint}}>
-                        Modullar
-                    </Typography>
-                )}
-                {collapsed
-                    ? <CollapsedItem href="/" label="Ana səhifə" Icon={HomeOutlinedIcon} accent={BRAND.navy600} active={pathname === '/'} pathname={pathname} baseHref=""/>
-                    : <ExpandedItem href="/" label="Ana səhifə" Icon={HomeOutlinedIcon} accent={BRAND.navy600} active={pathname === '/'} pathname={pathname} baseHref=""/>}
+            {/* Üzən panel */}
+            <Box sx={{
+                position: 'relative', height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden',
+                borderRadius: '22px',
+                background: `radial-gradient(120% 60% at 0% 0%, ${BRAND.navy700} 0%, transparent 60%), linear-gradient(180deg, ${BRAND.navy900} 0%, ${BRAND.navy950} 100%)`,
+                border: '1px solid rgba(255,255,255,0.07)',
+                boxShadow: '0 18px 44px rgba(6,18,38,0.28), inset 0 1px 0 rgba(255,255,255,0.06)',
+            }}>
+                <AnimatedPattern opacity={0.045} size={110} duration={90}/>
+                <Box sx={{position: 'relative', flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'hidden', p: collapsed ? '14px 10px' : '16px 12px', ...scrollbarSx}}>
+                    {!collapsed && (
+                        <Typography sx={{px: 1.25, pb: 1.25, fontSize: 10.5, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: NAVY_MUTED}}>
+                            Modullar
+                        </Typography>
+                    )}
+                    {collapsed ? <CollapsedItem {...home}/> : <ExpandedItem {...home}/>}
 
-                {loading && [0, 1, 2, 3, 4].map((i) => (
-                    <Skeleton key={i} variant="rounded" height={collapsed ? 44 : 40} width={collapsed ? 48 : undefined}
-                              sx={{my: 0.75, mx: collapsed ? 'auto' : 0, borderRadius: '10px'}}/>
-                ))}
+                    {loading && [0, 1, 2, 3, 4].map((i) => (
+                        <Skeleton key={i} variant="rounded" height={collapsed ? 44 : 50} width={collapsed ? 44 : undefined}
+                                  sx={{my: 0.75, mx: collapsed ? 'auto' : 0, borderRadius: '14px', bgcolor: 'rgba(255,255,255,0.07)'}}/>
+                    ))}
 
-                {modules.map((m) => {
-                    const subs = m.sub_modules || [];
-                    const baseHref = `/${m.url_endpoint}`;
-                    const common = {
-                        href: baseHref, label: m.title, Icon: moduleIcon(m.url_endpoint), accent: moduleAccent(m.url_endpoint),
-                        active: currentKey === m.url_endpoint, subs, pathname, baseHref,
-                    };
-                    return collapsed
-                        ? <CollapsedItem key={m.id} {...common}/>
-                        : <ExpandedItem key={m.id} {...common} open={openKey === m.url_endpoint}
-                                        onToggle={() => setOpenKey(openKey === m.url_endpoint ? null : m.url_endpoint)}/>;
-                })}
+                    {modules.map((m) => {
+                        const subs = m.sub_modules || [];
+                        const baseHref = `/${m.url_endpoint}`;
+                        const common = {
+                            href: baseHref, label: m.title, Icon: moduleIcon(m.url_endpoint), accent: moduleAccent(m.url_endpoint),
+                            active: currentKey === m.url_endpoint, subs, pathname, baseHref,
+                        };
+                        return collapsed
+                            ? <CollapsedItem key={m.id} {...common}/>
+                            : <ExpandedItem key={m.id} {...common} open={openKey === m.url_endpoint}
+                                            onToggle={() => setOpenKey(openKey === m.url_endpoint ? null : m.url_endpoint)}/>;
+                    })}
+                </Box>
+
+                <Box sx={{position: 'relative', p: collapsed ? '10px' : '12px', borderTop: '1px solid rgba(255,255,255,0.08)'}}>
+                    <SidebarUser collapsed={collapsed}/>
+                </Box>
             </Box>
 
-            <Box sx={{borderTop: `1px solid ${C.line}`, p: 1, display: 'flex', justifyContent: collapsed ? 'center' : 'flex-end'}}>
-                <Tooltip title={collapsed ? 'Menyunu aç' : 'Menyunu yığ'} placement="right" arrow>
-                    <IconButton onClick={onToggleCollapsed} aria-label={collapsed ? 'Menyunu aç' : 'Menyunu yığ'} aria-pressed={collapsed}
-                                sx={{color: C.inkMuted, '&:hover': {color: BRAND.navy900}}}>
-                        {collapsed ? <KeyboardDoubleArrowRightIcon/> : <KeyboardDoubleArrowLeftIcon/>}
-                    </IconButton>
-                </Tooltip>
-            </Box>
+            {/* Panelin kənarında dairəvi yığma düyməsi */}
+            <Tooltip title={collapsed ? 'Menyunu aç' : 'Menyunu yığ'} placement="right" arrow>
+                <IconButton onClick={onToggleCollapsed} aria-label={collapsed ? 'Menyunu aç' : 'Menyunu yığ'} aria-pressed={collapsed} sx={{
+                    position: 'absolute', top: 34, right: -2, width: 28, height: 28, zIndex: 2,
+                    backgroundColor: '#fff', color: BRAND.navy800, border: `1px solid ${C.line}`,
+                    boxShadow: '0 4px 14px rgba(6,18,38,0.22)',
+                    '&:hover': {backgroundColor: BRAND.crestSoft, color: BRAND.navy900},
+                }}>
+                    {collapsed ? <ChevronRightIcon sx={{fontSize: 18}}/> : <ChevronLeftIcon sx={{fontSize: 18}}/>}
+                </IconButton>
+            </Tooltip>
         </Box>
     );
 }

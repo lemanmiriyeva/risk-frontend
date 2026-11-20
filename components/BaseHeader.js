@@ -63,7 +63,7 @@ export default function BaseHeader({env}) {
             p: {xs: '8px 12px', sm: '10px 25px'}, background: "#020624"
         }}>
             <Theme mode={'dark'}>
-                <Toolbar disableGutters style={{display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", rowGap: 8, minHeight: "auto"}}>
+                <Toolbar disableGutters style={{display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", rowGap: 8, minHeight: "auto",maxWidth:"90%",margin:"auto"}}>
                     <Box
                         onClick={() => router.push(APP_ROUTES.HOME)}
                         sx={{position: 'relative', width: {xs: 130, sm: 180, md: 260}, height: {xs: 26, sm: 36, md: 44}, cursor: 'pointer', flexShrink: 0}}
@@ -185,4 +185,4 @@ export default function BaseHeader({env}) {
         </AppBar>
 
     </>);
-}
+}

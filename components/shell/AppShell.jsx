@@ -335,7 +335,7 @@ function Sidebar({modules, loading, pathname, collapsed, onToggleCollapsed, top}
                 border: '1px solid rgba(255,255,255,0.07)',
                 boxShadow: '0 18px 44px rgba(6,18,38,0.28), inset 0 1px 0 rgba(255,255,255,0.06)',
             }}>
-                <AnimatedPattern opacity={0.045} size={110} duration={90}/>
+                <AnimatedPattern/>
                 <Box sx={{position: 'relative', flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'hidden', p: collapsed ? '14px 10px' : '16px 12px', ...scrollbarSx}}>
                     {!collapsed && (
                         <Typography sx={{px: 1.25, pb: 1.25, fontSize: 10.5, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: NAVY_MUTED}}>
@@ -461,7 +461,6 @@ function SiteHeader({scrolled, isMobile}) {
                 position: 'relative', overflow: 'hidden',
                 background: `linear-gradient(100deg, ${BRAND.navy950} 0%, ${BRAND.navy900} 45%, ${BRAND.navy700} 100%)`,
             }}>
-                <AnimatedPattern opacity={0.05} size={120} duration={60}/>
                 <Box sx={{position: 'relative',
                     display: 'flex', alignItems: 'center', gap: 2,
                     height: scrolled ? 60 : 76, transition: 'height .3s ease',

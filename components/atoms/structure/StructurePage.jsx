@@ -3,7 +3,7 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
     Autocomplete, Avatar, Box, Chip, Popover, Skeleton, TextField, Typography,
 } from '@mui/material';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import SearchIcon from '@mui/icons-material/Search';
 import MailOutlineIcon from '@mui/icons-material/MailOutline';
 import LocalPhoneOutlinedIcon from '@mui/icons-material/LocalPhoneOutlined';
@@ -85,8 +85,6 @@ function ProfileCard({user, department}) {
     );
 }
 
-const TIER_HUES = ['#0B2A5B', '#0A6CC2', '#1F7A4D', '#C99A1E', '#6B4FB5', '#C42F3D'];
-
 function pathTo(departments, depId) {
     const map = Object.fromEntries(departments.map((d) => [d.id, d]));
     const out = [];
@@ -95,12 +93,24 @@ function pathTo(departments, depId) {
     return out;
 }
 
+const GAP = 30;                       // düyünlər arası üfüqi məsafə
+const LINE = `1.5px solid #8C9BB5`;
+
+// Üfüqi ağacın uşaq sütunu: hər uşaq üçün qol + ortaq şaquli magistral
+const childWrapSx = {
+    position: 'relative', pl: `${GAP}px`, py: '5px', display: 'flex', alignItems: 'center',
+    '&::before': {content: '""', position: 'absolute', left: 0, top: '50%', width: `${GAP}px`, borderTop: LINE},
+    '&::after': {content: '""', position: 'absolute', left: 0, top: 0, bottom: 0, borderLeft: LINE},
+    '&:first-of-type::after': {top: '50%'},
+    '&:last-of-type::after': {bottom: '50%'},
+    '&:only-child::after': {display: 'none'},
+};
+
 export default function StructurePage() {
     const {enqueueSnackbar} = useSnackbar();
     const [data, setData] = useState(null);
     const [orgId, setOrgId] = useState('');
-    const [collapsed, setCollapsed] = useState(() => new Set());
-    const [deptId, setDeptId] = useState(null);
+    const [open, setOpen] = useState(() => new Set());
     const [popUserId, setPopUserId] = useState(null);
     const [anchor, setAnchor] = useState(null);
     const [inputValue, setInputValue] = useState('');
@@ -112,10 +122,10 @@ export default function StructurePage() {
             const d = res.data;
             setData(d);
             setOrgId(d.organization?.id || '');
+            // Standart: giriş edənin şöbəsinə gedən yol və şöbənin özü açıq gəlir
             const mine = d.users.find((u) => u.id === d.me.user_id);
-            // Standart: giriş edənin şöbəsi seçili gəlir
-            setDeptId(mine?.department ?? d.me.department_id ?? d.departments.find((x) => !x.parent)?.id ?? null);
-            setCollapsed(new Set());
+            const depId = mine?.department ?? d.me.department_id;
+            setOpen(new Set(depId ? pathTo(d.departments, depId).map((x) => x.id) : d.departments.filter((x) => !x.parent).map((x) => x.id)));
         } catch (e) {
             enqueueSnackbar(handleError(e), {variant: 'error'});
             setData({departments: [], users: [], organizations: [], me: {}});
@@ -137,7 +147,7 @@ export default function StructurePage() {
             else roots.push(d);
         });
         const users = {};
-        data.users.forEach((u) => { (users[u.department ?? 0] ||= []).push(u); });
+        data.users.forEach((u) => { (users[u.department ?? 0] ||= []).push(u); });   // artıq vəzifə sırası ilə gəlir
         const counts = {};
         const count = (d) => {
             counts[d.id] = (users[d.id] || []).length + (children[d.id] || []).reduce((sum, c) => sum + count(c), 0);
@@ -147,74 +157,82 @@ export default function StructurePage() {
         return {roots, children, users, counts};
     }, [data]);
 
-    // Seçilmiş şöbənin əməkdaşları vəzifə pillələri üzrə (rütbə sırası ilə)
-    const tiers = useMemo(() => {
-        const members = tree.users[deptId ?? 0] || [];
-        const map = new Map();
-        members.forEach((u) => {
-            const key = `${u.role_order}|${u.position}`;
-            if (!map.has(key)) map.set(key, {order: u.role_order, title: u.position || 'Vəzifə göstərilməyib', people: []});
-            map.get(key).people.push(u);
-        });
-        return [...map.values()].sort((a, b) => a.order - b.order);
-    }, [tree, deptId]);
-
-    const openPerson = (u) => {
-        setPopUserId(u.id);
-        setAnchor(nodeRefs.current[u.id] || null);
-    };
-
-    const choose = (u) => {
-        if (!u) return;
-        setDeptId(u.department ?? 0);
-        // başqa şöbədə yığılmış valideynlər açılsın
-        if (u.department) {
-            const anc = pathTo(data.departments, u.department).map((d) => d.id);
-            setCollapsed((prev) => { const n = new Set(prev); anc.forEach((id) => n.delete(id)); return n; });
-        }
-        setTimeout(() => { setPopUserId(u.id); setAnchor(nodeRefs.current[u.id] || null); }, 250);
-    };
-
-    const toggleCollapse = (id) => setCollapsed((prev) => {
+    const toggle = (id) => setOpen((prev) => {
         const n = new Set(prev);
         if (n.has(id)) n.delete(id); else n.add(id);
         return n;
     });
+    const expandAll = () => setOpen(new Set([0, ...(data?.departments || []).map((d) => d.id)]));
+    const collapseAll = () => setOpen(new Set());
 
-    const selectDept = (id) => { setDeptId(id); setPopUserId(null); setAnchor(null); };
+    const openPerson = (u) => { setPopUserId(u.id); setAnchor(nodeRefs.current[u.id] || null); };
 
-    // Sol: yığcam şöbə ağacı
-    const renderNav = (dept, level = 0) => {
-        const subs = tree.children[dept.id] || [];
-        const open = !collapsed.has(dept.id);
-        const active = deptId === dept.id;
+    const choose = (u) => {
+        if (!u) return;
+        const ids = u.department ? pathTo(data.departments, u.department).map((d) => d.id) : [0];
+        setOpen((prev) => new Set([...prev, ...ids]));
+        setTimeout(() => {
+            const el = nodeRefs.current[u.id];
+            el?.scrollIntoView({behavior: 'smooth', block: 'center', inline: 'center'});
+            setPopUserId(u.id);
+            setAnchor(el || null);
+        }, 300);
+    };
+
+    const personNode = (u) => {
+        const isMe = u.id === data.me.user_id;
         return (
-            <Box key={dept.id}>
-                <Box sx={{display: 'flex', alignItems: 'center', pl: `${level * 14}px`, position: 'relative'}}>
-                    {level > 0 && <Box sx={{position: 'absolute', left: `${level * 14 - 7}px`, top: 0, bottom: 0, borderLeft: `1.5px solid ${C.line}`}}/>}
-                    <Box component="button" type="button" aria-label="Aç/bağla" onClick={() => subs.length && toggleCollapse(dept.id)}
-                         sx={{width: 22, height: 22, border: 0, background: 'none', p: 0, cursor: subs.length ? 'pointer' : 'default', color: C.inkFaint,
-                             display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-                        {subs.length > 0 && <ExpandMoreIcon sx={{fontSize: 18, transition: 'transform .2s', transform: open ? 'none' : 'rotate(-90deg)'}}/>}
-                    </Box>
-                    <Box role="button" tabIndex={0} onClick={() => selectDept(dept.id)}
-                         onKeyDown={(e) => { if (e.key === 'Enter') selectDept(dept.id); }}
-                         sx={{flex: 1, display: 'flex', alignItems: 'center', gap: 1, px: 1, py: '7px', borderRadius: '8px', cursor: 'pointer', minWidth: 0,
-                             backgroundColor: active ? BRAND.navy900 : 'transparent', color: active ? '#fff' : C.ink,
-                             '&:hover': {backgroundColor: active ? BRAND.navy900 : C.surfaceRaised}}}>
-                        <Typography sx={{fontSize: 13.5, fontWeight: active ? 700 : 500, flex: 1, lineHeight: 1.3}}>{dept.title}</Typography>
-                        <Typography sx={{fontSize: 11.5, fontWeight: 700, opacity: 0.7}}>{tree.counts[dept.id] ?? 0}</Typography>
-                    </Box>
+            <Box ref={(el) => { nodeRefs.current[u.id] = el; }} role="button" tabIndex={0} onClick={() => openPerson(u)}
+                 onKeyDown={(e) => { if (e.key === 'Enter') openPerson(u); }}
+                 sx={{display: 'flex', alignItems: 'center', gap: 1.25, pr: 1.75, pl: 0.75, py: 0.75, borderRadius: '999px', cursor: 'pointer',
+                     width: 250, backgroundColor: C.surface, border: `1.5px solid ${isMe ? BRAND.navy600 : popUserId === u.id ? BRAND.navy600 : C.line}`,
+                     boxShadow: isMe ? `0 0 0 3px ${BRAND.navy600}22` : 'none', transition: 'box-shadow .15s, border-color .15s',
+                     '&:hover': {borderColor: BRAND.navy600, boxShadow: '0 6px 16px rgba(6,18,38,0.10)'}}}>
+                <PersonAvatar user={u} size={38}/>
+                <Box sx={{minWidth: 0, flex: 1}}>
+                    <Typography noWrap sx={{fontSize: 13, fontWeight: 650, color: C.ink, lineHeight: 1.25}}>
+                        {u.name}{isMe && <Box component="span" sx={{ml: 0.75, fontSize: 10, fontWeight: 800, color: BRAND.navy600}}>SİZ</Box>}
+                    </Typography>
+                    <Typography noWrap sx={{fontSize: 11.5, color: C.inkMuted, lineHeight: 1.25}}>{u.position || '—'}</Typography>
                 </Box>
-                {open && subs.map((c) => renderNav(c, level + 1))}
+            </Box>
+        );
+    };
+
+    const renderDept = (dept) => {
+        const isOpen = open.has(dept.id);
+        const members = tree.users[dept.id] || [];
+        const subs = tree.children[dept.id] || [];
+        const hasKids = members.length + subs.length > 0;
+        return (
+            <Box sx={{display: 'flex', alignItems: 'center'}}>
+                <Box role="button" tabIndex={0} aria-expanded={isOpen} onClick={() => hasKids && toggle(dept.id)}
+                     onKeyDown={(e) => { if (e.key === 'Enter' && hasKids) toggle(dept.id); }}
+                     sx={{display: 'flex', alignItems: 'center', gap: 1, width: 230, px: 1.5, py: 1.1, borderRadius: '10px', flexShrink: 0,
+                         cursor: hasKids ? 'pointer' : 'default', backgroundColor: isOpen ? BRAND.navy900 : C.surface,
+                         color: isOpen ? '#fff' : BRAND.navy900, border: `1.5px solid ${BRAND.navy900}`,
+                         '&:hover': {boxShadow: '0 6px 16px rgba(6,18,38,0.14)'}}}>
+                    <Typography sx={{fontSize: 13.5, fontWeight: 700, flex: 1, lineHeight: 1.3}}>{dept.title}</Typography>
+                    <Box sx={{fontSize: 11.5, fontWeight: 700, px: 0.9, borderRadius: '8px', backgroundColor: isOpen ? 'rgba(255,255,255,0.2)' : `${BRAND.navy900}14`}}>
+                        {tree.counts[dept.id] ?? members.length}
+                    </Box>
+                    {hasKids && <ChevronRightIcon sx={{fontSize: 18, transition: 'transform .2s', transform: isOpen ? 'rotate(90deg)' : 'none'}}/>}
+                </Box>
+                {isOpen && hasKids && (
+                    <>
+                        <Box sx={{width: `${GAP}px`, borderTop: LINE, flexShrink: 0}}/>
+                        <Box sx={{display: 'flex', flexDirection: 'column'}}>
+                            {members.map((u) => <Box key={`u${u.id}`} sx={childWrapSx}>{personNode(u)}</Box>)}
+                            {subs.map((c) => <Box key={`d${c.id}`} sx={childWrapSx}>{renderDept(c)}</Box>)}
+                        </Box>
+                    </>
+                )}
             </Box>
         );
     };
 
     const noDept = tree.users[0] || [];
-    const dept = deptId ? deptById[deptId] : null;
-    const crumbs = dept ? pathTo(data.departments, dept.id) : [];
-    const subDepts = dept ? (tree.children[dept.id] || []) : [];
+    const rootItems = [...tree.roots, ...(noDept.length ? [{id: 0, title: 'Şöbəsiz əməkdaşlar'}] : [])];
     const popUser = popUserId ? userById[popUserId] : null;
 
     return (
@@ -222,7 +240,7 @@ export default function StructurePage() {
             <Box sx={{display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 2, mb: 3}}>
                 <Box>
                     <Typography component="h1" sx={{fontSize: 24, fontWeight: 700, color: BRAND.navy900}}>Təşkilati struktur</Typography>
-                    {data?.organization && <Typography sx={{fontSize: 14, color: C.inkMuted}}>{data.organization.title}</Typography>}
+                    <Typography sx={{fontSize: 14, color: C.inkMuted}}>Şöbənin üzərinə klikləyib açın, əməkdaşın üzərinə klikləyib məlumatına baxın.</Typography>
                 </Box>
                 {data?.organizations?.length > 1 && (
                     <TextField select size="small" label="Qurum" value={orgId} sx={{...fieldSx, minWidth: 240}}
@@ -232,135 +250,65 @@ export default function StructurePage() {
                 )}
             </Box>
 
-            <Autocomplete
-                options={data?.users || []}
-                value={null}
-                inputValue={inputValue}
-                onInputChange={(_, v, reason) => { if (reason !== 'reset') setInputValue(v); else setInputValue(''); }}
-                onChange={(_, u) => choose(u)}
-                getOptionLabel={(u) => u.name || ''}
-                filterOptions={(opts, {inputValue: q}) => {
-                    const needle = norm(q.trim());
-                    if (!needle) return [];
-                    return opts.filter((u) => norm(u.name).includes(needle) || (u.work_phone || '').includes(needle.replace(/\s/g, ''))).slice(0, 12);
-                }}
-                noOptionsText="Nəticə tapılmadı"
-                isOptionEqualToValue={(a, b) => a.id === b.id}
-                renderOption={(props, u) => {
-                    const {key, ...rest} = props;
-                    return (
-                        <Box component="li" key={u.id} {...rest} sx={{display: 'flex', gap: 1.5, alignItems: 'center'}}>
-                            <PersonAvatar user={u} size={32}/>
-                            <Box sx={{flex: 1, minWidth: 0}}>
-                                <Typography sx={{fontSize: 14, fontWeight: 600}}>{u.name}</Typography>
-                                <Typography sx={{fontSize: 12, color: C.inkMuted}}>
-                                    {[u.position, deptById[u.department]?.title].filter(Boolean).join(' · ')}
-                                </Typography>
-                            </Box>
-                            {u.work_phone && <Typography sx={{fontSize: 12.5, color: C.inkMuted}}>☎ {u.work_phone}</Typography>}
-                        </Box>
-                    );
-                }}
-                renderInput={(params) => (
-                    <TextField {...params} size="small" placeholder="Ad, soyad və ya daxili nömrə ilə axtarın" sx={{...fieldSx, mb: 3, maxWidth: 560}}
-                               InputProps={{...params.InputProps, startAdornment: <SearchIcon sx={{fontSize: 20, color: C.inkFaint, mr: 1}}/>}}/>
-                )}
-                sx={{maxWidth: 560}}
-            />
-
-            <Box sx={{display: 'grid', gap: 3, gridTemplateColumns: {xs: '1fr', md: '300px minmax(0, 1fr)'}, alignItems: 'start'}}>
-                {/* Sol: şöbə ağacı */}
-                <Box sx={{...panelSx, p: 1.5}}>
-                    {!data ? [0, 1, 2, 3, 4].map((i) => <Skeleton key={i} height={34}/>) : (
-                        <>
-                            {tree.roots.map((d) => renderNav(d))}
-                            {noDept.length > 0 && (
-                                <Box role="button" tabIndex={0} onClick={() => selectDept(0)}
-                                     sx={{px: 3, py: '7px', mt: 0.5, borderRadius: '8px', cursor: 'pointer', fontSize: 13.5,
-                                         backgroundColor: deptId === 0 ? BRAND.navy900 : 'transparent', color: deptId === 0 ? '#fff' : C.inkMuted}}>
-                                    Şöbəsiz əməkdaşlar ({noDept.length})
+            <Box sx={{display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', gap: 2, mb: 3}}>
+                <Autocomplete
+                    options={data?.users || []}
+                    value={null}
+                    inputValue={inputValue}
+                    onInputChange={(_, v, reason) => { if (reason !== 'reset') setInputValue(v); else setInputValue(''); }}
+                    onChange={(_, u) => choose(u)}
+                    getOptionLabel={(u) => u.name || ''}
+                    filterOptions={(opts, {inputValue: q}) => {
+                        const needle = norm(q.trim());
+                        if (!needle) return [];
+                        return opts.filter((u) => norm(u.name).includes(needle) || (u.work_phone || '').includes(needle.replace(/\s/g, ''))).slice(0, 12);
+                    }}
+                    noOptionsText="Nəticə tapılmadı"
+                    isOptionEqualToValue={(a, b) => a.id === b.id}
+                    renderOption={(props, u) => {
+                        const {key, ...rest} = props;
+                        return (
+                            <Box component="li" key={u.id} {...rest} sx={{display: 'flex', gap: 1.5, alignItems: 'center'}}>
+                                <PersonAvatar user={u} size={32}/>
+                                <Box sx={{flex: 1, minWidth: 0}}>
+                                    <Typography sx={{fontSize: 14, fontWeight: 600}}>{u.name}</Typography>
+                                    <Typography sx={{fontSize: 12, color: C.inkMuted}}>
+                                        {[u.position, deptById[u.department]?.title].filter(Boolean).join(' · ')}
+                                    </Typography>
                                 </Box>
-                            )}
-                        </>
-                    )}
-                </Box>
-
-                {/* Sağ: seçilmiş şöbənin vəzifə iyerarxiyası */}
-                <Box sx={{...panelSx, p: {xs: 2, md: 3}, overflow: 'hidden', position: 'relative',
-                    backgroundImage: `radial-gradient(${C.line} 1px, transparent 1px)`, backgroundSize: '18px 18px'}}>
-                    {!data ? <Skeleton variant="rounded" height={320}/> : (
-                        <>
-                            <Box sx={{display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 0.5, mb: 0.5}}>
-                                {crumbs.map((c, i) => (
-                                    <React.Fragment key={c.id}>
-                                        {i > 0 && <Typography sx={{color: C.inkFaint, fontSize: 13}}>›</Typography>}
-                                        <Typography onClick={() => selectDept(c.id)}
-                                                    sx={{fontSize: 12.5, color: i === crumbs.length - 1 ? C.ink : BRAND.navy600, cursor: 'pointer', fontWeight: 600}}>
-                                            {c.title}
-                                        </Typography>
-                                    </React.Fragment>
-                                ))}
+                                {u.work_phone && <Typography sx={{fontSize: 12.5, color: C.inkMuted}}>☎ {u.work_phone}</Typography>}
                             </Box>
-                            <Typography sx={{fontSize: 20, fontWeight: 700, color: BRAND.navy900, mb: 3}}>
-                                {dept ? dept.title : deptId === 0 ? 'Şöbəsiz əməkdaşlar' : 'Şöbə seçin'}
-                            </Typography>
+                        );
+                    }}
+                    renderInput={(params) => (
+                        <TextField {...params} size="small" placeholder="Ad, soyad və ya daxili nömrə ilə axtarın" sx={{...fieldSx, width: {xs: '100%', sm: 460}}}
+                                   InputProps={{...params.InputProps, startAdornment: <SearchIcon sx={{fontSize: 20, color: C.inkFaint, mr: 1}}/>}}/>
+                    )}
+                />
+                <Box sx={{display: 'flex', gap: 1, ml: 'auto'}}>
+                    <Box component="button" type="button" onClick={expandAll} sx={toolBtnSx}>Hamısını aç</Box>
+                    <Box component="button" type="button" onClick={collapseAll} sx={toolBtnSx}>Hamısını bağla</Box>
+                </Box>
+            </Box>
 
-                            {tiers.length === 0 && <EmptyState title="Bu şöbədə əməkdaş yoxdur"/>}
-
-                            {tiers.map((tier, ti) => (
-                                <Box key={`${tier.order}-${tier.title}`}>
-                                    {ti > 0 && <Box sx={{height: 26, width: 0, mx: 'auto', borderLeft: `2px solid ${C.lineStrong}`}}/>}
-                                    <Box sx={{display: 'flex', justifyContent: 'center', mb: 1.5}}>
-                                        <Box sx={{px: 1.75, py: '3px', borderRadius: '999px', fontSize: 11.5, fontWeight: 700, letterSpacing: '0.04em',
-                                            textTransform: 'uppercase', color: '#fff', backgroundColor: TIER_HUES[ti % TIER_HUES.length]}}>
-                                            {tier.title}
-                                        </Box>
-                                    </Box>
-                                    <Box sx={{display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 2.5}}>
-                                        {tier.people.map((u) => {
-                                            const isMe = u.id === data.me.user_id;
-                                            const hue = TIER_HUES[ti % TIER_HUES.length];
-                                            return (
-                                                <Box key={u.id} ref={(el) => { nodeRefs.current[u.id] = el; }} role="button" tabIndex={0}
-                                                     onClick={() => openPerson(u)} onKeyDown={(e) => { if (e.key === 'Enter') openPerson(u); }}
-                                                     sx={{width: 148, textAlign: 'center', cursor: 'pointer', p: 1.5, borderRadius: '14px', backgroundColor: C.surface,
-                                                         border: `1.5px solid ${u.id === popUserId ? hue : C.line}`, transition: 'transform .18s, box-shadow .18s',
-                                                         '&:hover': {transform: 'translateY(-3px)', boxShadow: '0 12px 24px rgba(6,18,38,0.12)'}}}>
-                                                    <Box sx={{display: 'inline-flex', p: '3px', borderRadius: '50%', border: `2.5px solid ${hue}`, position: 'relative'}}>
-                                                        <PersonAvatar user={u} size={64}/>
-                                                        {isMe && <Box sx={{position: 'absolute', bottom: -6, left: '50%', transform: 'translateX(-50%)', px: 0.9,
-                                                            borderRadius: '8px', fontSize: 10, fontWeight: 800, color: '#fff', backgroundColor: hue}}>SİZ</Box>}
-                                                    </Box>
-                                                    <Typography sx={{fontSize: 13.5, fontWeight: 650, color: C.ink, mt: 1, lineHeight: 1.25}}>{u.name}</Typography>
-                                                    {u.work_phone && <Typography sx={{fontSize: 12, color: C.inkMuted, mt: 0.25}}>☎ {u.work_phone}</Typography>}
-                                                </Box>
-                                            );
-                                        })}
-                                    </Box>
+            <Box sx={{...panelSx, p: 3, overflow: 'auto', maxHeight: '75vh'}}>
+                {!data ? <Skeleton variant="rounded" height={300}/> : rootItems.length === 0 ? <EmptyState title="Struktur məlumatı yoxdur"/> : (
+                    <Box sx={{display: 'flex', alignItems: 'center', width: 'max-content', minWidth: '100%'}}>
+                        <Box sx={{px: 2.5, py: 1.75, maxWidth: 220, borderRadius: '12px', color: '#fff', flexShrink: 0,
+                            background: `linear-gradient(135deg, ${BRAND.navy950}, ${BRAND.navy700})`}}>
+                            <Typography sx={{fontSize: 10.5, letterSpacing: '0.08em', opacity: 0.7, textTransform: 'uppercase'}}>Qurum</Typography>
+                            <Typography sx={{fontSize: 15, fontWeight: 700, lineHeight: 1.3}}>{data.organization?.title || '—'}</Typography>
+                        </Box>
+                        <Box sx={{width: `${GAP}px`, borderTop: LINE, flexShrink: 0}}/>
+                        <Box sx={{display: 'flex', flexDirection: 'column'}}>
+                            {rootItems.map((d) => (
+                                <Box key={d.id} sx={childWrapSx}>
+                                    {d.id === 0 ? renderDept(d) : renderDept(d)}
                                 </Box>
                             ))}
-
-                            {subDepts.length > 0 && (
-                                <Box sx={{mt: 4}}>
-                                    <Box sx={{height: 26, width: 0, mx: 'auto', borderLeft: `2px dashed ${C.lineStrong}`}}/>
-                                    <Typography sx={{textAlign: 'center', fontSize: 11.5, fontWeight: 700, color: C.inkFaint, letterSpacing: '0.06em',
-                                        textTransform: 'uppercase', mb: 1.5}}>Tabe strukturlar</Typography>
-                                    <Box sx={{display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 1.5}}>
-                                        {subDepts.map((c) => (
-                                            <Box key={c.id} role="button" tabIndex={0} onClick={() => selectDept(c.id)}
-                                                 onKeyDown={(e) => { if (e.key === 'Enter') selectDept(c.id); }}
-                                                 sx={{px: 2, py: 1.25, borderRadius: '12px', border: `1.5px dashed ${C.lineStrong}`, backgroundColor: C.surface,
-                                                     cursor: 'pointer', '&:hover': {borderColor: BRAND.navy600, borderStyle: 'solid'}}}>
-                                                <Typography sx={{fontSize: 13.5, fontWeight: 650, color: BRAND.navy900}}>{c.title}</Typography>
-                                                <Typography sx={{fontSize: 12, color: C.inkMuted}}>{tree.counts[c.id] ?? 0} əməkdaş</Typography>
-                                            </Box>
-                                        ))}
-                                    </Box>
-                                </Box>
-                            )}
-                        </>
-                    )}
-                </Box>
+                        </Box>
+                    </Box>
+                )}
             </Box>
 
             <Popover open={!!(popUser && anchor)} anchorEl={anchor} onClose={() => { setPopUserId(null); setAnchor(null); }}
@@ -371,3 +319,8 @@ export default function StructurePage() {
         </Box>
     );
 }
+
+const toolBtnSx = {
+    border: `1px solid ${C.lineStrong}`, backgroundColor: C.surface, color: C.ink, borderRadius: '8px', px: 1.5, height: 36,
+    fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', '&:hover': {borderColor: BRAND.navy600},
+};

@@ -3,7 +3,7 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
     Autocomplete, Avatar, Box, Chip, Popover, Skeleton, TextField, Typography,
 } from '@mui/material';
-import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import SearchIcon from '@mui/icons-material/Search';
 import MailOutlineIcon from '@mui/icons-material/MailOutline';
 import LocalPhoneOutlinedIcon from '@mui/icons-material/LocalPhoneOutlined';
@@ -93,17 +93,26 @@ function pathTo(departments, depId) {
     return out;
 }
 
-const GAP = 30;                       // düyünlər arası üfüqi məsafə
-const LINE = `1.5px solid #8C9BB5`;
+const LINE = '1.5px solid #8C9BB5';
+const LEVEL_COLORS = ['#0B2A5B', '#0A6CC2', '#1F7A4D', '#6B4FB5', '#C99A1E'];
+const STEM = 26;                      // şaquli qolun hündürlüyü
 
-// Üfüqi ağacın uşaq sütunu: hər uşaq üçün qol + ortaq şaquli magistral
-const childWrapSx = {
-    position: 'relative', pl: `${GAP}px`, py: '5px', display: 'flex', alignItems: 'center',
-    '&::before': {content: '""', position: 'absolute', left: 0, top: '50%', width: `${GAP}px`, borderTop: LINE},
-    '&::after': {content: '""', position: 'absolute', left: 0, top: 0, bottom: 0, borderLeft: LINE},
-    '&:first-of-type::after': {top: '50%'},
-    '&:last-of-type::after': {bottom: '50%'},
-    '&:only-child::after': {display: 'none'},
+// Üzdən-aşağı ağacın xətləri: valideyn -> uşaqlar arasında yuvarlaq künclü "şana" xətti
+const treeSx = {
+    '& ul': {listStyle: 'none', m: 0, p: 0, pt: `${STEM}px`, display: 'flex', justifyContent: 'center', position: 'relative'},
+    '& ul::before': {content: '""', position: 'absolute', top: 0, left: '50%', height: `${STEM}px`, borderLeft: LINE},
+    '& li': {position: 'relative', pt: `${STEM}px`, px: '10px', display: 'flex', flexDirection: 'column', alignItems: 'center'},
+    '& li::before, & li::after': {content: '""', position: 'absolute', top: 0, right: '50%', width: '50%', height: `${STEM}px`, borderTop: LINE},
+    '& li::after': {right: 'auto', left: '50%', borderLeft: LINE},
+    '& li:only-child': {pt: 0},
+    '& li:only-child::before, & li:only-child::after': {display: 'none'},
+    '& li:first-of-type::before, & li:last-of-type::after': {border: 'none'},
+    '& li:last-of-type::before': {borderRight: LINE, borderRadius: '0 12px 0 0'},
+    '& li:first-of-type::after': {borderRadius: '12px 0 0 0'},
+    '& > ul': {pt: 0},
+    '& > ul::before': {display: 'none'},
+    '& > ul > li': {pt: 0},
+    '& > ul > li::before, & > ul > li::after': {display: 'none'},
 };
 
 export default function StructurePage() {
@@ -179,55 +188,60 @@ export default function StructurePage() {
         }, 300);
     };
 
-    const personNode = (u) => {
+    const memberChip = (u) => {
         const isMe = u.id === data.me.user_id;
         return (
-            <Box ref={(el) => { nodeRefs.current[u.id] = el; }} role="button" tabIndex={0} onClick={() => openPerson(u)}
+            <Box key={u.id} ref={(el) => { nodeRefs.current[u.id] = el; }} role="button" tabIndex={0} onClick={() => openPerson(u)}
                  onKeyDown={(e) => { if (e.key === 'Enter') openPerson(u); }}
-                 sx={{display: 'flex', alignItems: 'center', gap: 1.25, pr: 1.75, pl: 0.75, py: 0.75, borderRadius: '999px', cursor: 'pointer',
-                     width: 250, backgroundColor: C.surface, border: `1.5px solid ${isMe ? BRAND.navy600 : popUserId === u.id ? BRAND.navy600 : C.line}`,
-                     boxShadow: isMe ? `0 0 0 3px ${BRAND.navy600}22` : 'none', transition: 'box-shadow .15s, border-color .15s',
-                     '&:hover': {borderColor: BRAND.navy600, boxShadow: '0 6px 16px rgba(6,18,38,0.10)'}}}>
-                <PersonAvatar user={u} size={38}/>
-                <Box sx={{minWidth: 0, flex: 1}}>
-                    <Typography noWrap sx={{fontSize: 13, fontWeight: 650, color: C.ink, lineHeight: 1.25}}>
-                        {u.name}{isMe && <Box component="span" sx={{ml: 0.75, fontSize: 10, fontWeight: 800, color: BRAND.navy600}}>SİZ</Box>}
-                    </Typography>
-                    <Typography noWrap sx={{fontSize: 11.5, color: C.inkMuted, lineHeight: 1.25}}>{u.position || '—'}</Typography>
+                 sx={{width: 92, textAlign: 'center', cursor: 'pointer', p: '8px 4px', borderRadius: '12px', position: 'relative',
+                     backgroundColor: popUserId === u.id ? `${BRAND.navy600}14` : 'transparent', transition: 'background-color .15s, transform .15s',
+                     '&:hover': {backgroundColor: `${BRAND.navy600}14`, transform: 'translateY(-2px)'}}}>
+                <Box sx={{display: 'inline-flex', p: '2px', borderRadius: '50%', border: `2px solid ${isMe ? '#C99A1E' : 'transparent'}`}}>
+                    <PersonAvatar user={u} size={46}/>
                 </Box>
+                <Typography sx={{fontSize: 11.5, fontWeight: 650, color: C.ink, lineHeight: 1.2, mt: 0.5}}>{u.name}</Typography>
+                <Typography sx={{fontSize: 10.5, color: C.inkMuted, lineHeight: 1.2, mt: '2px'}}>{u.position || '—'}</Typography>
+                {isMe && <Box sx={{position: 'absolute', top: 4, right: 6, fontSize: 9, fontWeight: 800, color: '#fff',
+                    backgroundColor: '#C99A1E', borderRadius: '6px', px: '5px'}}>SİZ</Box>}
             </Box>
         );
     };
 
-    const renderDept = (dept) => {
+    const renderNode = (dept, level = 0) => {
         const isOpen = open.has(dept.id);
         const members = tree.users[dept.id] || [];
         const subs = tree.children[dept.id] || [];
         const hasKids = members.length + subs.length > 0;
+        const color = LEVEL_COLORS[level % LEVEL_COLORS.length];
+        const mine = dept.id === data?.me?.department_id;
         return (
-            <Box sx={{display: 'flex', alignItems: 'center'}}>
+            <li key={dept.id}>
                 <Box role="button" tabIndex={0} aria-expanded={isOpen} onClick={() => hasKids && toggle(dept.id)}
                      onKeyDown={(e) => { if (e.key === 'Enter' && hasKids) toggle(dept.id); }}
-                     sx={{display: 'flex', alignItems: 'center', gap: 1, width: 230, px: 1.5, py: 1.1, borderRadius: '10px', flexShrink: 0,
-                         cursor: hasKids ? 'pointer' : 'default', backgroundColor: isOpen ? BRAND.navy900 : C.surface,
-                         color: isOpen ? '#fff' : BRAND.navy900, border: `1.5px solid ${BRAND.navy900}`,
-                         '&:hover': {boxShadow: '0 6px 16px rgba(6,18,38,0.14)'}}}>
-                    <Typography sx={{fontSize: 13.5, fontWeight: 700, flex: 1, lineHeight: 1.3}}>{dept.title}</Typography>
-                    <Box sx={{fontSize: 11.5, fontWeight: 700, px: 0.9, borderRadius: '8px', backgroundColor: isOpen ? 'rgba(255,255,255,0.2)' : `${BRAND.navy900}14`}}>
-                        {tree.counts[dept.id] ?? members.length}
+                     sx={{width: 208, textAlign: 'center', borderRadius: '14px', backgroundColor: C.surface, overflow: 'hidden', cursor: hasKids ? 'pointer' : 'default',
+                         border: `1.5px solid ${isOpen || mine ? color : C.line}`, boxShadow: isOpen ? `0 10px 24px ${color}22` : '0 1px 2px rgba(6,18,38,0.05)',
+                         transition: 'box-shadow .2s, border-color .2s', '&:hover': {borderColor: color}}}>
+                    <Box sx={{height: 5, backgroundColor: color}}/>
+                    <Box sx={{px: 1.5, py: 1.25}}>
+                        <Typography sx={{fontSize: 13.5, fontWeight: 700, color: BRAND.navy900, lineHeight: 1.3}}>{dept.title}</Typography>
+                        <Box sx={{display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.75, mt: 0.5}}>
+                            <Typography sx={{fontSize: 11.5, color: C.inkMuted}}>{tree.counts[dept.id] ?? members.length} əməkdaş</Typography>
+                            {hasKids && <ExpandMoreIcon sx={{fontSize: 17, color, transition: 'transform .2s', transform: isOpen ? 'rotate(180deg)' : 'none'}}/>}
+                        </Box>
                     </Box>
-                    {hasKids && <ChevronRightIcon sx={{fontSize: 18, transition: 'transform .2s', transform: isOpen ? 'rotate(90deg)' : 'none'}}/>}
                 </Box>
-                {isOpen && hasKids && (
+
+                {isOpen && members.length > 0 && (
                     <>
-                        <Box sx={{width: `${GAP}px`, borderTop: LINE, flexShrink: 0}}/>
-                        <Box sx={{display: 'flex', flexDirection: 'column'}}>
-                            {members.map((u) => <Box key={`u${u.id}`} sx={childWrapSx}>{personNode(u)}</Box>)}
-                            {subs.map((c) => <Box key={`d${c.id}`} sx={childWrapSx}>{renderDept(c)}</Box>)}
+                        <Box sx={{height: 14, borderLeft: LINE}}/>
+                        <Box sx={{display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '2px', width: 3 * 96 + 16, maxHeight: 340, overflowY: 'auto',
+                            p: '8px', borderRadius: '16px', backgroundColor: '#F3F6FB', border: `1px solid ${C.line}`}}>
+                            {members.map(memberChip)}
                         </Box>
                     </>
                 )}
-            </Box>
+                {isOpen && subs.length > 0 && <ul>{subs.map((c) => renderNode(c, level + 1))}</ul>}
+            </li>
         );
     };
 
@@ -291,22 +305,19 @@ export default function StructurePage() {
                 </Box>
             </Box>
 
-            <Box sx={{...panelSx, p: 3, overflow: 'auto', maxHeight: '75vh'}}>
+            <Box sx={{...panelSx, p: 3, overflow: 'auto', maxHeight: '80vh'}}>
                 {!data ? <Skeleton variant="rounded" height={300}/> : rootItems.length === 0 ? <EmptyState title="Struktur məlumatı yoxdur"/> : (
-                    <Box sx={{display: 'flex', alignItems: 'center', width: 'max-content', minWidth: '100%'}}>
-                        <Box sx={{px: 2.5, py: 1.75, maxWidth: 220, borderRadius: '12px', color: '#fff', flexShrink: 0,
-                            background: `linear-gradient(135deg, ${BRAND.navy950}, ${BRAND.navy700})`}}>
-                            <Typography sx={{fontSize: 10.5, letterSpacing: '0.08em', opacity: 0.7, textTransform: 'uppercase'}}>Qurum</Typography>
-                            <Typography sx={{fontSize: 15, fontWeight: 700, lineHeight: 1.3}}>{data.organization?.title || '—'}</Typography>
-                        </Box>
-                        <Box sx={{width: `${GAP}px`, borderTop: LINE, flexShrink: 0}}/>
-                        <Box sx={{display: 'flex', flexDirection: 'column'}}>
-                            {rootItems.map((d) => (
-                                <Box key={d.id} sx={childWrapSx}>
-                                    {d.id === 0 ? renderDept(d) : renderDept(d)}
+                    <Box sx={{...treeSx, width: 'max-content', minWidth: '100%', display: 'flex', justifyContent: 'center'}}>
+                        <ul>
+                            <li>
+                                <Box sx={{px: 3, py: 1.5, borderRadius: '14px', color: '#fff', textAlign: 'center', maxWidth: 380,
+                                    background: `linear-gradient(135deg, ${BRAND.navy950}, ${BRAND.navy700})`, boxShadow: '0 10px 24px rgba(6,18,38,0.18)'}}>
+                                    <Typography sx={{fontSize: 10.5, letterSpacing: '0.1em', opacity: 0.7, textTransform: 'uppercase'}}>Qurum</Typography>
+                                    <Typography sx={{fontSize: 16, fontWeight: 700, lineHeight: 1.3}}>{data.organization?.title || '—'}</Typography>
                                 </Box>
-                            ))}
-                        </Box>
+                                <ul>{rootItems.map((d) => renderNode(d, 0))}</ul>
+                            </li>
+                        </ul>
                     </Box>
                 )}
             </Box>

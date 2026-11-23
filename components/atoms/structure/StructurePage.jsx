@@ -125,6 +125,36 @@ export default function StructurePage() {
     const [inputValue, setInputValue] = useState('');
     const nodeRefs = useRef({});
 
+    // Sxemi səhifəyə sığdırmaq: ölçülər ölçülür, "auto" rejimində miqyas avtomatik seçilir
+    const boxRef = useRef(null);
+    const contentRef = useRef(null);
+    const [scale, setScale] = useState(1);
+    const [auto, setAuto] = useState(true);
+    const [size, setSize] = useState({w: 0, h: 0});
+    const MIN_SCALE = 0.3;
+
+    const fit = useCallback(() => {
+        const box = boxRef.current;
+        const el = contentRef.current;
+        if (!box || !el) return;
+        const cw = el.offsetWidth;
+        const ch = el.offsetHeight;
+        setSize({w: cw, h: ch});
+        if (!auto || !cw || !ch) return;
+        const k = Math.min(1, (box.clientWidth - 48) / cw, (box.clientHeight - 48) / ch);
+        setScale(Math.max(MIN_SCALE, Math.round(k * 100) / 100));
+    }, [auto]);
+
+    useEffect(() => {
+        fit();
+        const ro = new ResizeObserver(fit);
+        if (boxRef.current) ro.observe(boxRef.current);
+        if (contentRef.current) ro.observe(contentRef.current);
+        return () => ro.disconnect();
+    }, [fit, data, open]);
+
+    const zoom = (delta) => { setAuto(false); setScale((k) => Math.min(1.6, Math.max(MIN_SCALE, Math.round((k + delta) * 100) / 100))); };
+
     const load = useCallback(async (organization) => {
         try {
             const res = await service_api.get(NEXT_API_ENDPOINTS.STRUCTURE.LIST + (organization ? `?organization=${organization}` : ''));
@@ -250,8 +280,8 @@ export default function StructurePage() {
     const popUser = popUserId ? userById[popUserId] : null;
 
     return (
-        <Box sx={pageWrapSx}>
-            <Box sx={{display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 2, mb: 3}}>
+        <Box sx={{...pageWrapSx, maxWidth: '100%', p: {xs: 2, sm: 3, md: 4}}}>
+            <Box sx={{display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 2, mb: 2}}>
                 <Box>
                     <Typography component="h1" sx={{fontSize: 24, fontWeight: 700, color: BRAND.navy900}}>Təşkilati struktur</Typography>
                     <Typography sx={{fontSize: 14, color: C.inkMuted}}>Şöbənin üzərinə klikləyib açın, əməkdaşın üzərinə klikləyib məlumatına baxın.</Typography>
@@ -264,7 +294,7 @@ export default function StructurePage() {
                 )}
             </Box>
 
-            <Box sx={{display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', gap: 2, mb: 3}}>
+            <Box sx={{display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', gap: 2, mb: 2}}>
                 <Autocomplete
                     options={data?.users || []}
                     value={null}
@@ -299,15 +329,21 @@ export default function StructurePage() {
                                    InputProps={{...params.InputProps, startAdornment: <SearchIcon sx={{fontSize: 20, color: C.inkFaint, mr: 1}}/>}}/>
                     )}
                 />
-                <Box sx={{display: 'flex', gap: 1, ml: 'auto'}}>
+                <Box sx={{display: 'flex', gap: 1, ml: 'auto', alignItems: 'center'}}>
+                    <Box component="button" type="button" aria-label="Kiçilt" onClick={() => zoom(-0.1)} sx={{...toolBtnSx, px: 1.25}}>−</Box>
+                    <Typography sx={{fontSize: 12.5, color: C.inkMuted, minWidth: 40, textAlign: 'center'}}>{Math.round(scale * 100)}%</Typography>
+                    <Box component="button" type="button" aria-label="Böyüt" onClick={() => zoom(0.1)} sx={{...toolBtnSx, px: 1.25}}>+</Box>
+                    <Box component="button" type="button" onClick={() => setAuto(true)} sx={{...toolBtnSx, ...(auto ? {borderColor: BRAND.navy600} : {})}}>Sığdır</Box>
                     <Box component="button" type="button" onClick={expandAll} sx={toolBtnSx}>Hamısını aç</Box>
                     <Box component="button" type="button" onClick={collapseAll} sx={toolBtnSx}>Hamısını bağla</Box>
                 </Box>
             </Box>
 
-            <Box sx={{...panelSx, p: 3, overflow: 'auto', maxHeight: '80vh'}}>
+            <Box ref={boxRef} sx={{...panelSx, p: 3, overflow: 'auto', height: {xs: '70vh', md: 'calc(100vh - 300px)'}, minHeight: 480}}>
                 {!data ? <Skeleton variant="rounded" height={300}/> : rootItems.length === 0 ? <EmptyState title="Struktur məlumatı yoxdur"/> : (
-                    <Box sx={{...treeSx, width: 'max-content', minWidth: '100%', display: 'flex', justifyContent: 'center'}}>
+                  <Box sx={{width: size.w * scale || 'auto', height: size.h * scale || 'auto', mx: 'auto'}}>
+                    <Box ref={contentRef} sx={{...treeSx, width: 'max-content', transform: `scale(${scale})`, transformOrigin: 'top left',
+                        display: 'flex', justifyContent: 'center'}}>
                         <ul>
                             <li>
                                 <Box sx={{px: 3, py: 1.5, borderRadius: '14px', color: '#fff', textAlign: 'center', maxWidth: 380,
@@ -319,6 +355,7 @@ export default function StructurePage() {
                             </li>
                         </ul>
                     </Box>
+                  </Box>
                 )}
             </Box>
 

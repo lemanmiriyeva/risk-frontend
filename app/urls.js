@@ -99,6 +99,10 @@ export const DJANGO_API_ENDPOINTS = {
         BASE: API_URL + "/api/agenda/",
     },
 
+    STRUCTURE: {
+        BASE: API_URL + "/api/structure/",
+    },
+
 }
 
 export const NEXT_API_ENDPOINTS = {
@@ -205,6 +209,10 @@ export const NEXT_API_ENDPOINTS = {
         STATS_FEEDBACK: "trainings/statistics/feedback/",
         STATS_FEEDBACK_DETAIL: (id) => `trainings/statistics/feedback/${id}/`,
         STATS_EXPORT: "trainings/statistics/export/",
+    },
+
+    STRUCTURE: {
+        LIST: "structure/",
     },
 
     AGENDA: {

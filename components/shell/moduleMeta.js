@@ -10,6 +10,7 @@ import CampaignOutlinedIcon from '@mui/icons-material/CampaignOutlined';
 import SchoolOutlinedIcon from '@mui/icons-material/SchoolOutlined';
 import ConfirmationNumberOutlinedIcon from '@mui/icons-material/ConfirmationNumberOutlined';
 import CalendarMonthOutlinedIcon from '@mui/icons-material/CalendarMonthOutlined';
+import AccountTreeOutlinedIcon from '@mui/icons-material/AccountTreeOutlined';
 import WidgetsOutlinedIcon from '@mui/icons-material/WidgetsOutlined';
 import {service_api} from "@/app/service";
 import {NEXT_API_ENDPOINTS} from "@/app/urls";
@@ -27,6 +28,7 @@ const ICONS = {
     telimler: SchoolOutlinedIcon,
     muracietler: ConfirmationNumberOutlinedIcon,
     teqvim: CalendarMonthOutlinedIcon,
+    struktur: AccountTreeOutlinedIcon,
 };
 
 export function moduleIcon(urlEndpoint) {

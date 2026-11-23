@@ -104,7 +104,7 @@ export default function StructurePage() {
             const mine = d.users.find((u) => u.id === d.me.user_id);
             const depId = mine?.department ?? d.me.department_id;
             setSelectedId(mine ? mine.id : null);
-            setExpanded(depId ? new Set(ancestors(d.departments, depId)) : new Set());
+            setExpanded(depId ? new Set([depId]) : new Set());
         } catch (e) {
             enqueueSnackbar(handleError(e), {variant: 'error'});
             setData({departments: [], users: [], organizations: [], me: {}});
@@ -142,7 +142,7 @@ export default function StructurePage() {
         if (!user) return;
         setSelectedId(user.id);
         if (user.department) {
-            setExpanded((prev) => new Set([...prev, ...ancestors(data.departments, user.department)]));
+            setExpanded((prev) => new Set([...prev, user.department]));
         }
         setTimeout(() => rowRefs.current[user.id]?.scrollIntoView({behavior: 'smooth', block: 'center'}), 350);
     };
@@ -155,66 +155,68 @@ export default function StructurePage() {
         });
     };
 
-    // Ağac: şöbə düyünləri + əməkdaş yarpaqları, şaquli xətt və üfüqi qollarla birləşir
-    const branchSx = {
-        position: 'relative', pl: '22px',
-        '&::before': {content: '""', position: 'absolute', left: 0, top: 22, width: 14, borderTop: `1.5px solid ${C.lineStrong}`},
+    const LINE = `1.5px solid ${C.lineStrong}`;
+
+    // Üzdən-aşağı iyerarxik sxem: qurum -> şöbələr -> alt şöbələr. Düyünə klikləyəndə əməkdaşlar (vəzifə sırası ilə) açılır.
+    const treeSx = {
+        '& ul': {listStyle: 'none', m: 0, p: 0, pt: '22px', display: 'flex', justifyContent: 'center', position: 'relative'},
+        '& ul ul::before': {content: '""', position: 'absolute', top: 0, left: '50%', height: '22px', borderLeft: LINE},
+        '& li': {position: 'relative', textAlign: 'center', pt: '22px', px: '8px', display: 'flex', flexDirection: 'column', alignItems: 'center'},
+        '& li::before, & li::after': {content: '""', position: 'absolute', top: 0, right: '50%', width: '50%', height: '22px', borderTop: LINE},
+        '& li::after': {right: 'auto', left: '50%', borderLeft: LINE},
+        '& li:only-child': {pt: 0},
+        '& li:only-child::before, & li:only-child::after': {display: 'none'},
+        '& li:first-of-type::before, & li:last-of-type::after': {border: 'none'},
+        '& li:last-of-type::before': {borderRight: LINE, borderRadius: '0 8px 0 0'},
+        '& li:first-of-type::after': {borderRadius: '8px 0 0 0'},
+        '& > ul': {pt: 0},
+        '& > ul > li': {pt: 0},
+        '& > ul > li::before, & > ul > li::after': {display: 'none'},
     };
 
-    const renderDept = (dept, isRoot = true) => {
+    const renderNode = (dept) => {
         const open = expanded.has(dept.id);
         const members = tree.users[dept.id] || [];
         const subs = tree.children[dept.id] || [];
+        const mine = dept.id === data?.me?.department_id;
         return (
-            <Box key={dept.id} sx={isRoot ? {mb: 1.5} : branchSx}>
-                <Box role="button" tabIndex={0} aria-expanded={open}
-                     onClick={() => toggle(dept.id)(null, !open)}
-                     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggle(dept.id)(null, !open); }}
-                     sx={{
-                         display: 'inline-flex', alignItems: 'center', gap: 1, px: 1.5, height: 44, cursor: 'pointer', maxWidth: '100%',
-                         borderRadius: '10px', border: `1px solid ${open ? BRAND.navy600 : C.line}`,
-                         backgroundColor: isRoot ? BRAND.navy900 : C.surface, color: isRoot ? '#fff' : BRAND.navy900,
-                         '&:hover': {borderColor: BRAND.navy600},
-                     }}>
-                    <ExpandMoreIcon sx={{fontSize: 20, transition: 'transform .2s', transform: open ? 'none' : 'rotate(-90deg)'}}/>
-                    <ApartmentOutlinedIcon sx={{fontSize: 18, opacity: 0.8}}/>
-                    <Typography sx={{fontSize: 14, fontWeight: 650}}>{dept.title}</Typography>
-                    <Chip size="small" label={tree.counts[dept.id] ?? members.length}
-                          sx={{height: 20, fontSize: 11.5, fontWeight: 700, ml: 0.5,
-                              ...(isRoot ? {backgroundColor: 'rgba(255,255,255,0.18)', color: '#fff'} : {})}}/>
-                </Box>
-                {open && (
-                    <Box sx={{ml: '20px', pl: 0, borderLeft: `1.5px solid ${C.lineStrong}`, mt: 0.5}}>
-                        {members.map((u) => (
-                            <Box key={u.id} sx={{position: 'relative', pl: '22px', py: '3px',
-                                '&::before': {content: '""', position: 'absolute', left: 0, top: '50%', width: 14, borderTop: `1.5px solid ${C.lineStrong}`}}}>
-                                <Box ref={(el) => { rowRefs.current[u.id] = el; }} role="button" tabIndex={0}
-                                     onClick={() => setSelectedId(u.id)}
-                                     onKeyDown={(e) => { if (e.key === 'Enter') setSelectedId(u.id); }}
-                                     sx={{
-                                         display: 'flex', alignItems: 'center', gap: 1.5, p: '6px 10px', borderRadius: '10px', cursor: 'pointer',
-                                         backgroundColor: u.id === selectedId ? `${BRAND.navy600}14` : 'transparent',
-                                         outline: u.id === selectedId ? `1px solid ${BRAND.navy600}66` : 'none',
-                                         '&:hover': {backgroundColor: u.id === selectedId ? `${BRAND.navy600}14` : C.surfaceRaised},
-                                     }}>
-                                    <PersonAvatar user={u} size={36}/>
-                                    <Box sx={{minWidth: 0, flex: 1}}>
-                                        <Typography sx={{fontSize: 14, fontWeight: 600, color: C.ink, lineHeight: 1.25}}>{u.name}</Typography>
-                                        <Typography sx={{fontSize: 12.5, color: C.inkMuted}}>{u.position || 'Vəzifə göstərilməyib'}</Typography>
-                                    </Box>
-                                    {u.work_phone && <Typography sx={{fontSize: 12.5, color: C.inkFaint}}>{u.work_phone}</Typography>}
-                                </Box>
-                            </Box>
-                        ))}
-                        {subs.map((c) => (
-                            <Box key={c.id} sx={{py: '3px'}}>{renderDept(c, false)}</Box>
-                        ))}
-                        {!members.length && !subs.length && (
-                            <Typography sx={{fontSize: 13, color: C.inkFaint, pl: '22px', py: 0.75}}>Bu şöbədə əməkdaş yoxdur.</Typography>
-                        )}
+            <li key={dept.id}>
+                <Box sx={{
+                    width: 236, textAlign: 'left', borderRadius: '10px', backgroundColor: C.surface, overflow: 'hidden',
+                    border: `1.5px solid ${mine ? BRAND.navy600 : C.line}`, boxShadow: open ? '0 8px 20px rgba(6,18,38,0.08)' : 'none',
+                }}>
+                    <Box role="button" tabIndex={0} aria-expanded={open} onClick={() => toggle(dept.id)(null, !open)}
+                         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggle(dept.id)(null, !open); }}
+                         sx={{display: 'flex', alignItems: 'center', gap: 1, px: 1.5, py: 1.1, cursor: 'pointer',
+                             backgroundColor: BRAND.navy900, color: '#fff'}}>
+                        <Typography sx={{fontSize: 13, fontWeight: 650, flex: 1, lineHeight: 1.3}}>{dept.title}</Typography>
+                        <Chip size="small" label={tree.counts[dept.id] ?? members.length}
+                              sx={{height: 20, fontSize: 11.5, fontWeight: 700, backgroundColor: 'rgba(255,255,255,0.18)', color: '#fff'}}/>
+                        <ExpandMoreIcon sx={{fontSize: 18, transition: 'transform .2s', transform: open ? 'rotate(180deg)' : 'none'}}/>
                     </Box>
-                )}
-            </Box>
+                    {open && (
+                        <Box sx={{maxHeight: 340, overflowY: 'auto', p: 0.75}}>
+                            {members.length === 0 && (
+                                <Typography sx={{fontSize: 12.5, color: C.inkFaint, p: 1}}>Bu şöbədə əməkdaş yoxdur.</Typography>
+                            )}
+                            {members.map((u) => (
+                                <Box key={u.id} ref={(el) => { rowRefs.current[u.id] = el; }} role="button" tabIndex={0}
+                                     onClick={() => setSelectedId(u.id)} onKeyDown={(e) => { if (e.key === 'Enter') setSelectedId(u.id); }}
+                                     sx={{display: 'flex', alignItems: 'center', gap: 1.25, p: '6px 8px', borderRadius: '8px', cursor: 'pointer',
+                                         backgroundColor: u.id === selectedId ? `${BRAND.navy600}1A` : 'transparent',
+                                         '&:hover': {backgroundColor: u.id === selectedId ? `${BRAND.navy600}1A` : C.surfaceRaised}}}>
+                                    <PersonAvatar user={u} size={30}/>
+                                    <Box sx={{minWidth: 0}}>
+                                        <Typography sx={{fontSize: 13, fontWeight: 600, color: C.ink, lineHeight: 1.2}}>{u.name}</Typography>
+                                        <Typography sx={{fontSize: 11.5, color: C.inkMuted, lineHeight: 1.25}}>{u.position || '—'}</Typography>
+                                    </Box>
+                                </Box>
+                            ))}
+                        </Box>
+                    )}
+                </Box>
+                {subs.length > 0 && <ul>{subs.map(renderNode)}</ul>}
+            </li>
         );
     };
 
@@ -275,8 +277,26 @@ export default function StructurePage() {
                 <Box>
                     {!data ? [0, 1, 2, 3].map((i) => <Skeleton key={i} variant="rounded" height={52} sx={{mb: 1, borderRadius: '10px'}}/>)
                         : data.departments.length === 0 && noDept.length === 0 ? <EmptyState title="Struktur məlumatı yoxdur"/>
-                        : tree.roots.map((d) => renderDept(d))}
-                    {noDept.length > 0 && renderDept({id: 0, title: 'Şöbəsiz əməkdaşlar'}, true)}
+                        : (
+                            <Box sx={{overflowX: 'auto', pb: 2, ...panelSx, p: 3}}>
+                                <Box sx={{...treeSx, minWidth: 'max-content', display: 'flex', justifyContent: 'center'}}>
+                                    <ul>
+                                        <li>
+                                            <Box sx={{px: 3, py: 1.25, borderRadius: '10px', backgroundColor: BRAND.navy950 || BRAND.navy900, color: '#fff',
+                                                fontSize: 14, fontWeight: 700, textAlign: 'center', maxWidth: 360}}>
+                                                {data.organization?.title || 'Qurum'}
+                                            </Box>
+                                            {(tree.roots.length > 0 || noDept.length > 0) && (
+                                                <ul>
+                                                    {tree.roots.map(renderNode)}
+                                                    {noDept.length > 0 && renderNode({id: 0, title: 'Şöbəsiz əməkdaşlar'})}
+                                                </ul>
+                                            )}
+                                        </li>
+                                    </ul>
+                                </Box>
+                            </Box>
+                        )}
                 </Box>
                 <Box sx={{position: {md: 'sticky'}, top: {md: 96}}}>
                     <ProfileCard user={selected} department={selected ? deptById[selected.department] : null}/>

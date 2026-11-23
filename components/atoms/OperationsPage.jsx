@@ -7,6 +7,9 @@ import MenuItem from '@mui/material/MenuItem';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 import Chip from '@mui/material/Chip';
+import ToggleButton from '@mui/material/ToggleButton';
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
+import {useSearchParams} from "next/navigation";
 import {DataGrid} from '@mui/x-data-grid';
 import {useSnackbar} from "notistack";
 import SearchIcon from '@mui/icons-material/Search';
@@ -75,6 +78,8 @@ function formatDateTime(v) {
 
 export default function OperationsPage() {
     const {enqueueSnackbar} = useSnackbar();
+    const searchParams = useSearchParams();
+    const [scope, setScope] = useState(searchParams.get('scope') === 'incoming' ? 'incoming' : 'mine');
 
     const [rows, setRows] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -94,6 +99,7 @@ export default function OperationsPage() {
             if (typeFilter) params.set('operation_type', typeFilter);
             if (statusFilter) params.set('status', statusFilter);
             if (search) params.set('search', search);
+            if (scope === 'incoming') params.set('scope', 'incoming');
             const query = params.toString();
             const res = await service_api.get(`${NEXT_API_ENDPOINTS.OPERATIONS.LIST}${query ? `?${query}` : ''}`);
             setRows(res.data?.results || res.data || []);
@@ -102,7 +108,7 @@ export default function OperationsPage() {
         } finally {
             setLoading(false);
         }
-    }, [typeFilter, statusFilter, search, enqueueSnackbar]);
+    }, [typeFilter, statusFilter, search, scope, enqueueSnackbar]);
 
     useEffect(() => {
         const timeout = setTimeout(fetchRows, search ? 350 : 0);
@@ -163,7 +169,20 @@ export default function OperationsPage() {
                             <VisibilityOutlinedIcon fontSize="small" sx={{color: C.inkMuted}}/>
                         </IconButton>
                     </Tooltip>
-
+                    {params.row.can_review && (
+                        <>
+                            <Tooltip title="Təsdiqlə">
+                                <IconButton size="small" onClick={() => { setReviewTarget(params.row); setReviewAction('approve'); }}>
+                                    <CheckCircleOutlineIcon fontSize="small" sx={{color: '#1F7A4D'}}/>
+                                </IconButton>
+                            </Tooltip>
+                            <Tooltip title="İmtina et">
+                                <IconButton size="small" onClick={() => { setReviewTarget(params.row); setReviewAction('reject'); }}>
+                                    <HighlightOffIcon fontSize="small" sx={{color: '#C42F3D'}}/>
+                                </IconButton>
+                            </Tooltip>
+                        </>
+                    )}
                 </Box>
             ),
         },
@@ -176,6 +195,12 @@ export default function OperationsPage() {
             {/*        Bütün modullarda baş vermiş əməliyyatların (CRUD + təsdiq axını) mərkəzi reyestri.*/}
             {/*    </Typography>*/}
             {/*</Box>*/}
+
+            <ToggleButtonGroup exclusive size="small" value={scope} sx={{mb: 2}}
+                               onChange={(_, v) => { if (v) setScope(v); }}>
+                <ToggleButton value="mine" sx={{textTransform: 'none', px: 2}}>Əməliyyatlarım</ToggleButton>
+                <ToggleButton value="incoming" sx={{textTransform: 'none', px: 2}}>Daxil olanlar</ToggleButton>
+            </ToggleButtonGroup>
 
             <Box sx={{display: 'flex', gap: 1.5, mb: 3, flexWrap: 'wrap', alignItems: 'center'}}>
                 <TextField

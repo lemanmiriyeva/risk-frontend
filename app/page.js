@@ -7,11 +7,18 @@ import {useUserModules} from "@/components/shell/moduleMeta";
 import HomeCalendar from "@/components/home/HomeCalendar";
 import HomeFeed from "@/components/home/HomeFeed";
 import ModuleCards from "@/components/home/ModuleCards";
+import HomeQuickLinks from "@/components/home/HomeQuickLinks";
+
+// Yuxarıdakı sürətli sırada göstərilən modullar digər modullar şəbəkəsində təkrarlanmır
+const QUICK_ENDPOINTS = ['emeliyyatlar', 'muracietler'];
 
 const wrapSx = {px: {xs: 2.5, sm: 4, md: 6}, maxWidth: {xs: '100%', sm: '94%', lg: 1440}, mx: 'auto'};
 
 export default function Home() {
     const {modules, loading} = useUserModules();
+    const hasOperations = modules.some((m) => m.url_endpoint === 'emeliyyatlar');
+    const hasSupport = modules.some((m) => m.url_endpoint === 'muracietler');
+    const otherModules = modules.filter((m) => !QUICK_ENDPOINTS.includes(m.url_endpoint));
 
     if (!loading && modules.length === 0) {
         return (
@@ -36,7 +43,8 @@ export default function Home() {
             <Box sx={wrapSx}>
                 <Grid container spacing={2.5} alignItems="flex-start">
                     <Grid item xs={12} md={9}>
-                        <ModuleCards modules={modules} loading={loading}/>
+                        {!loading && <HomeQuickLinks hasOperations={hasOperations} hasSupport={hasSupport}/>}
+                        <ModuleCards modules={otherModules} loading={loading}/>
                     </Grid>
                     <Grid item xs={12} md={3}>
                         <Box sx={{display: 'flex', flexDirection: 'column', gap: 2.5}}>

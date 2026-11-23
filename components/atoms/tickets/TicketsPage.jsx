@@ -185,8 +185,8 @@ export default function TicketsPage() {
         <Box sx={{backgroundColor: GOV.pageBg, minHeight: '100vh'}}>
             <ModuleHero
                 eyebrow="Modul"
-                title="Müraciətlər"
-                breadcrumb={["Müraciətlər"]}
+                title="Texniki dəstək sistemi"
+                breadcrumb={["Texniki dəstək sistemi"]}
                 icon={<ConfirmationNumberOutlinedIcon sx={{fontSize: 26}}/>}
                 actions={(
                     <>

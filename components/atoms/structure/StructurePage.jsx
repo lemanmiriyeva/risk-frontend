@@ -1,7 +1,7 @@
 "use client"
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
-    Accordion, AccordionDetails, AccordionSummary, Autocomplete, Avatar, Box, Chip, Skeleton, TextField, Typography,
+    Autocomplete, Avatar, Box, Chip, Skeleton, TextField, Typography,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import SearchIcon from '@mui/icons-material/Search';
@@ -155,47 +155,68 @@ export default function StructurePage() {
         });
     };
 
-    const renderDept = (dept, level = 0) => (
-        <Accordion key={dept.id} expanded={expanded.has(dept.id)} onChange={toggle(dept.id)} disableGutters elevation={0}
-                   TransitionProps={{unmountOnExit: true}}
-                   sx={{border: `1px solid ${C.line}`, borderRadius: '10px !important', mb: 1, '&::before': {display: 'none'},
-                       backgroundColor: level ? C.surfaceRaised : C.surface}}>
-            <AccordionSummary expandIcon={<ExpandMoreIcon/>} sx={{px: 2, minHeight: 52}}>
-                <Box sx={{display: 'flex', alignItems: 'center', gap: 1.25, minWidth: 0}}>
-                    <Typography sx={{fontSize: 14.5, fontWeight: 650, color: BRAND.navy900}}>{dept.title}</Typography>
-                    <Chip size="small" label={tree.counts[dept.id] ?? (tree.users[dept.id] || []).length} sx={{height: 20, fontSize: 11.5, fontWeight: 700}}/>
+    // Ağac: şöbə düyünləri + əməkdaş yarpaqları, şaquli xətt və üfüqi qollarla birləşir
+    const branchSx = {
+        position: 'relative', pl: '22px',
+        '&::before': {content: '""', position: 'absolute', left: 0, top: 22, width: 14, borderTop: `1.5px solid ${C.lineStrong}`},
+    };
+
+    const renderDept = (dept, isRoot = true) => {
+        const open = expanded.has(dept.id);
+        const members = tree.users[dept.id] || [];
+        const subs = tree.children[dept.id] || [];
+        return (
+            <Box key={dept.id} sx={isRoot ? {mb: 1.5} : branchSx}>
+                <Box role="button" tabIndex={0} aria-expanded={open}
+                     onClick={() => toggle(dept.id)(null, !open)}
+                     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggle(dept.id)(null, !open); }}
+                     sx={{
+                         display: 'inline-flex', alignItems: 'center', gap: 1, px: 1.5, height: 44, cursor: 'pointer', maxWidth: '100%',
+                         borderRadius: '10px', border: `1px solid ${open ? BRAND.navy600 : C.line}`,
+                         backgroundColor: isRoot ? BRAND.navy900 : C.surface, color: isRoot ? '#fff' : BRAND.navy900,
+                         '&:hover': {borderColor: BRAND.navy600},
+                     }}>
+                    <ExpandMoreIcon sx={{fontSize: 20, transition: 'transform .2s', transform: open ? 'none' : 'rotate(-90deg)'}}/>
+                    <ApartmentOutlinedIcon sx={{fontSize: 18, opacity: 0.8}}/>
+                    <Typography sx={{fontSize: 14, fontWeight: 650}}>{dept.title}</Typography>
+                    <Chip size="small" label={tree.counts[dept.id] ?? members.length}
+                          sx={{height: 20, fontSize: 11.5, fontWeight: 700, ml: 0.5,
+                              ...(isRoot ? {backgroundColor: 'rgba(255,255,255,0.18)', color: '#fff'} : {})}}/>
                 </Box>
-            </AccordionSummary>
-            <AccordionDetails sx={{px: 1.5, pt: 0, pb: 1.5}}>
-                {(tree.users[dept.id] || []).map((u) => (
-                    <Box key={u.id} ref={(el) => { rowRefs.current[u.id] = el; }} role="button" tabIndex={0}
-                         onClick={() => setSelectedId(u.id)}
-                         onKeyDown={(e) => { if (e.key === 'Enter') setSelectedId(u.id); }}
-                         sx={{
-                             display: 'flex', alignItems: 'center', gap: 1.5, p: 1, borderRadius: '8px', cursor: 'pointer',
-                             backgroundColor: u.id === selectedId ? `${BRAND.navy600}14` : 'transparent',
-                             outline: u.id === selectedId ? `1px solid ${BRAND.navy600}55` : 'none',
-                             '&:hover': {backgroundColor: u.id === selectedId ? `${BRAND.navy600}14` : C.surfaceRaised},
-                         }}>
-                        <PersonAvatar user={u} size={38}/>
-                        <Box sx={{minWidth: 0, flex: 1}}>
-                            <Typography sx={{fontSize: 14, fontWeight: 600, color: C.ink}}>{u.name}</Typography>
-                            <Typography sx={{fontSize: 12.5, color: C.inkMuted}}>{u.position || 'Vəzifə göstərilməyib'}</Typography>
-                        </Box>
-                        {u.work_phone && <Typography sx={{fontSize: 12.5, color: C.inkFaint}}>{u.work_phone}</Typography>}
-                    </Box>
-                ))}
-                {(tree.children[dept.id] || []).length > 0 && (
-                    <Box sx={{mt: (tree.users[dept.id] || []).length ? 1 : 0}}>
-                        {tree.children[dept.id].map((c) => renderDept(c, level + 1))}
+                {open && (
+                    <Box sx={{ml: '20px', pl: 0, borderLeft: `1.5px solid ${C.lineStrong}`, mt: 0.5}}>
+                        {members.map((u) => (
+                            <Box key={u.id} sx={{position: 'relative', pl: '22px', py: '3px',
+                                '&::before': {content: '""', position: 'absolute', left: 0, top: '50%', width: 14, borderTop: `1.5px solid ${C.lineStrong}`}}}>
+                                <Box ref={(el) => { rowRefs.current[u.id] = el; }} role="button" tabIndex={0}
+                                     onClick={() => setSelectedId(u.id)}
+                                     onKeyDown={(e) => { if (e.key === 'Enter') setSelectedId(u.id); }}
+                                     sx={{
+                                         display: 'flex', alignItems: 'center', gap: 1.5, p: '6px 10px', borderRadius: '10px', cursor: 'pointer',
+                                         backgroundColor: u.id === selectedId ? `${BRAND.navy600}14` : 'transparent',
+                                         outline: u.id === selectedId ? `1px solid ${BRAND.navy600}66` : 'none',
+                                         '&:hover': {backgroundColor: u.id === selectedId ? `${BRAND.navy600}14` : C.surfaceRaised},
+                                     }}>
+                                    <PersonAvatar user={u} size={36}/>
+                                    <Box sx={{minWidth: 0, flex: 1}}>
+                                        <Typography sx={{fontSize: 14, fontWeight: 600, color: C.ink, lineHeight: 1.25}}>{u.name}</Typography>
+                                        <Typography sx={{fontSize: 12.5, color: C.inkMuted}}>{u.position || 'Vəzifə göstərilməyib'}</Typography>
+                                    </Box>
+                                    {u.work_phone && <Typography sx={{fontSize: 12.5, color: C.inkFaint}}>{u.work_phone}</Typography>}
+                                </Box>
+                            </Box>
+                        ))}
+                        {subs.map((c) => (
+                            <Box key={c.id} sx={{py: '3px'}}>{renderDept(c, false)}</Box>
+                        ))}
+                        {!members.length && !subs.length && (
+                            <Typography sx={{fontSize: 13, color: C.inkFaint, pl: '22px', py: 0.75}}>Bu şöbədə əməkdaş yoxdur.</Typography>
+                        )}
                     </Box>
                 )}
-                {!(tree.users[dept.id] || []).length && !(tree.children[dept.id] || []).length && (
-                    <Typography sx={{fontSize: 13, color: C.inkFaint, px: 1, py: 0.5}}>Bu şöbədə əməkdaş yoxdur.</Typography>
-                )}
-            </AccordionDetails>
-        </Accordion>
-    );
+            </Box>
+        );
+    };
 
     const noDept = tree.users[0] || [];
 
@@ -255,7 +276,7 @@ export default function StructurePage() {
                     {!data ? [0, 1, 2, 3].map((i) => <Skeleton key={i} variant="rounded" height={52} sx={{mb: 1, borderRadius: '10px'}}/>)
                         : data.departments.length === 0 && noDept.length === 0 ? <EmptyState title="Struktur məlumatı yoxdur"/>
                         : tree.roots.map((d) => renderDept(d))}
-                    {noDept.length > 0 && renderDept({id: 0, title: 'Şöbəsiz əməkdaşlar'})}
+                    {noDept.length > 0 && renderDept({id: 0, title: 'Şöbəsiz əməkdaşlar'}, true)}
                 </Box>
                 <Box sx={{position: {md: 'sticky'}, top: {md: 96}}}>
                     <ProfileCard user={selected} department={selected ? deptById[selected.department] : null}/>
